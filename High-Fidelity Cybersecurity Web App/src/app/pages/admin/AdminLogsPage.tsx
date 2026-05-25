@@ -1,111 +1,109 @@
-import { Shield, LogIn, Package, Users, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Search, Shield, UserCheck, Settings, ShoppingBag, AlertTriangle, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { adminGetLogs, type ActivityLog } from '../../api/admin';
 
-interface LogEntry {
-  id: number;
-  time: string;
-  date: string;
-  action: string;
-  user: string;
-  detail: string;
-  type: 'auth' | 'product' | 'order' | 'user' | 'system' | 'error';
-}
+const ACTION_ICONS: Record<string, React.ElementType> = {
+  login: UserCheck, logout: UserCheck, product: ShoppingBag,
+  order: ShoppingBag, settings: Settings, security: Shield, default: AlertTriangle,
+};
 
-const LOGS: LogEntry[] = [
-  { id: 1, time: '14:32:18', date: '25/05/2026', action: 'Produit modifié', user: 'admin@cyna-it.fr', detail: 'Cyna SOC Premium — prix mensuel : 1199€ → 1299€', type: 'product' },
-  { id: 2, time: '13:15:44', date: '25/05/2026', action: 'Nouvelle commande', user: 'système', detail: 'CYN-2026-0051 créée — TechCorp SA — 1 299€/mois', type: 'order' },
-  { id: 3, time: '11:48:22', date: '25/05/2026', action: 'Connexion admin', user: 'admin@cyna-it.fr', detail: 'Connexion réussie depuis IP: 82.65.4.12 — 2FA validé', type: 'auth' },
-  { id: 4, time: '10:22:05', date: '25/05/2026', action: 'Utilisateur créé', user: 'admin@cyna-it.fr', detail: 'Nouveau compte : jean.dupont@techcorp.fr — TechCorp SA', type: 'user' },
-  { id: 5, time: '09:05:33', date: '25/05/2026', action: 'Tentative échouée', user: 'unknown', detail: '3 tentatives de connexion admin depuis IP: 45.123.56.78', type: 'error' },
-  { id: 6, time: '22:45:11', date: '24/05/2026', action: 'Sauvegarde BDD', user: 'système', detail: 'Backup MySQL chiffré AES-256 — taille: 45.2 MB — S3', type: 'system' },
-  { id: 7, time: '18:30:00', date: '24/05/2026', action: 'Commande annulée', user: 'admin@cyna-it.fr', detail: 'CYN-2026-0046 annulée — CyberGuard — Demande client', type: 'order' },
-  { id: 8, time: '15:12:40', date: '24/05/2026', action: 'Catégorie modifiée', user: 'admin@cyna-it.fr', detail: 'EDR — Description mise à jour', type: 'product' },
-  { id: 9, time: '08:00:00', date: '24/05/2026', action: 'Démarrage système', user: 'système', detail: 'API CYNA v1.0 démarrée — uptime 0ms — toutes dépendances OK', type: 'system' },
-];
-
-const typeConfig = {
-  auth: { icon: LogIn, color: '#00B4D8', label: 'Auth' },
-  product: { icon: Package, color: '#8B5CF6', label: 'Produit' },
-  order: { icon: CheckCircle, color: '#10B981', label: 'Commande' },
-  user: { icon: Users, color: '#F59E0B', label: 'Utilisateur' },
-  system: { icon: Shield, color: '#6B7280', label: 'Système' },
-  error: { icon: XCircle, color: '#EF4444', label: 'Erreur' },
+const getIcon = (action: string): React.ElementType => {
+  const key = Object.keys(ACTION_ICONS).find((k) => action.toLowerCase().includes(k));
+  return ACTION_ICONS[key ?? 'default'];
 };
 
 export function AdminLogsPage() {
+  const [logs, setLogs]       = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
+  const [search, setSearch]   = useState('');
+  const [type, setType]       = useState('all');
+  const [page, setPage]       = useState(1);
+  const [total, setTotal]     = useState(0);
+  const PER_PAGE = 20;
+
+  const load = () => {
+    setLoading(true);
+    adminGetLogs({ search: search || undefined, type: type !== 'all' ? type : undefined, page })
+      .then((r) => { setLogs(r.data); setTotal(r.total); })
+      .catch(() => setError('Impossible de charger les logs.'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, [search, type, page]);
+
+  const lastPage = Math.ceil(total / PER_PAGE) || 1;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-            <AlertTriangle className="w-7 h-7 text-[#F59E0B]" />
-            Logs d'activité
-          </h1>
-          <p className="text-gray-400">Journal complet des actions critiques — conservation 30 jours</p>
+      <div>
+        <h1 className="text-4xl font-bold text-white mb-1">Logs d'activité</h1>
+        <p className="text-gray-400">{total} événements enregistrés</p>
+      </div>
+
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-64">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            type="text" placeholder="Rechercher dans les logs..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
         </div>
+        <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}
+          className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]">
+          <option value="all" className="bg-[#0F1F3A]">Tous les types</option>
+          <option value="auth" className="bg-[#0F1F3A]">Authentification</option>
+          <option value="product" className="bg-[#0F1F3A]">Produits</option>
+          <option value="order" className="bg-[#0F1F3A]">Commandes</option>
+          <option value="security" className="bg-[#0F1F3A]">Sécurité</option>
+        </select>
       </div>
 
-      {/* Type Legend */}
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(typeConfig).map(([key, { color, label }]) => (
-          <span
-            key={key}
-            className="px-3 py-1.5 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }}
-          >
-            {label}
-          </span>
-        ))}
-      </div>
+      {loading && <div className="flex items-center gap-3 text-gray-400 py-8"><Loader2 className="w-5 h-5 animate-spin" />Chargement...</div>}
+      {error && <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl px-5 py-4"><AlertCircle className="w-5 h-5 text-red-400" /><span className="text-red-400">{error}</span></div>}
 
-      {/* Logs */}
-      <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
-        <div className="divide-y divide-white/5">
-          {LOGS.map((log) => {
-            const { icon: Icon, color, label } = typeConfig[log.type];
-            return (
-              <div key={log.id} className="flex items-start gap-4 px-6 py-4 hover:bg-white/[0.03] transition-colors">
-                {/* Icon */}
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ backgroundColor: `${color}15`, border: `1px solid ${color}30` }}
-                >
-                  <Icon className="w-4 h-4" style={{ color }} />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1 flex-wrap">
-                    <span className="text-white font-semibold text-sm">{log.action}</span>
-                    <span
-                      className="px-2 py-0.5 rounded text-xs font-semibold"
-                      style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }}
-                    >
-                      {label}
-                    </span>
-                    {log.type === 'error' && (
-                      <span className="px-2 py-0.5 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 rounded text-xs font-semibold animate-pulse">
-                        ⚠ Alerte
-                      </span>
-                    )}
+      {!loading && (
+        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
+          <div className="divide-y divide-white/5">
+            {logs.length === 0 && <div className="text-center py-12 text-gray-400">Aucun log trouvé.</div>}
+            {logs.map((log) => {
+              const Icon = getIcon(log.action);
+              return (
+                <div key={log.id} className="flex items-start gap-4 px-6 py-4 hover:bg-white/[0.02] transition-colors">
+                  <div className="w-10 h-10 bg-[#00B4D8]/10 border border-[#00B4D8]/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Icon className="w-5 h-5 text-[#00B4D8]" />
                   </div>
-                  <p className="text-gray-400 text-sm leading-relaxed">{log.detail}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-gray-600 text-xs">
-                    <span>👤 {log.user}</span>
-                    <span>📅 {log.date}</span>
-                    <span>🕐 {log.time}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-white font-medium">{log.action}</span>
+                      {log.user_id && <span className="text-xs text-gray-500">user #{log.user_id}</span>}
+                    </div>
+                    <p className="text-sm text-gray-400 mt-0.5">{log.detail}</p>
+                    <p className="text-xs text-gray-600 mt-1">IP : {log.ip_address}</p>
+                  </div>
+                  <div className="text-xs text-gray-500 flex-shrink-0 whitespace-nowrap">
+                    {new Date(log.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
+              );
+            })}
+          </div>
+          {lastPage > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-white/10">
+              <span className="text-sm text-gray-400">Page {page} / {lastPage}</span>
+              <div className="flex gap-2">
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                  className="p-2 text-gray-400 hover:text-white disabled:opacity-40 hover:bg-white/5 rounded-lg">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={page === lastPage}
+                  className="p-2 text-gray-400 hover:text-white disabled:opacity-40 hover:bg-white/5 rounded-lg">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="text-center py-4">
-        <p className="text-gray-600 text-sm">
-          Affichage des 9 derniers événements — conformité RGPD & ISO 27001 ✓
-        </p>
-      </div>
+      )}
     </div>
   );
 }

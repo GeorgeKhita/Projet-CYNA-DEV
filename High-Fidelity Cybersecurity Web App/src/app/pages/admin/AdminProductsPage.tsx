@@ -1,323 +1,226 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Search, Shield, Laptop, Globe, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Pencil, Trash2, Search, Shield, Laptop, Globe, Loader2, AlertCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { adminGetProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, adminToggleProduct, type Product } from '../../api/products';
 
-interface Product {
-  id: number;
-  name: string;
-  category: 'SOC' | 'EDR' | 'XDR';
-  categoryColor: string;
-  priceMonthly: number;
-  priceAnnual: number;
-  available: boolean;
-  popular: boolean;
-}
+const categoryIcons: Record<string, React.ElementType> = { SOC: Shield, EDR: Laptop, XDR: Globe };
+const categoryColors: Record<string, string> = { SOC: '#00B4D8', EDR: '#8B5CF6', XDR: '#10B981' };
 
-const initialProducts: Product[] = [
-  { id: 1, name: 'Cyna SOC Premium', category: 'SOC', categoryColor: '#00B4D8', priceMonthly: 1299, priceAnnual: 1079, available: true, popular: true },
-  { id: 2, name: 'Cyna EDR Enterprise', category: 'EDR', categoryColor: '#8B5CF6', priceMonthly: 899, priceAnnual: 746, available: true, popular: true },
-  { id: 3, name: 'Cyna XDR Suite', category: 'XDR', categoryColor: '#10B981', priceMonthly: 1799, priceAnnual: 1493, available: true, popular: true },
-  { id: 4, name: 'Cyna SOC Essentials', category: 'SOC', categoryColor: '#00B4D8', priceMonthly: 699, priceAnnual: 580, available: true, popular: false },
-  { id: 5, name: 'Cyna EDR Pro', category: 'EDR', categoryColor: '#8B5CF6', priceMonthly: 1199, priceAnnual: 995, available: false, popular: false },
-  { id: 6, name: 'Cyna XDR Enterprise', category: 'XDR', categoryColor: '#10B981', priceMonthly: 2499, priceAnnual: 2074, available: true, popular: false },
-];
-
-const categoryIcons = { SOC: Shield, EDR: Laptop, XDR: Globe };
-
-type FormState = Omit<Product, 'id'> & { id?: number };
-
-const emptyForm: FormState = {
-  name: '',
-  category: 'SOC',
-  categoryColor: '#00B4D8',
-  priceMonthly: 0,
-  priceAnnual: 0,
-  available: true,
-  popular: false,
-};
-
-const categoryColors: Record<string, string> = {
-  SOC: '#00B4D8',
-  EDR: '#8B5CF6',
-  XDR: '#10B981',
-};
+type FormState = Omit<Product, 'id' | 'created_at'> & { id?: number };
+const emptyForm: FormState = { name: '', category: 'SOC', description: '', price_monthly: 0, price_annual: 0, available: true, popular: false };
 
 export function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [search, setSearch] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [products, setProducts]   = useState<Product[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
+  const [search, setSearch]       = useState('');
+  const [showForm, setShowForm]   = useState(false);
+  const [form, setForm]           = useState<FormState>(emptyForm);
+  const [saving, setSaving]       = useState(false);
+  const [deleteId, setDeleteId]   = useState<number | null>(null);
+
+  const load = () => {
+    setLoading(true);
+    adminGetProducts()
+      .then((r) => setProducts(r.data))
+      .catch(() => setError('Impossible de charger les produits.'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openCreate = () => {
-    setForm(emptyForm);
-    setShowForm(true);
-  };
-
+  const openCreate = () => { setForm(emptyForm); setShowForm(true); };
   const openEdit = (p: Product) => {
-    setForm({ ...p });
+    setForm({ id: p.id, name: p.name, category: p.category, description: p.description, price_monthly: p.price_monthly, price_annual: p.price_annual, available: p.available, popular: p.popular });
     setShowForm(true);
   };
 
-  const saveProduct = () => {
-    if (!form.name || !form.priceMonthly) return;
-    const color = categoryColors[form.category];
-    if (form.id) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === form.id ? { ...(form as Product), categoryColor: color } : p))
-      );
-    } else {
-      setProducts((prev) => [
-        ...prev,
-        { ...(form as Product), id: Date.now(), categoryColor: color },
-      ]);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (form.id) {
+        await adminUpdateProduct(form.id, form);
+      } else {
+        await adminCreateProduct(form);
+      }
+      setShowForm(false);
+      load();
+    } catch {
+      alert('Erreur lors de la sauvegarde.');
+    } finally {
+      setSaving(false);
     }
-    setShowForm(false);
   };
 
-  const confirmDelete = (id: number) => setDeleteId(id);
-
-  const doDelete = () => {
-    if (deleteId !== null) {
-      setProducts((prev) => prev.filter((p) => p.id !== deleteId));
+  const handleDelete = async (id: number) => {
+    try {
+      await adminDeleteProduct(id);
       setDeleteId(null);
+      load();
+    } catch {
+      alert('Erreur lors de la suppression.');
     }
   };
 
-  const toggleAvailable = (id: number) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, available: !p.available } : p))
-    );
+  const handleToggle = async (id: number) => {
+    try {
+      await adminToggleProduct(id);
+      load();
+    } catch {
+      alert('Erreur lors de la mise à jour.');
+    }
   };
+
+  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]';
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Produits SaaS</h1>
-          <p className="text-gray-400">{products.length} produit{products.length > 1 ? 's' : ''} au catalogue</p>
+          <h1 className="text-4xl font-bold text-white mb-1">Produits</h1>
+          <p className="text-gray-400">Gérez le catalogue SaaS</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Nouveau produit
+        <button onClick={openCreate} className="flex items-center gap-2 px-5 py-2.5 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors">
+          <Plus className="w-5 h-5" /> Nouveau produit
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un produit..."
-          className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-        />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)}
+          type="text" placeholder="Rechercher un produit..."
+          className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
       </div>
 
-      {/* Table */}
-      <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-left px-6 py-4 text-gray-400 text-sm font-medium">Produit</th>
-              <th className="text-left px-6 py-4 text-gray-400 text-sm font-medium">Catégorie</th>
-              <th className="text-right px-6 py-4 text-gray-400 text-sm font-medium">Mensuel</th>
-              <th className="text-right px-6 py-4 text-gray-400 text-sm font-medium">Annuel</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Dispo</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filtered.map((product) => {
-              const Icon = categoryIcons[product.category];
-              return (
-                <tr key={product.id} className="hover:bg-white/[0.03] transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: `${product.categoryColor}20`, border: `1px solid ${product.categoryColor}40` }}
-                      >
-                        <Icon className="w-4 h-4" style={{ color: product.categoryColor }} />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{product.name}</div>
-                        {product.popular && (
-                          <span className="text-[#F59E0B] text-xs font-semibold">★ Populaire</span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-semibold"
-                      style={{ backgroundColor: `${product.categoryColor}20`, color: product.categoryColor, border: `1px solid ${product.categoryColor}40` }}
-                    >
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-white font-semibold">{product.priceMonthly.toLocaleString('fr-FR')}€</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-gray-400">{product.priceAnnual.toLocaleString('fr-FR')}€</span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button onClick={() => toggleAvailable(product.id)} className="transition-colors">
-                      {product.available ? (
-                        <ToggleRight className="w-7 h-7 text-[#10B981]" />
-                      ) : (
-                        <ToggleLeft className="w-7 h-7 text-gray-600" />
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => openEdit(product)}
-                        className="w-9 h-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center hover:bg-[#00B4D8]/20 hover:border-[#00B4D8]/40 transition-colors"
-                      >
-                        <Pencil className="w-4 h-4 text-gray-300" />
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(product.id)}
-                        className="w-9 h-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center hover:bg-[#EF4444]/20 hover:border-[#EF4444]/40 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-300" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <div className="py-16 text-center text-gray-500">Aucun produit trouvé</div>
-        )}
-      </div>
+      {loading && <div className="flex items-center gap-3 text-gray-400 py-8"><Loader2 className="w-5 h-5 animate-spin" />Chargement...</div>}
+      {error && <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl px-5 py-4"><AlertCircle className="w-5 h-5 text-red-400" /><span className="text-red-400">{error}</span></div>}
 
-      {/* Form Modal */}
+      {!loading && (
+        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10">
+                {['Produit', 'Catégorie', 'Mensuel', 'Annuel', 'Statut', 'Actions'].map((h) => (
+                  <th key={h} className="text-left px-6 py-4 text-gray-400 text-sm font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p) => {
+                const Icon = categoryIcons[p.category] ?? Shield;
+                const color = categoryColors[p.category] ?? '#00B4D8';
+                return (
+                  <tr key={p.id} className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${!p.available ? 'opacity-60' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div className="text-white font-semibold">{p.name}</div>
+                      {p.popular && <span className="text-xs text-[#F59E0B] font-medium">⭐ Populaire</span>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}40` }}>
+                          <Icon className="w-4 h-4" style={{ color }} />
+                        </div>
+                        <span className="text-sm font-medium" style={{ color }}>{p.category}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-white font-semibold">{p.price_monthly.toLocaleString('fr-FR')}€</td>
+                    <td className="px-6 py-4 text-gray-300">{p.price_annual.toLocaleString('fr-FR')}€</td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => handleToggle(p.id)} className="flex items-center gap-2 text-sm font-medium transition-colors">
+                        {p.available
+                          ? <><ToggleRight className="w-5 h-5 text-[#10B981]" /><span className="text-[#10B981]">Disponible</span></>
+                          : <><ToggleLeft className="w-5 h-5 text-red-400" /><span className="text-red-400">Indisponible</span></>}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(p)} className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setDeleteId(p.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal Formulaire */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowForm(false)} />
-          <div className="relative bg-[#0F1F3A] border border-white/10 rounded-xl p-8 w-full max-w-lg shadow-2xl">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              {form.id ? 'Modifier le produit' : 'Nouveau produit'}
-            </h2>
-            <div className="space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0F1F3A] border border-white/10 rounded-xl p-8 w-full max-w-lg">
+            <h2 className="text-2xl font-bold text-white mb-6">{form.id ? 'Modifier' : 'Créer'} un produit</h2>
+            <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-white font-medium mb-1">Nom du produit</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-                  placeholder="Cyna SOC Premium"
-                />
+                <label className="block text-white text-sm font-medium mb-1">Nom</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} placeholder="Cyna SOC Premium" />
               </div>
               <div>
-                <label className="block text-white font-medium mb-1">Catégorie</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as 'SOC' | 'EDR' | 'XDR' }))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-                >
-                  <option value="SOC">SOC</option>
-                  <option value="EDR">EDR</option>
-                  <option value="XDR">XDR</option>
+                <label className="block text-white text-sm font-medium mb-1">Catégorie</label>
+                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as 'SOC' | 'EDR' | 'XDR' })}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]">
+                  {['SOC', 'EDR', 'XDR'].map((c) => <option key={c} value={c} className="bg-[#0F1F3A]">{c}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="block text-white text-sm font-medium mb-1">Description</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className={`${inputCls} resize-none`} rows={2} placeholder="Description du service..." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white font-medium mb-1">Prix mensuel (€)</label>
-                  <input
-                    type="number"
-                    value={form.priceMonthly || ''}
-                    onChange={(e) => setForm((f) => ({ ...f, priceMonthly: Number(e.target.value) }))}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-                  />
+                  <label className="block text-white text-sm font-medium mb-1">Prix mensuel (€)</label>
+                  <input type="number" value={form.price_monthly} onChange={(e) => setForm({ ...form, price_monthly: Number(e.target.value) })} required min={0} className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-1">Prix annuel (€/mois)</label>
-                  <input
-                    type="number"
-                    value={form.priceAnnual || ''}
-                    onChange={(e) => setForm((f) => ({ ...f, priceAnnual: Number(e.target.value) }))}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-                  />
+                  <label className="block text-white text-sm font-medium mb-1">Prix annuel (€)</label>
+                  <input type="number" value={form.price_annual} onChange={(e) => setForm({ ...form, price_annual: Number(e.target.value) })} required min={0} className={inputCls} />
                 </div>
               </div>
-              <div className="flex gap-6">
+              <div className="flex items-center gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.available}
-                    onChange={(e) => setForm((f) => ({ ...f, available: e.target.checked }))}
-                    className="w-4 h-4 rounded"
-                  />
-                  <span className="text-gray-300 text-sm">Disponible</span>
+                  <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="w-4 h-4 accent-[#00B4D8]" />
+                  <span className="text-white text-sm">Disponible</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.popular}
-                    onChange={(e) => setForm((f) => ({ ...f, popular: e.target.checked }))}
-                    className="w-4 h-4 rounded"
-                  />
-                  <span className="text-gray-300 text-sm">Populaire</span>
+                  <input type="checkbox" checked={form.popular} onChange={(e) => setForm({ ...form, popular: e.target.checked })} className="w-4 h-4 accent-[#F59E0B]" />
+                  <span className="text-white text-sm">Populaire</span>
                 </label>
               </div>
-            </div>
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={saveProduct}
-                className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
-              >
-                {form.id ? 'Enregistrer' : 'Créer le produit'}
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex-1 py-3 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                Annuler
-              </button>
-            </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 border border-white/10 text-gray-400 hover:text-white rounded-lg font-medium transition-colors">Annuler</button>
+                <button type="submit" disabled={saving} className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {saving ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirm Modal */}
+      {/* Modal Suppression */}
       {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setDeleteId(null)} />
-          <div className="relative bg-[#0F1F3A] border border-white/10 rounded-xl p-8 w-full max-w-sm shadow-2xl text-center">
-            <div className="w-14 h-14 bg-[#EF4444]/20 border border-[#EF4444]/40 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-7 h-7 text-[#EF4444]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0F1F3A] border border-white/10 rounded-xl p-8 w-full max-w-md text-center">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-8 h-8 text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Supprimer ce produit ?</h3>
-            <p className="text-gray-400 text-sm mb-6">Cette action est irréversible.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">Supprimer ce produit ?</h3>
+            <p className="text-gray-400 mb-6">Cette action est irréversible.</p>
             <div className="flex gap-3">
-              <button
-                onClick={doDelete}
-                className="flex-1 py-3 bg-[#EF4444] text-white font-semibold rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Supprimer
-              </button>
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                Annuler
-              </button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-3 border border-white/10 text-gray-400 hover:text-white rounded-lg font-medium transition-colors">Annuler</button>
+              <button onClick={() => handleDelete(deleteId)} className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors">Supprimer</button>
             </div>
           </div>
         </div>

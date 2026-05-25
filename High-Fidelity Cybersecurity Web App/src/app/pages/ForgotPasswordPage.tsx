@@ -1,13 +1,26 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { forgotPassword } from '../api/auth';
 
 export function ForgotPasswordPage() {
+  const [email, setEmail]         = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError('');
+    setLoading(true);
+    try {
+      await forgotPassword(email);
+      setSubmitted(true);
+    } catch {
+      setError("Une erreur est survenue. Vérifiez l'adresse email.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,6 +54,12 @@ export function ForgotPasswordPage() {
 
           {!submitted && (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span className="text-red-400 text-sm">{error}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-white font-medium mb-2">Email</label>
                 <div className="relative">
@@ -48,6 +67,8 @@ export function ForgotPasswordPage() {
                   <input
                     type="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="votre.email@entreprise.com"
                     className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
                   />
@@ -56,9 +77,11 @@ export function ForgotPasswordPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+                disabled={loading}
+                className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                Envoyer le lien
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {loading ? 'Envoi...' : 'Envoyer le lien'}
               </button>
             </form>
           )}

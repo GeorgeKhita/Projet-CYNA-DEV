@@ -1,7 +1,28 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Shield, Laptop, Globe, ArrowRight, Star, Zap, Clock, Users, CheckCircle } from 'lucide-react';
+import { getProducts, type Product } from '../api/products';
+
+const CATEGORY_COLORS: Record<string, string> = {
+  SOC: '#00B4D8',
+  EDR: '#8B5CF6',
+  XDR: '#10B981',
+};
+const getCategoryColor = (cat: string) => CATEGORY_COLORS[cat?.toUpperCase()] ?? '#00B4D8';
 
 export function HomePage() {
+  const [topProducts, setTopProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts()
+      .then((all) => {
+        const popular = all.filter((p) => p.popular && p.available).slice(0, 3);
+        const others  = all.filter((p) => p.available && !popular.find((x) => x.id === p.id));
+        setTopProducts([...popular, ...others].slice(0, 3));
+      })
+      .catch(() => {/* use empty state */});
+  }, []);
+
   const categories = [
     {
       id: 'soc',
@@ -32,32 +53,6 @@ export function HomePage() {
     },
   ];
 
-  const topProducts = [
-    {
-      id: 1,
-      name: 'Cyna SOC Premium',
-      category: 'SOC',
-      categoryColor: '#00B4D8',
-      description: 'Solution SOC complète avec surveillance 24/7 et analyse comportementale avancée',
-      price: '1 299',
-    },
-    {
-      id: 2,
-      name: 'Cyna EDR Enterprise',
-      category: 'EDR',
-      categoryColor: '#8B5CF6',
-      description: 'Protection endpoint intelligente avec réponse automatisée aux incidents',
-      price: '899',
-    },
-    {
-      id: 3,
-      name: 'Cyna XDR Suite',
-      category: 'XDR',
-      categoryColor: '#10B981',
-      description: 'Plateforme unifiée de détection et réponse étendue multi-vecteurs',
-      price: '1 799',
-    },
-  ];
 
   const stats = [
     { value: '500+', label: 'Entreprises protégées', icon: Users },
@@ -246,50 +241,70 @@ export function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {topProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all hover:scale-[1.02] group"
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">{product.name}</h3>
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{
-                      backgroundColor: `${product.categoryColor}20`,
-                      color: product.categoryColor,
-                      border: `1px solid ${product.categoryColor}40`,
-                    }}
+          {topProducts.length > 0
+            ? topProducts.map((product) => {
+                const color = getCategoryColor(product.category);
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all hover:scale-[1.02] group"
                   >
-                    {product.category}
-                  </span>
-                </div>
-                <p className="text-gray-400 mb-6 leading-relaxed">{product.description}</p>
-                <div className="flex items-end justify-between mb-5">
-                  <div>
-                    <span className="text-3xl font-bold text-[#00B4D8]">{product.price}€</span>
-                    <span className="text-gray-400">/mois</span>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-white">{product.name}</h3>
+                        <span
+                          className="px-3 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor: `${color}20`,
+                            color,
+                            border: `1px solid ${color}40`,
+                          }}
+                        >
+                          {product.category}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 mb-6 leading-relaxed min-h-[60px]">{product.description}</p>
+                      <div className="flex items-end justify-between mb-5">
+                        <div>
+                          <span className="text-3xl font-bold text-[#00B4D8]">
+                            {product.price_monthly.toLocaleString('fr-FR')}€
+                          </span>
+                          <span className="text-gray-400">/mois</span>
+                        </div>
+                        <span className="text-xs text-gray-500">Facturation mensuelle</span>
+                      </div>
+                    </div>
+                    <div className="px-6 pb-6 flex gap-3">
+                      <Link
+                        to={`/produit/${product.id}`}
+                        className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
+                      >
+                        Voir le produit
+                      </Link>
+                      <Link
+                        to={`/produit/${product.id}`}
+                        className="px-4 py-3 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 hover:text-white transition-colors text-sm font-medium"
+                      >
+                        Essai
+                      </Link>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-500">Facturation mensuelle</span>
+                );
+              })
+            : /* Skeleton loader */ [1, 2, 3].map((i) => (
+                <div key={i} className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden animate-pulse">
+                  <div className="p-6">
+                    <div className="h-6 bg-white/5 rounded mb-4 w-3/4" />
+                    <div className="h-4 bg-white/5 rounded mb-2 w-full" />
+                    <div className="h-4 bg-white/5 rounded mb-6 w-2/3" />
+                    <div className="h-8 bg-white/5 rounded w-1/2" />
+                  </div>
+                  <div className="px-6 pb-6">
+                    <div className="h-10 bg-white/5 rounded" />
+                  </div>
                 </div>
-              </div>
-              <div className="px-6 pb-6 flex gap-3">
-                <Link
-                  to={`/produit/${product.id}`}
-                  className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
-                >
-                  Voir le produit
-                </Link>
-                <Link
-                  to={`/produit/${product.id}`}
-                  className="px-4 py-3 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 hover:text-white transition-colors text-sm font-medium"
-                >
-                  Essai
-                </Link>
-              </div>
-            </div>
-          ))}
+              ))
+          }
         </div>
       </section>
 

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminCarouselController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
+use App\Http\Controllers\Api\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,9 @@ Route::prefix('auth')->group(function () {
 Route::get('/products',          [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/categories',        [CategoryController::class, 'index']);
+
+// Formulaire de contact
+Route::post('/contact', [ContactController::class, 'send']);
 
 // ── Routes authentifiées (Sanctum) ───────────────────────────────────────
 

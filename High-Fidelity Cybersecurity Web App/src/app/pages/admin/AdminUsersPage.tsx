@@ -1,175 +1,136 @@
-import { useState } from 'react';
-import { Search, UserCheck, UserX, Shield, Mail, Building, MoreVertical } from 'lucide-react';
-
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  company: string;
-  role: 'admin' | 'user';
-  active: boolean;
-  subscriptions: number;
-  joinDate: string;
-}
-
-const USERS: User[] = [
-  { id: 1, firstName: 'Jean', lastName: 'Dupont', email: 'jean.dupont@techcorp.fr', company: 'TechCorp SA', role: 'user', active: true, subscriptions: 3, joinDate: '12/01/2026' },
-  { id: 2, firstName: 'Marie', lastName: 'Martin', email: 'marie.martin@infosec.co.uk', company: 'InfoSec Ltd', role: 'user', active: true, subscriptions: 1, joinDate: '05/02/2026' },
-  { id: 3, firstName: 'Paul', lastName: 'Bernard', email: 'p.bernard@datashield.fr', company: 'DataShield FR', role: 'user', active: false, subscriptions: 2, joinDate: '20/02/2026' },
-  { id: 4, firstName: 'Sophie', lastName: 'Leclerc', email: 'sleclerc@securepme.fr', company: 'SecurePME', role: 'user', active: true, subscriptions: 1, joinDate: '01/03/2026' },
-  { id: 5, firstName: 'Admin', lastName: 'CYNA', email: 'admin@cyna-it.fr', company: 'CYNA-IT', role: 'admin', active: true, subscriptions: 0, joinDate: '01/01/2026' },
-  { id: 6, firstName: 'Lucas', lastName: 'Moreau', email: 'lucas@globalsec.com', company: 'GlobalSec', role: 'user', active: true, subscriptions: 2, joinDate: '10/03/2026' },
-  { id: 7, firstName: 'Emma', lastName: 'Petit', email: 'emma.petit@cyberguard.fr', company: 'CyberGuard', role: 'user', active: false, subscriptions: 0, joinDate: '15/04/2026' },
-];
+import { useEffect, useState } from 'react';
+import { Search, UserCheck, UserX, Shield, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { adminGetUsers, adminToggleUser, adminDeleteUser, type AdminUser } from '../../api/admin';
 
 export function AdminUsersPage() {
-  const [search, setSearch] = useState('');
-  const [users, setUsers] = useState(USERS);
+  const [users, setUsers]     = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
+  const [search, setSearch]   = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const filtered = users.filter(
-    (u) =>
-      u.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      u.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.company.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const toggleActive = (id: number) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, active: !u.active } : u)));
+  const load = () => {
+    setLoading(true);
+    adminGetUsers({ search: search || undefined })
+      .then((r) => setUsers(r.data))
+      .catch(() => setError('Impossible de charger les utilisateurs.'))
+      .finally(() => setLoading(false));
   };
 
-  const activeCount = users.filter((u) => u.active && u.role === 'user').length;
-  const adminCount = users.filter((u) => u.role === 'admin').length;
+  useEffect(() => { load(); }, [search]);
+
+  const handleToggle = async (id: number) => {
+    try { await adminToggleUser(id); load(); }
+    catch { alert('Erreur lors de la mise à jour.'); }
+  };
+
+  const handleDelete = async (id: number) => {
+    try { await adminDeleteUser(id); setDeleteId(null); load(); }
+    catch { alert('Erreur lors de la suppression.'); }
+  };
+
+  const activeCount = users.filter((u) => u.is_active && u.role === 'user').length;
+  const adminCount  = users.filter((u) => u.role === 'admin').length;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Utilisateurs</h1>
-          <p className="text-gray-400">
-            {activeCount} actif{activeCount > 1 ? 's' : ''} · {adminCount} admin{adminCount > 1 ? 's' : ''}
-          </p>
+          <h1 className="text-4xl font-bold text-white mb-1">Utilisateurs</h1>
+          <p className="text-gray-400">{users.length} utilisateurs enregistrés</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-center">
+            <div className="text-2xl font-bold text-[#10B981]">{activeCount}</div>
+            <div className="text-xs text-gray-400">Clients actifs</div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-center">
+            <div className="text-2xl font-bold text-[#8B5CF6]">{adminCount}</div>
+            <div className="text-xs text-gray-400">Admins</div>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Total utilisateurs', value: users.length, color: '#00B4D8' },
-          { label: 'Comptes actifs', value: users.filter((u) => u.active).length, color: '#10B981' },
-          { label: 'Comptes inactifs', value: users.filter((u) => !u.active).length, color: '#EF4444' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-5">
-            <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
-            <div className="text-gray-400 text-sm">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un utilisateur..."
-          className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
-        />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)}
+          type="text" placeholder="Rechercher un utilisateur..."
+          className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
       </div>
 
-      {/* Table */}
-      <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-left px-6 py-4 text-gray-400 text-sm font-medium">Utilisateur</th>
-              <th className="text-left px-6 py-4 text-gray-400 text-sm font-medium">Entreprise</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Rôle</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Abonnements</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Statut</th>
-              <th className="text-center px-6 py-4 text-gray-400 text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {filtered.map((user) => (
-              <tr key={user.id} className="hover:bg-white/[0.03] transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#00B4D8]/30 to-[#8B5CF6]/30 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      {user.firstName[0]}{user.lastName[0]}
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">{user.firstName} {user.lastName}</div>
-                      <div className="flex items-center gap-1 text-gray-500 text-xs">
-                        <Mail className="w-3 h-3" />
-                        {user.email}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-300 text-sm">
-                    <Building className="w-4 h-4 text-gray-500" />
-                    {user.company}
-                  </div>
-                  <div className="text-gray-500 text-xs mt-0.5">Depuis le {user.joinDate}</div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {user.role === 'admin' ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/40 rounded-full text-xs font-semibold">
-                      <Shield className="w-3 h-3" />
-                      Admin
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 text-gray-400 border border-white/20 rounded-full text-xs font-semibold">
-                      Utilisateur
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="text-[#00B4D8] font-semibold">{user.subscriptions}</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  {user.active ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 rounded-full text-xs font-semibold">
-                      <UserCheck className="w-3 h-3" />
-                      Actif
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 rounded-full text-xs font-semibold">
-                      <UserX className="w-3 h-3" />
-                      Inactif
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <button
-                    onClick={() => toggleActive(user.id)}
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center mx-auto transition-colors border ${
-                      user.active
-                        ? 'bg-[#EF4444]/10 border-[#EF4444]/30 hover:bg-[#EF4444]/20'
-                        : 'bg-[#10B981]/10 border-[#10B981]/30 hover:bg-[#10B981]/20'
-                    }`}
-                    title={user.active ? 'Désactiver' : 'Activer'}
-                  >
-                    {user.active ? (
-                      <UserX className="w-4 h-4 text-[#EF4444]" />
-                    ) : (
-                      <UserCheck className="w-4 h-4 text-[#10B981]" />
-                    )}
-                  </button>
-                </td>
+      {loading && <div className="flex items-center gap-3 text-gray-400 py-8"><Loader2 className="w-5 h-5 animate-spin" />Chargement...</div>}
+      {error && <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl px-5 py-4"><AlertCircle className="w-5 h-5 text-red-400" /><span className="text-red-400">{error}</span></div>}
+
+      {!loading && (
+        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10">
+                {['Utilisateur', 'Email', 'Entreprise', 'Rôle', 'Abonnements', 'Inscription', 'Statut', 'Actions'].map((h) => (
+                  <th key={h} className="text-left px-5 py-4 text-gray-400 text-sm font-medium">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <div className="py-16 text-center text-gray-500">Aucun utilisateur trouvé</div>
-        )}
-      </div>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id} className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${!u.is_active ? 'opacity-60' : ''}`}>
+                  <td className="px-5 py-4">
+                    <div className="text-white font-medium">{u.first_name} {u.last_name}</div>
+                  </td>
+                  <td className="px-5 py-4 text-gray-400 text-sm">{u.email}</td>
+                  <td className="px-5 py-4 text-gray-400 text-sm">{u.company ?? '—'}</td>
+                  <td className="px-5 py-4">
+                    {u.role === 'admin' ? (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 rounded-full text-xs font-semibold w-fit">
+                        <Shield className="w-3 h-3" /> Admin
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-white/5 text-gray-400 border border-white/10 rounded-full text-xs font-semibold">
+                        Client
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4 text-white text-sm">{u.subscriptions_count}</td>
+                  <td className="px-5 py-4 text-gray-400 text-sm">{new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
+                  <td className="px-5 py-4">
+                    <button onClick={() => handleToggle(u.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                        u.is_active
+                          ? 'text-[#10B981] bg-[#10B981]/20 border-[#10B981]/30 hover:bg-[#10B981]/30'
+                          : 'text-red-400 bg-red-400/20 border-red-400/30 hover:bg-red-400/30'
+                      }`}>
+                      {u.is_active ? <><UserCheck className="w-3 h-3" />Actif</> : <><UserX className="w-3 h-3" />Inactif</>}
+                    </button>
+                  </td>
+                  <td className="px-5 py-4">
+                    {u.role !== 'admin' && (
+                      <button onClick={() => setDeleteId(u.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {deleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#0F1F3A] border border-white/10 rounded-xl p-8 w-full max-w-md text-center">
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-8 h-8 text-red-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">Supprimer cet utilisateur ?</h3>
+            <p className="text-gray-400 mb-6">Cette action est irréversible.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-3 border border-white/10 text-gray-400 hover:text-white rounded-lg font-medium transition-colors">Annuler</button>
+              <button onClick={() => handleDelete(deleteId)} className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

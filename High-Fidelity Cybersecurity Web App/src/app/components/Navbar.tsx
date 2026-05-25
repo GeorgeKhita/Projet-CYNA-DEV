@@ -1,14 +1,25 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 
 export function Navbar() {
+  const navigate = useNavigate();
   const cartCount = useCartStore((s) => s.getTotalItems());
   const { user, isAuthenticated, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/catalogue?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setMobileOpen(false);
+    }
+  };
 
   const solutions = [
     { id: 'soc', name: 'SOC', description: 'Security Operations Center', color: '#00B4D8', icon: Shield },
@@ -83,16 +94,18 @@ export function Navbar() {
           </div>
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xs">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xs">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent text-sm"
               />
             </div>
-          </div>
+          </form>
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
@@ -146,14 +159,16 @@ export function Navbar() {
         {mobileOpen && (
           <div className="lg:hidden mt-4 pb-4 border-t border-white/10 pt-4 space-y-1">
             {/* Mobile Search */}
-            <div className="relative mb-4">
+            <form onSubmit={handleSearch} className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] text-sm"
               />
-            </div>
+            </form>
 
             {solutions.map((sol) => {
               const Icon = sol.icon;
@@ -187,20 +202,40 @@ export function Navbar() {
             </Link>
 
             <div className="pt-3 flex gap-3">
-              <Link
-                to="/connexion"
-                className="flex-1 py-2.5 bg-[#00B4D8] text-[#0A1628] font-medium rounded-lg text-center text-sm"
-                onClick={() => setMobileOpen(false)}
-              >
-                Connexion
-              </Link>
-              <Link
-                to="/inscription"
-                className="flex-1 py-2.5 border border-[#00B4D8] text-[#00B4D8] font-medium rounded-lg text-center text-sm"
-                onClick={() => setMobileOpen(false)}
-              >
-                Inscription
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/espace-client"
+                    className="flex-1 py-2.5 bg-[#00B4D8] text-[#0A1628] font-medium rounded-lg text-center text-sm"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Mon espace
+                  </Link>
+                  <button
+                    onClick={() => { logout(); setMobileOpen(false); }}
+                    className="flex-1 py-2.5 border border-white/20 text-gray-300 font-medium rounded-lg text-center text-sm"
+                  >
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/connexion"
+                    className="flex-1 py-2.5 bg-[#00B4D8] text-[#0A1628] font-medium rounded-lg text-center text-sm"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/inscription"
+                    className="flex-1 py-2.5 border border-[#00B4D8] text-[#00B4D8] font-medium rounded-lg text-center text-sm"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Inscription
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

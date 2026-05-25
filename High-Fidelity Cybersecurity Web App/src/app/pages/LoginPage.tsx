@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from ?? '/espace-client';
   const setUser = useAuthStore((s) => s.setUser);
 
   const [email, setEmail] = useState('');
@@ -28,7 +30,7 @@ export function LoginPage() {
         company: user.company ?? undefined,
         role: user.role,
       });
-      navigate('/espace-client');
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
       const msg =

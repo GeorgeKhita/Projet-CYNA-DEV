@@ -1,25 +1,59 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Mail, Lock, Shield } from 'lucide-react';
+import { Mail, Lock, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { login } from '../../api/auth';
+import { useAuthStore } from '../../store/authStore';
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'credentials' | '2fa'>('credentials');
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
+  const setUser = useAuthStore((s) => s.setUser);
 
-  const handleCredentials = (e: React.FormEvent) => {
+  const [step, setStep]     = useState<'credentials' | '2fa'>('credentials');
+  const [email, setEmail]   = useState('admin@cyna-it.fr');
+  const [password, setPassword] = useState('');
+  const [code, setCode]     = useState('');
+  const [error, setError]   = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('2fa');
     setError('');
+    setLoading(true);
+    try {
+      const { user } = await login({ email, password });
+      if (user.role !== 'admin') {
+        setError('Accès refusé. Ce compte n\'a pas les droits administrateur.');
+        return;
+      }
+      // Store user in auth
+      setUser({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        company: user.company ?? undefined,
+        role: user.role,
+      });
+      setStep('2fa');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const msg =
+        axiosErr?.response?.data?.errors?.email?.[0] ??
+        axiosErr?.response?.data?.message ??
+        'Identifiants incorrects.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handle2FA = (e: React.FormEvent) => {
     e.preventDefault();
-    if (code === '000000') {
+    // Demo: any 6-digit code accepted (real 2FA not implemented in backend)
+    if (code.length === 6) {
       navigate('/admin/dashboard');
     } else {
-      setError('Code invalide. (Démonstration : saisir 000000)');
+      setError('Code invalide. Saisir un code à 6 chiffres.');
     }
   };
 
@@ -39,6 +73,14 @@ export function AdminLoginPage() {
           {step === 'credentials' ? (
             <>
               <h2 className="text-xl font-semibold text-white mb-6">Connexion administrateur</h2>
+
+              {error && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-5">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
               <form onSubmit={handleCredentials} className="space-y-5">
                 <div>
                   <label className="block text-white font-medium mb-2">Email</label>
@@ -46,7 +88,9 @@ export function AdminLoginPage() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="email"
-                      defaultValue="admin@cyna-it.fr"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                       className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                     />
                   </div>
@@ -57,18 +101,27 @@ export function AdminLoginPage() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="password"
-                      defaultValue="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
                       className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                     />
                   </div>
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+                  disabled={loading}
+                  className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  Continuer
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {loading ? 'Vérification...' : 'Continuer'}
                 </button>
               </form>
+
+              <p className="text-center text-gray-600 text-xs mt-4">
+                Démo : admin@cyna-it.fr / Admin1234!
+              </p>
             </>
           ) : (
             <>
@@ -79,6 +132,14 @@ export function AdminLoginPage() {
                 <h2 className="text-xl font-semibold text-white mb-1">Vérification 2FA</h2>
                 <p className="text-gray-400 text-sm">Saisir le code de votre application authenticator</p>
               </div>
+
+              {error && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-5">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
               <form onSubmit={handle2FA} className="space-y-5">
                 <div>
                   <label className="block text-white font-medium mb-2">Code à 6 chiffres</label>
@@ -88,10 +149,10 @@ export function AdminLoginPage() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="000000"
+                    autoFocus
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                   />
-                  {error && <p className="text-[#EF4444] text-sm mt-2">{error}</p>}
-                  <p className="text-gray-500 text-xs mt-2 text-center">Demo : saisir 000000</p>
+                  <p className="text-gray-500 text-xs mt-2 text-center">Démo : saisir n'importe quel code à 6 chiffres</p>
                 </div>
                 <button
                   type="submit"
@@ -102,7 +163,7 @@ export function AdminLoginPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStep('credentials')}
+                  onClick={() => { setStep('credentials'); setCode(''); setError(''); }}
                   className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
                 >
                   ← Retour

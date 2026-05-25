@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router';
 import { Layout } from './components/Layout';
 import { AdminLayout } from './components/AdminLayout';
+import { PrivateRoute } from './components/PrivateRoute';
+import { AdminGuard } from './components/AdminGuard';
 
 // Pages client
 import { HomePage } from './pages/HomePage';
@@ -18,6 +20,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ContactPage } from './pages/ContactPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 // Pages admin
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -40,17 +43,25 @@ export const router = createBrowserRouter([
       { path: 'catalogue', Component: CatalogPage },
       { path: 'produit/:id', Component: ProductDetailPage },
       { path: 'panier', Component: CartPage },
-      { path: 'checkout/identification', Component: CheckoutIdentificationPage },
-      { path: 'checkout/adresse', Component: CheckoutAddressPage },
-      { path: 'checkout/paiement', Component: CheckoutPaymentPage },
-      { path: 'confirmation', Component: ConfirmationPage },
-      { path: 'espace-client', Component: DashboardPage },
-      { path: 'espace-client/commandes', Component: DashboardOrdersPage },
-      { path: 'espace-client/parametres', Component: DashboardSettingsPage },
       { path: 'connexion', Component: LoginPage },
       { path: 'inscription', Component: RegisterPage },
       { path: 'contact', Component: ContactPage },
       { path: 'mot-de-passe-oublie', Component: ForgotPasswordPage },
+      { path: 'reinitialiser-mot-de-passe', Component: ResetPasswordPage },
+
+      // ── Routes protégées (auth requise) ──
+      {
+        Component: PrivateRoute,
+        children: [
+          { path: 'checkout/identification', Component: CheckoutIdentificationPage },
+          { path: 'checkout/adresse', Component: CheckoutAddressPage },
+          { path: 'checkout/paiement', Component: CheckoutPaymentPage },
+          { path: 'confirmation', Component: ConfirmationPage },
+          { path: 'espace-client', Component: DashboardPage },
+          { path: 'espace-client/commandes', Component: DashboardOrdersPage },
+          { path: 'espace-client/parametres', Component: DashboardSettingsPage },
+        ],
+      },
     ],
   },
 
@@ -60,19 +71,24 @@ export const router = createBrowserRouter([
     Component: AdminLoginPage,
   },
 
-  // ── Routes admin (avec AdminLayout) ──
+  // ── Routes admin (avec AdminLayout + guard rôle admin) ──
   {
     path: '/admin',
     Component: AdminLayout,
     children: [
-      { path: 'dashboard', Component: AdminDashboardPage },
-      { path: 'produits', Component: AdminProductsPage },
-      { path: 'categories', Component: AdminCategoriesPage },
-      { path: 'commandes', Component: AdminOrdersPage },
-      { path: 'utilisateurs', Component: AdminUsersPage },
-      { path: 'logs', Component: AdminLogsPage },
-      { path: 'parametres', Component: AdminSettingsPage },
-      { path: 'carrousel', Component: AdminCarouselPage },
+      {
+        Component: AdminGuard,
+        children: [
+          { path: 'dashboard', Component: AdminDashboardPage },
+          { path: 'produits', Component: AdminProductsPage },
+          { path: 'categories', Component: AdminCategoriesPage },
+          { path: 'commandes', Component: AdminOrdersPage },
+          { path: 'utilisateurs', Component: AdminUsersPage },
+          { path: 'logs', Component: AdminLogsPage },
+          { path: 'parametres', Component: AdminSettingsPage },
+          { path: 'carrousel', Component: AdminCarouselPage },
+        ],
+      },
     ],
   },
 ]);
