@@ -11,6 +11,7 @@ import {
   Settings,
   Menu,
   X,
+  Image,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -18,6 +19,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Package, label: 'Produits', href: '/admin/produits' },
   { icon: Tag, label: 'Catégories', href: '/admin/categories' },
+  { icon: Image, label: 'Carrousel', href: '/admin/carrousel' },
   { icon: ShoppingBag, label: 'Commandes', href: '/admin/commandes' },
   { icon: Users, label: 'Utilisateurs', href: '/admin/utilisateurs' },
   { icon: Activity, label: 'Logs', href: '/admin/logs' },

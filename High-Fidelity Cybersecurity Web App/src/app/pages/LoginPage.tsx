@@ -1,7 +1,46 @@
-import { Link } from 'react-router';
-import { Mail, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { login } from '../api/auth';
+import { useAuthStore } from '../store/authStore';
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const { user } = await login({ email, password });
+      setUser({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        company: user.company ?? undefined,
+        role: user.role,
+      });
+      navigate('/espace-client');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const msg =
+        axiosErr?.response?.data?.errors?.email?.[0] ??
+        axiosErr?.response?.data?.message ??
+        'Identifiants incorrects.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0A1628] flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md">
@@ -16,14 +55,25 @@ export function LoginPage() {
             <p className="text-gray-400">Accédez à votre espace client</p>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
           {/* Form */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-white font-medium mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   placeholder="votre.email@entreprise.com"
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
                 />
@@ -36,6 +86,9 @@ export function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   placeholder="••••••••"
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
                 />
@@ -57,9 +110,10 @@ export function LoginPage() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+              disabled={loading}
+              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Se connecter
+              {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
 
@@ -69,7 +123,7 @@ export function LoginPage() {
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#0F1F3A] text-gray-400">ou</span>
+              <span className="px-4 bg-[#0A1628] text-gray-400">ou</span>
             </div>
           </div>
 
@@ -80,6 +134,11 @@ export function LoginPage() {
           >
             Créer un compte
           </Link>
+
+          {/* Demo hint */}
+          <p className="text-center text-gray-600 text-xs mt-4">
+            Démo : jean.dupont@entreprise.fr / User1234!
+          </p>
         </div>
       </div>
     </div>

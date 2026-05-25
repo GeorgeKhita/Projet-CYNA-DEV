@@ -74,7 +74,7 @@ export function CheckoutIdentificationPage() {
             </div>
 
             <Link
-              to="/checkout/paiement"
+              to="/checkout/adresse"
               className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
             >
               Continuer

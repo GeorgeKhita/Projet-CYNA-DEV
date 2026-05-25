@@ -46,7 +46,7 @@ export function DashboardPage() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Vue d\'ensemble', href: '/espace-client', active: true },
-    { icon: ShoppingBag, label: 'Abonnements', href: '/espace-client/abonnements', active: false },
+    { icon: ShoppingBag, label: 'Abonnements', href: '/espace-client', active: false },
     { icon: CreditCard, label: 'Commandes', href: '/espace-client/commandes', active: false },
     { icon: Settings, label: 'Paramètres', href: '/espace-client/parametres', active: false },
   ];

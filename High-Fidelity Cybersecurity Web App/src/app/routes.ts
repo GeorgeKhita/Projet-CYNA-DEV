@@ -8,9 +8,12 @@ import { CatalogPage } from './pages/CatalogPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutIdentificationPage } from './pages/CheckoutIdentificationPage';
+import { CheckoutAddressPage } from './pages/CheckoutAddressPage';
 import { CheckoutPaymentPage } from './pages/CheckoutPaymentPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { DashboardOrdersPage } from './pages/DashboardOrdersPage';
+import { DashboardSettingsPage } from './pages/DashboardSettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ContactPage } from './pages/ContactPage';
@@ -25,6 +28,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminLogsPage } from './pages/admin/AdminLogsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { AdminCarouselPage } from './pages/admin/AdminCarouselPage';
 
 export const router = createBrowserRouter([
   // ── Routes publiques (avec Navbar + Footer) ──
@@ -37,9 +41,12 @@ export const router = createBrowserRouter([
       { path: 'produit/:id', Component: ProductDetailPage },
       { path: 'panier', Component: CartPage },
       { path: 'checkout/identification', Component: CheckoutIdentificationPage },
+      { path: 'checkout/adresse', Component: CheckoutAddressPage },
       { path: 'checkout/paiement', Component: CheckoutPaymentPage },
       { path: 'confirmation', Component: ConfirmationPage },
       { path: 'espace-client', Component: DashboardPage },
+      { path: 'espace-client/commandes', Component: DashboardOrdersPage },
+      { path: 'espace-client/parametres', Component: DashboardSettingsPage },
       { path: 'connexion', Component: LoginPage },
       { path: 'inscription', Component: RegisterPage },
       { path: 'contact', Component: ContactPage },
@@ -65,6 +72,7 @@ export const router = createBrowserRouter([
       { path: 'utilisateurs', Component: AdminUsersPage },
       { path: 'logs', Component: AdminLogsPage },
       { path: 'parametres', Component: AdminSettingsPage },
+      { path: 'carrousel', Component: AdminCarouselPage },
     ],
   },
 ]);
