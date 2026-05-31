@@ -21,16 +21,20 @@ class User extends Authenticatable
         'phone',
         'role',
         'is_active',
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_code',
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'email_verified_at'      => 'datetime',
+        'two_factor_expires_at'  => 'datetime',
+        'password'               => 'hashed',
     ];
 
     /**

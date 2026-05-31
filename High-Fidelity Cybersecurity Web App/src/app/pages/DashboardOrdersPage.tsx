@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { DashboardSidebar } from '../components/DashboardSidebar';
-import { getMyOrders, type Order } from '../api/orders';
+import { getMyOrders, downloadInvoice, type Order } from '../api/orders';
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   paid:      { label: 'Actif',      color: 'text-[#10B981] bg-[#10B981]/20 border-[#10B981]/30' },
@@ -11,9 +11,10 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export function DashboardOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [orders, setOrders]           = useState<Order[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   useEffect(() => {
     getMyOrders()
@@ -97,12 +98,28 @@ export function DashboardOrdersPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <button
-                              title="Télécharger facture"
-                              className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
+                            {order.invoice_id ? (
+                              <button
+                                title="Télécharger facture"
+                                disabled={downloadingId === order.invoice_id}
+                                onClick={async () => {
+                                  setDownloadingId(order.invoice_id!);
+                                  try {
+                                    await downloadInvoice(order.invoice_id!, order.invoice_number);
+                                  } finally {
+                                    setDownloadingId(null);
+                                  }
+                                }}
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                {downloadingId === order.invoice_id
+                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  : <Download className="w-4 h-4" />
+                                }
+                              </button>
+                            ) : (
+                              <span className="text-gray-600 text-xs px-2">—</span>
+                            )}
                           </td>
                         </tr>
                       );

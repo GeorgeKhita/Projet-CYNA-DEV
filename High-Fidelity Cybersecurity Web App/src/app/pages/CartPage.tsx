@@ -1,10 +1,21 @@
-import { Link } from 'react-router';
-import { ShoppingCart, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
+import { ShoppingCart, Minus, Plus, Trash2, ArrowRight, LogIn } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
 
 export function CartPage() {
   const { items, updateQuantity, removeItem, getTotalPrice } = useCartStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const navigate = useNavigate();
   const total = getTotalPrice();
+
+  const handleCheckout = () => {
+    if (isAuthenticated) {
+      navigate('/checkout/identification');
+    } else {
+      navigate('/connexion?redirect=/checkout/identification');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0A1628] py-12">
@@ -115,13 +126,28 @@ export function CartPage() {
                 </div>
               </div>
 
-              <Link
-                to="/checkout/identification"
+              <button
+                onClick={handleCheckout}
                 className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors text-lg"
               >
-                Passer à la caisse
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+                {isAuthenticated ? (
+                  <>Passer à la caisse <ArrowRight className="w-5 h-5" /></>
+                ) : (
+                  <>Se connecter pour commander <LogIn className="w-5 h-5" /></>
+                )}
+              </button>
+              {!isAuthenticated && (
+                <p className="text-center text-gray-500 text-sm mt-2">
+                  Vous avez déjà un compte ?{' '}
+                  <Link to="/connexion?redirect=/checkout/identification" className="text-[#00B4D8] hover:underline">
+                    Se connecter
+                  </Link>
+                  {' '}·{' '}
+                  <Link to="/inscription" className="text-[#00B4D8] hover:underline">
+                    Créer un compte
+                  </Link>
+                </p>
+              )}
 
               <Link
                 to="/catalogue"

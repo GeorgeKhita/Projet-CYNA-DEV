@@ -21,6 +21,12 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ContactPage } from './pages/ContactPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { MentionsLegalesPage } from './pages/MentionsLegalesPage';
+import { CGUPage } from './pages/CGUPage';
+import { CGVPage } from './pages/CGVPage';
+import { PolitiqueConfidentialitePage } from './pages/PolitiqueConfidentialitePage';
+import { AdminContactMessagesPage } from './pages/admin/AdminContactMessagesPage';
 
 // Pages admin
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
@@ -48,6 +54,10 @@ export const router = createBrowserRouter([
       { path: 'contact', Component: ContactPage },
       { path: 'mot-de-passe-oublie', Component: ForgotPasswordPage },
       { path: 'reinitialiser-mot-de-passe', Component: ResetPasswordPage },
+      { path: 'mentions-legales', Component: MentionsLegalesPage },
+      { path: 'cgu', Component: CGUPage },
+      { path: 'cgv', Component: CGVPage },
+      { path: 'confidentialite', Component: PolitiqueConfidentialitePage },
 
       // ── Routes protégées (auth requise) ──
       {
@@ -63,6 +73,12 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+
+  // ── Route 404 catch-all ──
+  {
+    path: '*',
+    Component: NotFoundPage,
   },
 
   // ── Route login admin (standalone, sans layout) ──
@@ -87,6 +103,7 @@ export const router = createBrowserRouter([
           { path: 'logs', Component: AdminLogsPage },
           { path: 'parametres', Component: AdminSettingsPage },
           { path: 'carrousel', Component: AdminCarouselPage },
+          { path: 'messages', Component: AdminContactMessagesPage },
         ],
       },
     ],

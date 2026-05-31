@@ -34,14 +34,32 @@ export function CheckoutPaymentPage() {
     return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
   };
 
+  const luhn = (num: string): boolean => {
+    let sum = 0;
+    let alt = false;
+    for (let i = num.length - 1; i >= 0; i--) {
+      let n = parseInt(num[i], 10);
+      if (alt) { n *= 2; if (n > 9) n -= 9; }
+      sum += n;
+      alt = !alt;
+    }
+    return sum % 10 === 0;
+  };
+
   const validate = () => {
-    const digits = cardNumber.replace(/\s/g, '');
+    if (items.length === 0) return 'Votre panier est vide';
     if (paymentMethod === 'card') {
+      const digits = cardNumber.replace(/\s/g, '');
       if (digits.length !== 16) return 'Numéro de carte invalide (16 chiffres)';
+      if (!luhn(digits)) return 'Numéro de carte invalide';
       if (!/^\d{2}\/\d{2}$/.test(expiry)) return "Date d'expiration invalide (MM/AA)";
+      const [mm, yy] = expiry.split('/').map(Number);
+      const now = new Date();
+      if (mm < 1 || mm > 12) return "Mois d'expiration invalide";
+      if (yy + 2000 < now.getFullYear() || (yy + 2000 === now.getFullYear() && mm < now.getMonth() + 1))
+        return 'Carte expirée';
       if (!/^\d{3,4}$/.test(cvv)) return 'CVV invalide';
     }
-    if (items.length === 0) return 'Votre panier est vide';
     return '';
   };
 
@@ -170,8 +188,11 @@ export function CheckoutPaymentPage() {
             )}
 
             {paymentMethod === 'paypal' && (
-              <div className="text-center py-6 text-gray-400">
-                <p>Vous serez redirigé vers PayPal pour finaliser le paiement.</p>
+              <div className="text-center py-6 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                <div className="text-2xl font-bold text-blue-400 mb-2">PayPal</div>
+                <p className="text-gray-400 text-sm">
+                  En cliquant sur "Confirmer", votre commande sera traitée via PayPal (simulation).
+                </p>
               </div>
             )}
 

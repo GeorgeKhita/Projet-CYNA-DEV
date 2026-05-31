@@ -14,8 +14,10 @@ export interface Order {
   email?: string;
   items: OrderItem[];
   total: number;
-  status: 'pending' | 'paid' | 'cancelled' | 'refunded';
+  status: 'pending' | 'active' | 'paid' | 'cancelled' | 'refunded';
   created_at: string;
+  invoice_id?: number;
+  invoice_number?: string;
 }
 
 export interface CreateOrderPayload {
@@ -58,6 +60,19 @@ export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
 export async function getOrder(id: number): Promise<Order> {
   const { data } = await axiosInstance.get<Order>(`/orders/${id}`);
   return data;
+}
+
+/** GET /api/invoices/{id}/download — télécharge la facture HTML */
+export async function downloadInvoice(invoiceId: number, invoiceNumber?: string): Promise<void> {
+  const response = await axiosInstance.get(`/invoices/${invoiceId}/download`, {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `facture-${invoiceNumber ?? invoiceId}.html`;
+  link.click();
+  window.URL.revokeObjectURL(url);
 }
 
 // ── Admin ────────────────────────────────────────────────────────────────

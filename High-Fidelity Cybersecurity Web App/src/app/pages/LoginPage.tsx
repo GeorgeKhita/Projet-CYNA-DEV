@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { login } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
@@ -7,7 +7,9 @@ import { useAuthStore } from '../store/authStore';
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string })?.from ?? '/espace-client';
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam ?? (location.state as { from?: string })?.from ?? '/espace-client';
   const setUser = useAuthStore((s) => s.setUser);
 
   const [email, setEmail] = useState('');

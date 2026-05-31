@@ -81,28 +81,19 @@ export function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Légal</h3>
             <div className="space-y-2">
-              <Link
-                to="/cgu"
-                className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm"
-              >
-                Conditions générales d'utilisation
-              </Link>
-              <Link
-                to="/mentions-legales"
-                className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm"
-              >
+              <Link to="/mentions-legales" className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm">
                 Mentions légales
               </Link>
-              <Link
-                to="/confidentialite"
-                className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm"
-              >
+              <Link to="/cgu" className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm">
+                CGU
+              </Link>
+              <Link to="/cgv" className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm">
+                CGV
+              </Link>
+              <Link to="/confidentialite" className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm">
                 Politique de confidentialité
               </Link>
-              <Link
-                to="/contact"
-                className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm"
-              >
+              <Link to="/contact" className="block text-gray-400 hover:text-[#00B4D8] transition-colors text-sm">
                 Nous contacter
               </Link>
             </div>

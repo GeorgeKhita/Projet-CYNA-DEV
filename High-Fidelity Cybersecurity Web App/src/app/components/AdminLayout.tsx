@@ -12,8 +12,11 @@ import {
   Menu,
   X,
   Image,
+  MessageSquare,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axiosInstance from '../api/axiosInstance';
+import { useAuthStore } from '../store/authStore';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -22,14 +25,23 @@ const menuItems = [
   { icon: Image, label: 'Carrousel', href: '/admin/carrousel' },
   { icon: ShoppingBag, label: 'Commandes', href: '/admin/commandes' },
   { icon: Users, label: 'Utilisateurs', href: '/admin/utilisateurs' },
+  { icon: MessageSquare, label: 'Messages', href: '/admin/messages' },
   { icon: Activity, label: 'Logs', href: '/admin/logs' },
   { icon: Settings, label: 'Paramètres', href: '/admin/parametres' },
 ];
 
 export function AdminLayout() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location  = useLocation();
+  const navigate  = useNavigate();
+  const user      = useAuthStore((s) => s.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    axiosInstance.get('/admin/contact-messages', { params: { status: 'unread', page: 1 } })
+      .then((r) => setUnreadCount(r.data.unread_count ?? 0))
+      .catch(() => {});
+  }, [location.pathname]);
 
   const handleLogout = () => navigate('/admin');
 
@@ -71,7 +83,12 @@ export function AdminLayout() {
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span className="font-medium">{item.label}</span>
-                {isActive && (
+                {item.href === '/admin/messages' && unreadCount > 0 && (
+                  <span className="ml-auto px-1.5 py-0.5 bg-[#00B4D8] text-[#0A1628] text-xs font-bold rounded-full min-w-[20px] text-center">
+                    {unreadCount}
+                  </span>
+                )}
+                {isActive && item.href !== '/admin/messages' && (
                   <div className="ml-auto w-2 h-2 bg-[#00B4D8] rounded-full" />
                 )}
               </Link>
@@ -86,8 +103,8 @@ export function AdminLayout() {
               AD
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-white text-sm font-medium truncate">Admin CYNA</div>
-              <div className="text-gray-500 text-xs truncate">admin@cyna-it.fr</div>
+              <div className="text-white text-sm font-medium truncate">{user ? `${user.firstName} ${user.lastName}` : 'Admin CYNA'}</div>
+              <div className="text-gray-500 text-xs truncate">{user?.email ?? 'admin@cyna-it.fr'}</div>
             </div>
           </div>
           <button

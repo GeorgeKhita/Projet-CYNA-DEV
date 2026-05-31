@@ -11,7 +11,6 @@ class SubscriptionController extends Controller
 {
     /**
      * GET /api/subscriptions
-     * Liste des abonnements de l'utilisateur connecté
      */
     public function index(Request $request): JsonResponse
     {
@@ -20,20 +19,19 @@ class SubscriptionController extends Controller
             ->orderByDesc('created_at')
             ->get()
             ->map(fn($s) => [
-                'id'         => $s->id,
-                'product'    => [
+                'id'                => $s->id,
+                'product'           => [
                     'id'       => $s->product->id,
                     'name'     => $s->product->name,
                     'category' => $s->product->category,
                 ],
-                'plan'       => $s->plan,
-                'status'     => $s->status,
-                'price'      => $s->plan === 'annual'
+                'plan'              => $s->plan,
+                'status'            => $s->status,
+                'price'             => (float) ($s->plan === 'annual'
                     ? $s->product->price_annual
-                    : $s->product->price_monthly,
-                'started_at' => $s->started_at,
-                'ends_at'    => $s->ends_at,
-                'created_at' => $s->created_at,
+                    : $s->product->price_monthly),
+                'next_billing_date' => $s->next_billing_date?->format('Y-m-d'),
+                'created_at'        => $s->created_at,
             ]);
 
         return response()->json($subscriptions);
@@ -41,7 +39,6 @@ class SubscriptionController extends Controller
 
     /**
      * POST /api/subscriptions
-     * Créer un abonnement (après commande)
      */
     public function store(Request $request): JsonResponse
     {
@@ -51,12 +48,12 @@ class SubscriptionController extends Controller
         ]);
 
         $subscription = Subscription::create([
-            'user_id'    => $request->user()->id,
-            'product_id' => $data['product_id'],
-            'plan'       => $data['plan'],
-            'status'     => 'active',
-            'started_at' => now(),
-            'ends_at'    => $data['plan'] === 'annual' ? now()->addYear() : now()->addMonth(),
+            'user_id'           => $request->user()->id,
+            'product_id'        => $data['product_id'],
+            'plan'              => $data['plan'],
+            'status'            => 'active',
+            'price'             => 0,
+            'next_billing_date' => $data['plan'] === 'annual' ? now()->addYear() : now()->addMonth(),
         ]);
 
         return response()->json($subscription->load('product'), 201);

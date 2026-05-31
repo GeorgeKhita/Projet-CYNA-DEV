@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\AdminCarouselController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\Admin\AdminContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,9 +47,12 @@ Route::post('/contact', [ContactController::class, 'send']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/auth/me',      [AuthController::class, 'me']);
-    Route::put('/auth/me',      [AuthController::class, 'updateProfile']);
+    Route::post('/auth/logout',        [AuthController::class, 'logout']);
+    Route::get('/auth/me',             [AuthController::class, 'me']);
+    Route::put('/auth/me',             [AuthController::class, 'updateProfile']);
+    Route::post('/auth/admin/send-2fa',   [AuthController::class, 'sendAdmin2FA']);
+    Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
+    Route::get('/auth/me/export',         [AuthController::class, 'exportMyData']);
 
     // Commandes client
     Route::get('/orders',        [OrderController::class, 'index']);
@@ -110,5 +114,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Paramètres
         Route::get('/settings',  [AdminSettingsController::class, 'index']);
         Route::put('/settings',  [AdminSettingsController::class, 'update']);
+
+        // Messages de contact
+        Route::get('/contact-messages',                   [AdminContactController::class, 'index']);
+        Route::get('/contact-messages/{contactMessage}',  [AdminContactController::class, 'show']);
+        Route::patch('/contact-messages/{contactMessage}/read', [AdminContactController::class, 'markRead']);
+        Route::delete('/contact-messages/{contactMessage}', [AdminContactController::class, 'destroy']);
     });
 });

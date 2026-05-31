@@ -80,3 +80,37 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   const { data } = await axiosInstance.post('/auth/forgot-password', { email });
   return data;
 }
+
+/** POST /api/auth/reset-password */
+export async function resetPassword(payload: {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<{ message: string }> {
+  const { data } = await axiosInstance.post('/auth/reset-password', payload);
+  return data;
+}
+
+/** POST /api/auth/admin/send-2fa — envoie le code OTP à l'admin */
+export async function sendAdmin2FA(): Promise<{ message: string }> {
+  const { data } = await axiosInstance.post('/auth/admin/send-2fa');
+  return data;
+}
+
+/** POST /api/auth/admin/verify-2fa — vérifie le code OTP */
+export async function verifyAdmin2FA(code: string): Promise<{ message: string; verified: boolean }> {
+  const { data } = await axiosInstance.post('/auth/admin/verify-2fa', { code });
+  return data;
+}
+
+/** GET /api/auth/me/export — export RGPD des données personnelles */
+export async function exportMyData(): Promise<void> {
+  const response = await axiosInstance.get('/auth/me/export', { responseType: 'blob' });
+  const url  = window.URL.createObjectURL(new Blob([response.data], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href  = url;
+  link.download = `mes-donnees-cyna-${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  window.URL.revokeObjectURL(url);
+}

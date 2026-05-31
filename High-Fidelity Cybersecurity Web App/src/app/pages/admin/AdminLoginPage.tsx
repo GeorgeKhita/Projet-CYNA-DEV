@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Mail, Lock, Shield, Loader2, AlertCircle } from 'lucide-react';
-import { login } from '../../api/auth';
+import { Mail, Lock, Shield, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { login, sendAdmin2FA, verifyAdmin2FA } from '../../api/auth';
 import { useAuthStore } from '../../store/authStore';
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [step, setStep]     = useState<'credentials' | '2fa'>('credentials');
-  const [email, setEmail]   = useState('admin@cyna-it.fr');
+  const [step, setStep]         = useState<'credentials' | '2fa'>('credentials');
+  const [email, setEmail]       = useState('admin@cyna-it.fr');
   const [password, setPassword] = useState('');
-  const [code, setCode]     = useState('');
-  const [error, setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [code, setCode]         = useState('');
+  const [error, setError]       = useState('');
+  const [info, setInfo]         = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +26,6 @@ export function AdminLoginPage() {
         setError('Accès refusé. Ce compte n\'a pas les droits administrateur.');
         return;
       }
-      // Store user in auth
       setUser({
         id: user.id,
         email: user.email,
@@ -34,6 +34,10 @@ export function AdminLoginPage() {
         company: user.company ?? undefined,
         role: user.role,
       });
+
+      // Envoyer le code 2FA par email
+      await sendAdmin2FA();
+      setInfo('Un code de vérification a été envoyé à ' + email);
       setStep('2fa');
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
@@ -47,13 +51,30 @@ export function AdminLoginPage() {
     }
   };
 
-  const handle2FA = (e: React.FormEvent) => {
+  const handle2FA = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Demo: any 6-digit code accepted (real 2FA not implemented in backend)
-    if (code.length === 6) {
+    setError('');
+    setLoading(true);
+    try {
+      await verifyAdmin2FA(code);
       navigate('/admin/dashboard');
-    } else {
-      setError('Code invalide. Saisir un code à 6 chiffres.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr?.response?.data?.message ?? 'Code invalide.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resend2FA = async () => {
+    setError('');
+    setInfo('');
+    try {
+      await sendAdmin2FA();
+      setInfo('Nouveau code envoyé à ' + email);
+      setCode('');
+    } catch {
+      setError('Impossible de renvoyer le code. Réessayez.');
     }
   };
 
@@ -130,8 +151,15 @@ export function AdminLoginPage() {
                   <Shield className="w-6 h-6 text-[#8B5CF6]" />
                 </div>
                 <h2 className="text-xl font-semibold text-white mb-1">Vérification 2FA</h2>
-                <p className="text-gray-400 text-sm">Saisir le code de votre application authenticator</p>
+                <p className="text-gray-400 text-sm">Saisir le code envoyé par email</p>
               </div>
+
+              {info && (
+                <div className="flex items-center gap-2 bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg p-3 mb-5">
+                  <CheckCircle className="w-4 h-4 text-[#10B981] flex-shrink-0" />
+                  <p className="text-[#10B981] text-sm">{info}</p>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-5">
@@ -152,22 +180,34 @@ export function AdminLoginPage() {
                     autoFocus
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#00B4D8]"
                   />
-                  <p className="text-gray-500 text-xs mt-2 text-center">Démo : saisir n'importe quel code à 6 chiffres</p>
+                  <p className="text-gray-500 text-xs mt-2 text-center">
+                    Code valide 5 minutes · Vérifiez <span className="text-[#00B4D8]">storage/logs/laravel.log</span> en local
+                  </p>
                 </div>
                 <button
                   type="submit"
-                  disabled={code.length !== 6}
-                  className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={code.length !== 6 || loading}
+                  className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Vérifier et accéder
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {loading ? 'Vérification...' : 'Vérifier et accéder'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => { setStep('credentials'); setCode(''); setError(''); }}
-                  className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
-                >
-                  ← Retour
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => { setStep('credentials'); setCode(''); setError(''); setInfo(''); }}
+                    className="text-gray-400 hover:text-white text-sm transition-colors"
+                  >
+                    ← Retour
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resend2FA}
+                    className="text-[#00B4D8] hover:text-[#0096B8] text-sm transition-colors"
+                  >
+                    Renvoyer le code
+                  </button>
+                </div>
               </form>
             </>
           )}

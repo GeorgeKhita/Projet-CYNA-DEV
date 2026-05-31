@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { User, Lock, Bell, Globe, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { User, Lock, Bell, Download, CheckCircle, Loader2, AlertCircle, Shield } from 'lucide-react';
 import { DashboardSidebar } from '../components/DashboardSidebar';
 import { useAuthStore } from '../store/authStore';
-import { updateProfile } from '../api/auth';
+import { updateProfile, exportMyData } from '../api/auth';
 
 export function DashboardSettingsPage() {
   const { user, setUser } = useAuthStore();
@@ -14,10 +14,12 @@ export function DashboardSettingsPage() {
   const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd]         = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
-  const [emailNotifs, setEmailNotifs] = useState(true);
-  const [saving, setSaving]         = useState(false);
-  const [success, setSuccess]       = useState('');
-  const [error, setError]           = useState('');
+  const [emailNotifs, setEmailNotifs]   = useState(true);
+  const [saving, setSaving]             = useState(false);
+  const [success, setSuccess]           = useState('');
+  const [error, setError]               = useState('');
+  const [exporting, setExporting]       = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -195,6 +197,50 @@ export function DashboardSettingsPage() {
                 {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </button>
             </form>
+
+            {/* Export RGPD */}
+            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#F59E0B]/20 border border-[#F59E0B]/30 rounded-lg flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-[#F59E0B]" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Export RGPD</h2>
+                  <p className="text-sm text-gray-400">Téléchargez toutes vos données personnelles</p>
+                </div>
+              </div>
+
+              <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                Conformément au RGPD (article 20), vous avez le droit de recevoir une copie de toutes vos données personnelles dans un format structuré et lisible. Le fichier JSON contiendra votre profil, vos commandes, abonnements, factures et historique de connexion.
+              </p>
+
+              {exportSuccess && (
+                <div className="flex items-center gap-2 bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg p-3 mb-4">
+                  <CheckCircle className="w-4 h-4 text-[#10B981]" />
+                  <span className="text-[#10B981] text-sm">Vos données ont été téléchargées.</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                disabled={exporting}
+                onClick={async () => {
+                  setExporting(true);
+                  setExportSuccess(false);
+                  try {
+                    await exportMyData();
+                    setExportSuccess(true);
+                    setTimeout(() => setExportSuccess(false), 5000);
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#F59E0B] font-semibold rounded-lg hover:bg-[#F59E0B]/20 transition-colors disabled:opacity-50"
+              >
+                {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {exporting ? 'Préparation...' : 'Télécharger mes données (JSON)'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
