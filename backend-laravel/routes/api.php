@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\AdminCarouselController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
 /*
@@ -41,6 +42,9 @@ Route::get('/categories',        [CategoryController::class, 'index']);
 
 // Formulaire de contact
 Route::post('/contact', [ContactController::class, 'send']);
+
+// Chatbot IA (public — fonctionne connecté ou anonyme)
+Route::post('/chatbot/message', [ChatbotController::class, 'message']);
 
 // ── Routes authentifiées (Sanctum) ───────────────────────────────────────
 
