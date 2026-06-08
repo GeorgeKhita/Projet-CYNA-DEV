@@ -1,12 +1,36 @@
-import { Link } from 'react-router';
+import { useState, FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
+import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const data = await api.post<{ token: string; user: any }>('/auth/login', { email, password });
+      login(data.token, data.user);
+      navigate('/espace-client');
+    } catch (err: any) {
+      setError(err.message || 'Email ou mot de passe incorrect.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0A1628] flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md">
         <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="text-[#00B4D8] text-3xl">⬡</div>
@@ -16,15 +40,23 @@ export function LoginPage() {
             <p className="text-gray-400">Accédez à votre espace client</p>
           </div>
 
-          {/* Form */}
-          <form className="space-y-6">
+          {error && (
+            <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-white font-medium mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   placeholder="votre.email@entreprise.com"
+                  required
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
                 />
               </div>
@@ -36,7 +68,10 @@ export function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  required
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
                 />
               </div>
@@ -44,10 +79,7 @@ export function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-gray-400 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded bg-white/5 border-white/10 text-[#00B4D8] focus:ring-[#00B4D8]"
-                />
+                <input type="checkbox" className="w-4 h-4 rounded bg-white/5 border-white/10 text-[#00B4D8]" />
                 Se souvenir de moi
               </label>
               <Link to="/mot-de-passe-oublie" className="text-[#00B4D8] hover:underline">
@@ -57,13 +89,13 @@ export function LoginPage() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+              disabled={loading}
+              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60"
             >
-              Se connecter
+              {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10" />
@@ -73,7 +105,6 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Register Link */}
           <Link
             to="/inscription"
             className="block w-full py-3 bg-transparent border-2 border-[#00B4D8] text-[#00B4D8] font-semibold rounded-lg text-center hover:bg-[#00B4D8]/10 transition-colors"

@@ -5,100 +5,68 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ChatbotController extends Controller
 {
-    private string $systemPrompt = <<<'PROMPT'
-Tu es l'assistant virtuel officiel de CYNA, une plateforme B2B de cybersécurité SaaS.
-Réponds UNIQUEMENT en français, de façon professionnelle, concise et bienveillante.
-Ne réponds qu'aux sujets liés à CYNA et à la cybersécurité.
+    // Base de connaissance CYNA — clés = mots-clés, valeur = réponse
+    private array $kb = [
+        'soc' => [
+            'keywords' => ['soc', 'security operations', 'surveillance', 'monitoring', 'supervision'],
+            'reply'    => "Nous proposons deux offres SOC :\n\n**SOC Essentials** à 699 €/mois — surveillance 8h/5j, alertes temps réel, rapport mensuel.\n**SOC Premium** à 1 299 €/mois — surveillance 24/7, IA + machine learning, SOAR automatisé, conformité ISO 27001 / RGPD / NIS2.\n\nSouhaitez-vous en savoir plus sur l'une de ces offres ?",
+        ],
+        'edr' => [
+            'keywords' => ['edr', 'endpoint', 'poste de travail', 'antivirus', 'detection comportementale'],
+            'reply'    => "Nos solutions EDR :\n\n**EDR Enterprise** à 899 €/mois — détection comportementale par IA, isolation automatique des endpoints compromis, analyse forensique. Compatible Windows, macOS et Linux.\n**EDR Pro** à 1 199 €/mois — machine learning avancé et threat hunting actif.\n\nVous souhaitez un essai gratuit de 14 jours ?",
+        ],
+        'xdr' => [
+            'keywords' => ['xdr', 'extended', 'siem', 'correlation', 'corrélation', 'multi-vecteur', 'multi vecteur'],
+            'reply'    => "Nos solutions XDR :\n\n**XDR Suite** à 1 799 €/mois — corrélation multi-sources, SOAR intégré, +50 connecteurs natifs, dashboard threat intelligence.\n**XDR Enterprise** à 2 499 €/mois — intégration SIEM complète, gestion multi-tenant pour MSSP, certifications SOC 2 Type II et ISO 27001.\n\nQuelle infrastructure souhaitez-vous protéger ?",
+        ],
+        'prix' => [
+            'keywords' => ['prix', 'tarif', 'coût', 'cout', 'combien', 'abonnement', 'facturation', 'mensuel', 'annuel'],
+            'reply'    => "Nos tarifs :\n\n• SOC Essentials : **699 €/mois**\n• SOC Premium : **1 299 €/mois**\n• EDR Enterprise : **899 €/mois**\n• EDR Pro : **1 199 €/mois**\n• XDR Suite : **1 799 €/mois**\n• XDR Enterprise : **2 499 €/mois**\n\nEn facturation annuelle, vous bénéficiez d'une **réduction de 17 %**. Un essai gratuit de 14 jours est disponible sur tous les produits.",
+        ],
+        'essai' => [
+            'keywords' => ['essai', 'gratuit', 'demo', 'démonstration', 'demonstration', 'test', '14 jours', 'sans engagement'],
+            'reply'    => "Oui, nous proposons un **essai gratuit de 14 jours** sur l'ensemble de nos solutions, sans carte bancaire et sans engagement.\n\nRendez-vous sur notre catalogue pour démarrer votre essai ou contactez-nous à contact@cyna-it.fr.",
+        ],
+        'conformite' => [
+            'keywords' => ['rgpd', 'gdpr', 'conformité', 'conformite', 'iso', 'nis2', 'réglementation', 'reglementation', 'certification'],
+            'reply'    => "Nos solutions couvrent nativement les principales réglementations :\n\n• **RGPD / GDPR** — minimisation des données, sauvegardes chiffrées, logs 30 jours\n• **NIS2** — directive européenne sur la cybersécurité\n• **ISO 27001** — management de la sécurité de l'information\n• **SOC 2 Type II** — disponible sur XDR Enterprise\n\nBesoin d'un rapport de conformité spécifique ? Contactez-nous à contact@cyna-it.fr.",
+        ],
+        'contact' => [
+            'keywords' => ['contact', 'support', 'aide', 'assistance', 'equipe', 'équipe', 'humain', 'parler', 'conseiller', 'commercial'],
+            'reply'    => "Notre équipe est disponible pour vous accompagner :\n\n📧 **contact@cyna-it.fr**\n⏱ Délai de réponse : 2 heures en heures ouvrées\n🛡 Support SOC 24/7 pour les incidents urgents\n\nVous pouvez également remplir notre formulaire de contact.",
+        ],
+        'connexion' => [
+            'keywords' => ['connexion', 'connecter', 'compte', 'inscription', 'créer', 'creer', 'login', 'mot de passe', 'password'],
+            'reply'    => "Pour accéder à votre espace client, rendez-vous sur la page **Connexion**. Si vous n'avez pas encore de compte, vous pouvez vous inscrire en quelques minutes.\n\nEn cas de problème avec votre mot de passe, utilisez la fonction « Mot de passe oublié ».",
+        ],
+        'commande' => [
+            'keywords' => ['commande', 'panier', 'acheter', 'souscrire', 'commander', 'achat', 'paiement'],
+            'reply'    => "Pour souscrire à une solution CYNA :\n\n1. Parcourez notre **catalogue**\n2. Ajoutez le produit au panier\n3. Choisissez votre plan (mensuel ou annuel)\n4. Finalisez votre commande\n\nVous retrouverez ensuite vos abonnements dans votre **espace client**.",
+        ],
+        'integration' => [
+            'keywords' => ['intégration', 'integration', 'compatible', 'api', 'déploiement', 'deploiement', 'infrastructure', 'connecteur'],
+            'reply'    => "Nos solutions sont **cloud-native** et se déploient en moins de 30 minutes.\n\nElles s'intègrent nativement avec plus de **50 outils** (SIEM, SOAR, firewalls, ticketing...) via API ou connecteurs prébuilt.\n\nCompatibilité EDR : Windows, macOS, Linux.",
+        ],
+        'bonjour' => [
+            'keywords' => ['bonjour', 'salut', 'hello', 'bonsoir', 'coucou', 'bonne journée'],
+            'reply'    => "Bonjour ! Bienvenue sur le support CYNA. Comment puis-je vous aider aujourd'hui ?\n\nJe peux vous renseigner sur nos solutions **SOC**, **EDR**, **XDR**, nos **tarifs**, la **conformité** ou l'**essai gratuit**.",
+        ],
+    ];
 
-=== PRODUITS CYNA ===
-
-SOC (Security Operations Center) — Surveillance et détection de menaces en temps réel
-• SOC Essentials : 699 €/mois — surveillance 8h/5j par des analystes SOC, alertes temps réel email/SMS, rapport mensuel
-• SOC Premium    : 1 299 €/mois — surveillance 24h/24 7j/7, IA + machine learning, SOAR automatisé, conformité ISO 27001 / RGPD / NIS2
-
-EDR (Endpoint Detection & Response) — Protection avancée des postes de travail
-• EDR Enterprise : 899 €/mois — détection comportementale par IA, isolation automatique des endpoints compromis, analyse forensique, compatible Windows / macOS / Linux
-• EDR Pro        : 1 199 €/mois — machine learning avancé + threat hunting actif
-
-XDR (Extended Detection & Response) — Détection et réponse unifiées sur toute l'infrastructure
-• XDR Suite      : 1 799 €/mois — corrélation d'événements multi-sources, SOAR intégré, +50 connecteurs natifs, dashboard threat intelligence
-• XDR Enterprise : 2 499 €/mois — intégration SIEM complète, gestion multi-tenant pour MSSP, SOC 2 Type II, ISO 27001
-
-=== INFORMATIONS COMMERCIALES ===
-• Essai gratuit 14 jours sans carte bancaire sur tous les produits
-• Réduction de 17 % en facturation annuelle par rapport au mensuel
-• Déploiement cloud-native en moins de 30 minutes
-• Plus de 500 entreprises protégées
-
-=== CONFORMITÉ ===
-Nos solutions couvrent nativement : RGPD (GDPR), NIS2, ISO 27001, SOC 2 Type II
-
-=== SUPPORT ===
-• Email : contact@cyna-it.fr
-• Délai de réponse : 2 heures en heures ouvrées
-• Support SOC 24/7 disponible pour les incidents urgents
-
-=== RÈGLES IMPÉRATIVES ===
-- Tes réponses doivent être courtes : 2 à 5 phrases maximum, sauf si un détail technique est explicitement demandé.
-- Si tu ne connais pas la réponse ou si la question sort du cadre CYNA, dis-le clairement et invite l'utilisateur à contacter contact@cyna-it.fr ou à remplir le formulaire de contact.
-- Ne promets jamais de fonctionnalités non mentionnées dans ce prompt.
-- Pour les demandes commerciales avancées (négociation, cas d'usage très spécifiques), propose un rendez-vous avec l'équipe commerciale via contact@cyna-it.fr.
-- Utilise "vous" (vouvoiement) systématiquement.
-PROMPT;
+    private string $fallback = "Je n'ai pas bien compris votre question. Vous pouvez me demander des informations sur nos solutions **SOC, EDR, XDR**, nos **tarifs**, l'**essai gratuit** ou la **conformité** (RGPD, NIS2, ISO 27001).\n\nPour une demande spécifique, contactez-nous à contact@cyna-it.fr.";
 
     public function message(Request $request)
     {
         $validated = $request->validate([
-            'message'           => 'required|string|max:2000',
-            'history'           => 'array|max:20',
-            'history.*.role'    => 'required|in:user,assistant',
-            'history.*.content' => 'required|string|max:2000',
+            'message' => 'required|string|max:1000',
         ]);
 
-        // Construire le tableau de messages pour Claude
-        $messages = [];
-        foreach ($validated['history'] ?? [] as $msg) {
-            $messages[] = [
-                'role'    => $msg['role'],
-                'content' => $msg['content'],
-            ];
-        }
-        $messages[] = [
-            'role'    => 'user',
-            'content' => $validated['message'],
-        ];
+        $reply = $this->match($validated['message']);
+        $requiresHuman = $reply === $this->fallback;
 
-        // Appel à l'API Anthropic
-        $response = Http::withHeaders([
-            'x-api-key'         => config('services.anthropic.key'),
-            'anthropic-version' => '2023-06-01',
-            'content-type'      => 'application/json',
-        ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
-            'model'      => config('services.anthropic.model'),
-            'max_tokens' => 1024,
-            'system'     => $this->systemPrompt,
-            'messages'   => $messages,
-        ]);
-
-        if (!$response->successful()) {
-            Log::error('Anthropic API error', ['status' => $response->status(), 'body' => $response->body()]);
-            return response()->json(
-                ['error' => 'Le service est temporairement indisponible. Veuillez réessayer ou contacter contact@cyna-it.fr.'],
-                503
-            );
-        }
-
-        $reply = $response->json('content.0.text') ?? '';
-
-        // Détecter si une intervention humaine est nécessaire
-        $requiresHuman = $this->needsHuman($reply);
-
-        // Sauvegarder l'échange en base
         SupportMessage::create([
             'user_id'        => $request->user()?->id,
             'type'           => 'chatbot',
@@ -111,15 +79,21 @@ PROMPT;
         return response()->json(['reply' => $reply]);
     }
 
-    private function needsHuman(string $reply): bool
+    private function match(string $input): string
     {
-        $keywords = ['je ne sais pas', 'je n\'ai pas cette information', 'contacter notre équipe', 'contactez-nous', 'hors de ma portée'];
-        $lower = strtolower($reply);
-        foreach ($keywords as $kw) {
-            if (str_contains($lower, $kw)) {
-                return true;
+        $normalized = mb_strtolower($input);
+        // Retirer les accents pour une comparaison plus souple
+        $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $normalized) ?: $normalized;
+
+        foreach ($this->kb as $topic) {
+            foreach ($topic['keywords'] as $keyword) {
+                $kw = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $keyword) ?: $keyword;
+                if (str_contains($normalized, $kw)) {
+                    return $topic['reply'];
+                }
             }
         }
-        return false;
+
+        return $this->fallback;
     }
 }
