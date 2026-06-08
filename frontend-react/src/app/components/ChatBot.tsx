@@ -13,6 +13,30 @@ const SUGGESTED_QUESTIONS = [
   'Êtes-vous conformes RGPD / NIS2 ?',
 ];
 
+// Rendu markdown safe sans dangerouslySetInnerHTML
+function MessageContent({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={i}>{part.slice(2, -2)}</strong>;
+        }
+        return (
+          <span key={i}>
+            {part.split('\n').map((line, j, arr) => (
+              <span key={j}>
+                {line}
+                {j < arr.length - 1 && <br />}
+              </span>
+            ))}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export function ChatBot() {
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState<Message[]>([]);
@@ -26,7 +50,7 @@ export function ChatBot() {
     if (open && !started) {
       setHistory([{
         role: 'assistant',
-        content: 'Bonjour ! Je suis l\'assistant virtuel CYNA. Comment puis-je vous aider aujourd\'hui ?',
+        content: "Bonjour ! Je suis l'assistant virtuel CYNA.\nComment puis-je vous aider aujourd'hui ?",
       }]);
       setStarted(true);
     }
@@ -44,31 +68,25 @@ export function ChatBot() {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    const userMessage: Message = { role: 'user', content: trimmed };
-    const newHistory = [...history, userMessage];
+    const userMsg: Message = { role: 'user', content: trimmed };
+    const newHistory = [...history, userMsg];
     setHistory(newHistory);
     setInput('');
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/chatbot/message', {
+      const res = await fetch('/api/chatbot/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          message: trimmed,
-          history: history.slice(-10),
-        }),
+        body: JSON.stringify({ message: trimmed }),
       });
-
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error ?? 'Erreur serveur');
-
       setHistory([...newHistory, { role: 'assistant', content: data.reply }]);
     } catch {
       setHistory([...newHistory, {
         role: 'assistant',
-        content: 'Désolé, le service est temporairement indisponible. Contactez-nous à **contact@cyna-it.fr**.',
+        content: 'Service temporairement indisponible.\nContactez-nous : **contact@cyna-it.fr**',
       }]);
     } finally {
       setLoading(false);
@@ -80,14 +98,6 @@ export function ChatBot() {
       e.preventDefault();
       sendMessage(input);
     }
-  }
-
-  function renderContent(text: string) {
-    // Convertir **bold** et les sauts de ligne
-    const html = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br />');
-    return <span dangerouslySetInnerHTML={{ __html: html }} />;
   }
 
   return (
@@ -107,10 +117,9 @@ export function ChatBot() {
       {/* Fenêtre de chat */}
       {open && (
         <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col bg-[#0d1f3c]">
-
           {/* Header */}
           <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] px-4 py-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -123,19 +132,16 @@ export function ChatBot() {
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-80">
             {history.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[#00B4D8] text-white rounded-br-sm'
-                      : 'bg-white/10 text-gray-200 rounded-bl-sm'
-                  }`}
-                >
-                  {renderContent(msg.content)}
+                <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-[#00B4D8] text-white rounded-br-sm'
+                    : 'bg-white/10 text-gray-200 rounded-bl-sm'
+                }`}>
+                  <MessageContent text={msg.content} />
                 </div>
               </div>
             ))}
 
-            {/* Indicateur de frappe */}
             {loading && (
               <div className="flex justify-start">
                 <div className="bg-white/10 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
@@ -148,15 +154,12 @@ export function ChatBot() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Questions suggérées (seulement au démarrage) */}
+          {/* Questions suggérées */}
           {history.length === 1 && !loading && (
             <div className="px-4 pb-2 flex flex-wrap gap-1.5">
               {SUGGESTED_QUESTIONS.map(q => (
-                <button
-                  key={q}
-                  onClick={() => sendMessage(q)}
-                  className="text-xs bg-white/5 hover:bg-[#00B4D8]/20 border border-white/10 hover:border-[#00B4D8]/40 text-gray-300 hover:text-white rounded-full px-3 py-1 transition-colors"
-                >
+                <button key={q} onClick={() => sendMessage(q)}
+                  className="text-xs bg-white/5 hover:bg-[#00B4D8]/20 border border-white/10 hover:border-[#00B4D8]/40 text-gray-300 hover:text-white rounded-full px-3 py-1 transition-colors">
                   {q}
                 </button>
               ))}
@@ -175,12 +178,9 @@ export function ChatBot() {
               disabled={loading}
               className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00B4D8] disabled:opacity-50"
             />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || loading}
+            <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
               aria-label="Envoyer"
-              className="w-9 h-9 rounded-full bg-[#00B4D8] flex items-center justify-center hover:bg-[#0090ad] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-            >
+              className="w-9 h-9 rounded-full bg-[#00B4D8] flex items-center justify-center hover:bg-[#0090ad] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0">
               <Send className="w-4 h-4 text-white" />
             </button>
           </div>
