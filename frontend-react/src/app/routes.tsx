@@ -9,6 +9,9 @@ import { CheckoutIdentificationPage } from './pages/CheckoutIdentificationPage';
 import { CheckoutPaymentPage } from './pages/CheckoutPaymentPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { AbonnementsPage } from './pages/AbonnementsPage';
+import { CommandesPage } from './pages/CommandesPage';
+import { ParametresPage } from './pages/ParametresPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ContactPage } from './pages/ContactPage';
@@ -19,21 +22,21 @@ export const router = createBrowserRouter([
     Component: Layout,
     ErrorBoundary,
     children: [
-      { index: true, Component: HomePage },
-      { path: 'catalogue', Component: CatalogPage },
-      { path: 'produit/:id', Component: ProductDetailPage },
-      { path: 'panier', Component: CartPage },
-      { path: 'checkout/identification', Component: CheckoutIdentificationPage },
-      { path: 'checkout/paiement', Component: CheckoutPaymentPage },
-      { path: 'confirmation', Component: ConfirmationPage },
-      { path: 'espace-client', Component: DashboardPage },
-      // Sous-routes du dashboard → redirigées vers /espace-client
-      { path: 'espace-client/*', element: <Navigate to="/espace-client" replace /> },
-      { path: 'connexion', Component: LoginPage },
-      { path: 'inscription', Component: RegisterPage },
-      { path: 'contact', Component: ContactPage },
-      // Route 404 → accueil
-      { path: '*', element: <Navigate to="/" replace /> },
+      { index: true,                       Component: HomePage },
+      { path: 'catalogue',                 Component: CatalogPage },
+      { path: 'produit/:id',               Component: ProductDetailPage },
+      { path: 'panier',                    Component: CartPage },
+      { path: 'checkout/identification',   Component: CheckoutIdentificationPage },
+      { path: 'checkout/paiement',         Component: CheckoutPaymentPage },
+      { path: 'confirmation',              Component: ConfirmationPage },
+      { path: 'espace-client',             Component: DashboardPage },
+      { path: 'espace-client/abonnements', Component: AbonnementsPage },
+      { path: 'espace-client/commandes',   Component: CommandesPage },
+      { path: 'espace-client/parametres',  Component: ParametresPage },
+      { path: 'connexion',                 Component: LoginPage },
+      { path: 'inscription',               Component: RegisterPage },
+      { path: 'contact',                   Component: ContactPage },
+      { path: '*',                         element: <Navigate to="/" replace /> },
     ],
   },
 ]);

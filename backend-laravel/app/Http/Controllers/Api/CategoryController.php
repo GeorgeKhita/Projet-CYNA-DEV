@@ -8,14 +8,19 @@ use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
-    /**
-     * Liste les catégories visibles
-     */
     public function index(): JsonResponse
     {
-        $categories = Category::where('visible', true)
-            ->withCount(['products' => fn ($q) => $q->where('available', true)])
-            ->get();
+        $categories = Category::orderBy('display_order')
+            ->withCount(['products' => fn($q) => $q->where('status', 'available')])
+            ->get()
+            ->map(fn($c) => [
+                'id'            => $c->id,
+                'name'          => $c->name,
+                'description'   => $c->description,
+                'color'         => $c->color,
+                'display_order' => $c->display_order,
+                'products_count'=> $c->products_count,
+            ]);
 
         return response()->json($categories);
     }
