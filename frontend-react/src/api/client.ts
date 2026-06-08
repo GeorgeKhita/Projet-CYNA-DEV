@@ -29,6 +29,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
+    // Laravel retourne { message, errors } pour les erreurs de validation (422)
+    if (err.errors) {
+      const first = Object.values(err.errors)[0];
+      const msg = Array.isArray(first) ? first[0] : String(first);
+      throw new Error(msg);
+    }
     throw new Error(err.message || `Erreur ${res.status}`);
   }
 
