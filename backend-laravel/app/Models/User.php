@@ -18,23 +18,19 @@ class User extends Authenticatable
         'email',
         'password',
         'company',
-        'phone',
         'role',
-        'is_active',
-        'two_factor_code',
-        'two_factor_expires_at',
+        'two_factor_enabled',
+        'is_email_verified',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token',
-        'two_factor_code',
     ];
 
     protected $casts = [
-        'email_verified_at'      => 'datetime',
-        'two_factor_expires_at'  => 'datetime',
-        'password'               => 'hashed',
+        'password'           => 'hashed',
+        'two_factor_enabled' => 'boolean',
+        'is_email_verified'  => 'boolean',
     ];
 
     /**
@@ -55,14 +51,14 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
-    public function invoices()
+    public function supportMessages()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(SupportMessage::class);
     }
 
-    public function activityLogs()
+    public function securityLogs()
     {
-        return $this->hasMany(ActivityLog::class);
+        return $this->hasMany(SecurityLog::class);
     }
 
     /**
