@@ -2,43 +2,47 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
+        'category_id',
         'name',
+        'slug',
         'description',
-        'category',
+        'features',
+        'images',
         'price_monthly',
         'price_annual',
-        'available',
-        'popular',
-        'order',
+        'status',
+        'priority',
     ];
 
     protected $casts = [
-        'available' => 'boolean',
-        'popular'   => 'boolean',
+        'features'      => 'array',
+        'images'        => 'array',
         'price_monthly' => 'decimal:2',
         'price_annual'  => 'decimal:2',
     ];
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category', 'name');
+        return $this->belongsTo(Category::class);
     }
 
-    public function orderItems()
+    public function orderDetails()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(OrderDetail::class);
     }
 
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
     }
 }

@@ -9,49 +9,53 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Liste les produits avec filtres optionnels
-     * ?category=SOC, ?search=premium, ?sort=price_asc|price_desc|popular
-     */
     public function index(Request $request): JsonResponse
     {
-        $query = Product::where('available', true);
+        $query = Product::with('category')
+            ->where('status', 'available')
+            ->orderBy('priority');
 
-        // Filtre par catégorie
         if ($request->filled('category')) {
-            $query->where('category', strtoupper($request->category));
+            $query->whereHas('category', fn($q) => $q->where('name', strtoupper($request->category)));
         }
 
-        // Recherche par nom
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        // Tri
-        switch ($request->get('sort', 'order')) {
-            case 'price_asc':
-                $query->orderBy('price_monthly', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price_monthly', 'desc');
-                break;
-            case 'popular':
-                $query->orderByDesc('popular')->orderBy('order');
-                break;
-            default:
-                $query->orderBy('order');
+        if ($request->get('sort') === 'price_asc') {
+            $query->orderBy('price_monthly');
+        } elseif ($request->get('sort') === 'price_desc') {
+            $query->orderByDesc('price_monthly');
         }
 
-        return response()->json($query->get());
+        $products = $query->get()->map(fn($p) => $this->format($p));
+
+        return response()->json($products);
     }
 
-    /**
-     * Retourne un produit par son ID
-     */
     public function show(int $id): JsonResponse
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('category')->findOrFail($id);
+        return response()->json($this->format($product));
+    }
 
-        return response()->json($product);
+    private function format(Product $p): array
+    {
+        return [
+            'id'            => $p->id,
+            'name'          => $p->name,
+            'slug'          => $p->slug,
+            'description'   => $p->description,
+            'features'      => $p->features ?? [],
+            'images'        => $p->images ?? [],
+            'price_monthly' => (float) $p->price_monthly,
+            'price_annual'  => (float) $p->price_annual,
+            'status'        => $p->status,
+            'priority'      => $p->priority,
+            'category'      => $p->category?->name ?? '',
+            'category_color'=> $p->category?->color ?? '#00B4D8',
+            'category_id'   => $p->category_id,
+        ];
     }
 }
