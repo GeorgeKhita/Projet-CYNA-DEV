@@ -28,8 +28,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const res = await fetch(`/api${endpoint}`, { ...options, headers });
 
   if (!res.ok) {
+    // Token expiré ou invalide → déconnexion automatique
+    if (res.status === 401) {
+      localStorage.removeItem('cyna_token');
+      localStorage.removeItem('cyna_user');
+      window.location.href = '/connexion';
+      throw new Error('Session expirée. Veuillez vous reconnecter.');
+    }
     const err = await res.json().catch(() => ({ message: 'Erreur serveur' }));
-    // Laravel retourne { message, errors } pour les erreurs de validation (422)
     if (err.errors) {
       const first = Object.values(err.errors)[0];
       const msg = Array.isArray(first) ? first[0] : String(first);
