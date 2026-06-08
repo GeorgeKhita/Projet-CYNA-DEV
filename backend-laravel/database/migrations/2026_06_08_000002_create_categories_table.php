@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name', 100);
             $table->text('description')->nullable();
             $table->string('color', 10)->default('#00B4D8');
-            $table->boolean('visible')->default(true);
+            $table->string('image')->nullable();
+            $table->integer('display_order')->default(0);
             $table->timestamps();
         });
     }

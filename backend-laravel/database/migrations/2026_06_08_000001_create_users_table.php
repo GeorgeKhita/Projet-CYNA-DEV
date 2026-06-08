@@ -10,16 +10,14 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('first_name', 100)->nullable();
+            $table->string('last_name', 150)->nullable();
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('company')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('company', 150)->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
-            $table->boolean('is_active')->default(true);
-            $table->timestamp('email_verified_at')->nullable();
-            $table->rememberToken();
+            $table->boolean('two_factor_enabled')->default(false);
+            $table->boolean('is_email_verified')->default(false);
             $table->timestamps();
         });
     }

@@ -11,12 +11,14 @@ return new class extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['active', 'cancelled'])->default('active');
-            $table->decimal('price', 10, 2);
-            $table->enum('plan', ['monthly', 'annual'])->default('monthly');
-            $table->date('next_billing_date')->nullable();
+            $table->string('stripe_sub_id', 100)->nullable()->unique();
+            $table->enum('status', ['active', 'cancelled', 'past_due', 'expired'])->default('active');
+            $table->enum('billing_cycle', ['monthly', 'annual'])->default('monthly');
+            $table->date('current_period_start');
+            $table->date('current_period_end');
+            $table->dateTime('cancelled_at')->nullable();
             $table->timestamps();
         });
     }

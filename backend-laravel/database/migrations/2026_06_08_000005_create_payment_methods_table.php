@@ -8,18 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount', 10, 2);
-            $table->string('pdf_path')->nullable();
+            $table->string('cardholder_name', 150)->nullable();
+            $table->char('last_four_digits', 4);
+            $table->char('expiry_date', 5);
+            $table->string('payment_token')->nullable();
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists('payment_methods');
     }
 };

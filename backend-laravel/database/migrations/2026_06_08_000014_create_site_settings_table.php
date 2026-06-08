@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->renameColumn('subscription_type', 'plan');
+        Schema::create('site_settings', function (Blueprint $table) {
+            $table->string('key', 50)->primary();
+            $table->text('value')->nullable();
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->renameColumn('plan', 'subscription_type');
-        });
+        Schema::dropIfExists('site_settings');
     }
 };
