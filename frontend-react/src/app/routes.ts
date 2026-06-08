@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { HomePage } from './pages/HomePage';
@@ -27,9 +27,13 @@ export const router = createBrowserRouter([
       { path: 'checkout/paiement', Component: CheckoutPaymentPage },
       { path: 'confirmation', Component: ConfirmationPage },
       { path: 'espace-client', Component: DashboardPage },
+      // Sous-routes du dashboard → redirigées vers /espace-client
+      { path: 'espace-client/*', element: <Navigate to="/espace-client" replace /> },
       { path: 'connexion', Component: LoginPage },
       { path: 'inscription', Component: RegisterPage },
       { path: 'contact', Component: ContactPage },
+      // Route 404 → accueil
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ]);

@@ -58,10 +58,10 @@ export function DashboardPage() {
   ];
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client', active: true },
-    { icon: ShoppingBag, label: 'Abonnements', href: '/espace-client/abonnements', active: false },
-    { icon: CreditCard, label: 'Commandes', href: '/espace-client/commandes', active: false },
-    { icon: Settings, label: 'Paramètres', href: '/espace-client/parametres', active: false },
+    { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client', active: true, soon: false },
+    { icon: ShoppingBag, label: 'Abonnements', href: null, active: false, soon: true },
+    { icon: CreditCard, label: 'Commandes', href: null, active: false, soon: true },
+    { icon: Settings, label: 'Paramètres', href: null, active: false, soon: true },
   ];
 
   const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.toUpperCase() || 'U';
@@ -91,16 +91,26 @@ export function DashboardPage() {
               <nav className="space-y-2">
                 {menuItems.map(item => {
                   const Icon = item.icon;
+                  if (item.href) {
+                    return (
+                      <Link key={item.label} to={item.href}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                          item.active
+                            ? 'bg-[#00B4D8]/20 text-[#00B4D8] border border-[#00B4D8]/30'
+                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                        }`}>
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    );
+                  }
                   return (
-                    <Link key={item.label} to={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        item.active
-                          ? 'bg-[#00B4D8]/20 text-[#00B4D8] border border-[#00B4D8]/30'
-                          : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                      }`}>
+                    <div key={item.label}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 cursor-not-allowed">
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{item.label}</span>
-                    </Link>
+                      <span className="ml-auto text-xs bg-white/5 text-gray-500 px-2 py-0.5 rounded-full">Bientôt</span>
+                    </div>
                   );
                 })}
                 <button onClick={logout}
