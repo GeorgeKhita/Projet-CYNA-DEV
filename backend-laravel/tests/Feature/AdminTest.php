@@ -63,22 +63,17 @@ class AdminTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_admin_can_send_2fa(): void
+    public function test_admin_can_initiate_2fa_setup(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
         $token = $admin->createToken('test')->plainTextToken;
 
         $this->withHeader('Authorization', "Bearer {$token}")
-            ->postJson('/api/auth/admin/send-2fa')
+            ->postJson('/api/auth/admin/setup-2fa')
             ->assertStatus(200)
-            ->assertJsonStructure(['message']);
+            ->assertJsonStructure(['message', 'qr_code', 'secret_key']);
 
-        $this->assertDatabaseHas('users', [
-            'id' => $admin->id,
-        ]);
-        // Vérifier que two_factor_code a été renseigné
         $admin->refresh();
-        $this->assertNotNull($admin->two_factor_code);
-        $this->assertNotNull($admin->two_factor_expires_at);
+        $this->assertNotNull($admin->two_factor_secret);
     }
 }

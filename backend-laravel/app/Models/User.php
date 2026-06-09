@@ -19,6 +19,7 @@ class User extends Authenticatable
         'password',
         'company',
         'role',
+        'is_active',
         'two_factor_enabled',
         'two_factor_secret',
         'two_factor_confirmed_at',
@@ -35,6 +36,7 @@ class User extends Authenticatable
         'two_factor_enabled'      => 'boolean',
         'two_factor_confirmed_at' => 'datetime',
         'is_email_verified'       => 'boolean',
+        'is_active'               => 'boolean',
     ];
 
     /**

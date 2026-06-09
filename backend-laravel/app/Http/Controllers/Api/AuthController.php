@@ -75,6 +75,10 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email ou mot de passe incorrect.'], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Votre compte a été désactivé.'], 403);
+        }
+
         // Si admin avec 2FA activé et confirmé → demander le code TOTP
         if ($user->role === 'admin' && $user->two_factor_enabled && $user->two_factor_confirmed_at) {
             $pendingToken = Str::random(64);

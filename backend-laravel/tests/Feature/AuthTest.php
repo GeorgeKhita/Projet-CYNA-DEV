@@ -58,7 +58,7 @@ class AuthTest extends TestCase
             'password' => 'WrongPassword',
         ]);
 
-        $response->assertStatus(422);
+        $response->assertStatus(401);
     }
 
     public function test_inactive_user_cannot_login(): void

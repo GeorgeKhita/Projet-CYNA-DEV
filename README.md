@@ -24,10 +24,12 @@
 |---|---|---|
 | Laravel | 11 | Framework PHP |
 | PHP | 8.2+ | Runtime |
-| Laravel Sanctum | — | Authentification par token |
+| Laravel Sanctum | — | Authentification par token Bearer |
 | MySQL | 8+ | Base de données |
 | Stripe PHP SDK | 20.x | Paiements |
-| barryvdh/laravel-dompdf | 3.x | Génération PDF |
+| barryvdh/laravel-dompdf | 3.x | Génération PDF factures |
+| pragmarx/google2fa | 9.x | TOTP (Google Authenticator) |
+| bacon/bacon-qr-code | 3.x | Génération QR code SVG |
 | Mailtrap (SMTP) | — | Emails (dev/staging) |
 | Anthropic Claude API | — | Chatbot IA |
 
@@ -73,6 +75,10 @@ DB_PORT=3306
 DB_DATABASE=cyna
 DB_USERNAME=root
 DB_PASSWORD=
+
+# Cache (file = pas de table MySQL requise)
+CACHE_DRIVER=file
+CACHE_STORE=file
 
 # Frontend (CORS)
 SANCTUM_STATEFUL_DOMAINS=localhost:5173,localhost:5174,127.0.0.1
@@ -136,8 +142,8 @@ Projet-CYNA-DEV/
 ├── backend-laravel/
 │   ├── app/
 │   │   ├── Http/
-│   │   │   ├── Controllers/Api/          # Contrôleurs API REST
-│   │   │   │   ├── AuthController.php
+│   │   │   ├── Controllers/Api/
+│   │   │   │   ├── AuthController.php         # Auth + 2FA TOTP
 │   │   │   │   ├── ProductController.php
 │   │   │   │   ├── CategoryController.php
 │   │   │   │   ├── OrderController.php
@@ -146,39 +152,48 @@ Projet-CYNA-DEV/
 │   │   │   │   ├── InvoiceController.php
 │   │   │   │   ├── ContactController.php
 │   │   │   │   ├── ChatbotController.php
-│   │   │   │   └── Admin/               # Contrôleurs admin
+│   │   │   │   └── Admin/                     # Contrôleurs admin
 │   │   │   └── Middleware/
 │   │   │       └── AdminMiddleware.php
-│   │   └── Models/                       # Modèles Eloquent
-│   ├── config/
-│   │   └── services.php                  # Clés Stripe
+│   │   └── Models/
 │   ├── database/
-│   │   └── migrations/                   # 17 migrations
+│   │   ├── factories/                         # UserFactory, ProductFactory…
+│   │   └── migrations/                        # 19 migrations
+│   ├── tests/
+│   │   └── Feature/                           # 57 tests PHPUnit
+│   │       ├── AuthTest.php
+│   │       ├── AdminTest.php
+│   │       ├── TwoFactorTest.php              # 24 tests 2FA
+│   │       ├── OrderTest.php
+│   │       ├── SubscriptionTest.php
+│   │       ├── ProductTest.php
+│   │       └── RgpdTest.php
 │   └── routes/
-│       └── api.php                       # Toutes les routes API
+│       └── api.php
 │
 └── frontend-react/
     └── src/
         ├── api/
-        │   └── client.ts                 # Wrapper fetch + gestion token
+        │   └── client.ts                      # Wrapper fetch + Bearer token
         ├── app/
-        │   ├── components/               # Composants partagés
+        │   ├── components/
         │   │   ├── Layout.tsx
         │   │   ├── Navbar.tsx
         │   │   ├── Footer.tsx
         │   │   ├── ChatBot.tsx
         │   │   ├── DashboardSidebar.tsx
         │   │   ├── AdminSidebar.tsx
-        │   │   ├── ProductVisual.tsx
-        │   │   └── ui/                   # shadcn/ui components
-        │   ├── pages/                    # Pages utilisateur
-        │   │   ├── admin/                # Pages panel admin
+        │   │   └── ui/                        # shadcn/ui components
+        │   ├── pages/
+        │   │   ├── TwoFactorVerifyPage.tsx    # Page vérification 2FA
+        │   │   ├── admin/
+        │   │   │   └── AdminTwoFactorPage.tsx # Config 2FA admin
         │   │   └── ...
-        │   └── routes.tsx                # Définition des routes
+        │   └── routes.tsx
         ├── context/
-        │   └── AuthContext.tsx           # Auth globale (token + user)
+        │   └── AuthContext.tsx
         └── lib/
-            └── cart.ts                   # Panier (localStorage)
+            └── cart.ts
 ```
 
 ---
@@ -187,12 +202,12 @@ Projet-CYNA-DEV/
 
 | # | Table | Description |
 |---|---|---|
-| 01 | `users` | Comptes utilisateurs (rôle user/admin) |
+| 01 | `users` | Comptes (rôle user/admin, is_active, 2FA fields) |
 | 02 | `categories` | Catégories de produits (SOC, EDR, XDR…) |
 | 03 | `products` | Produits avec prix mensuel/annuel, features JSON |
 | 04 | `addresses` | Adresses de facturation |
 | 05 | `payment_methods` | Méthodes de paiement enregistrées |
-| 06 | `carts` | Paniers persistants (optionnel) |
+| 06 | `carts` | Paniers persistants |
 | 07 | `cart_items` | Lignes de panier |
 | 08 | `orders` | Commandes avec `stripe_pi_id` |
 | 09 | `order_details` | Lignes de commande (produit, quantité, durée) |
@@ -204,6 +219,8 @@ Projet-CYNA-DEV/
 | 15 | `password_reset_tokens` | Tokens de réinitialisation mot de passe |
 | 16 | `personal_access_tokens` | Tokens Sanctum |
 | 17 | `invoices` | Factures liées aux commandes |
+| 18 | `users` +2FA | `two_factor_secret` (chiffré) + `two_factor_confirmed_at` |
+| 19 | `users` +active | `is_active` — désactivation de compte |
 
 ---
 
@@ -222,6 +239,24 @@ Projet-CYNA-DEV/
 - Mot de passe oublié → email avec lien sécurisé (token 60 min)
 - Réinitialisation de mot de passe via token
 
+### Authentification à deux facteurs (2FA) — Admin uniquement
+La 2FA utilise le protocole **TOTP** (RFC 6238), compatible Google Authenticator, Authy, 1Password…
+
+**Flux d'activation :**
+1. Admin → `/admin/securite` → "Configurer la 2FA"
+2. Le serveur génère un secret TOTP, le chiffre (`encrypt()`) et retourne un QR code SVG
+3. L'admin scanne le QR avec son app d'authentification
+4. L'admin saisit le premier code à 6 chiffres → confirmation → 2FA activée
+
+**Flux de connexion avec 2FA :**
+1. `POST /api/auth/login` → si admin + 2FA confirmée → `{ requires_2fa: true, pending_token }`
+2. Le `pending_token` est stocké en cache (10 min, `CACHE_STORE=file`)
+3. Frontend redirige vers `/verification-2fa`
+4. L'admin saisit le code TOTP → `POST /api/auth/admin/verify-2fa`
+5. Code vérifié → token Sanctum créé → accès `/admin`
+
+**Désactivation :** requiert un code TOTP valide pour confirmer.
+
 ### Processus de commande
 - **Étape 1** : Identification (connexion ou inscription)
 - **Étape 2** : Paiement sécurisé via Stripe (CardElement)
@@ -237,8 +272,8 @@ Projet-CYNA-DEV/
 |---|---|
 | `/espace-client` | Dashboard — KPIs abonnements actifs, coût mensuel, prochain renouvellement |
 | `/espace-client/abonnements` | Liste des abonnements actifs/annulés, bouton annulation |
-| `/espace-client/commandes` | Historique des commandes avec **téléchargement PDF** |
-| `/espace-client/parametres` | Modification profil, changement de mot de passe, export RGPD |
+| `/espace-client/commandes` | Historique des commandes avec téléchargement PDF |
+| `/espace-client/parametres` | Modification profil, mot de passe, export RGPD, suppression compte |
 
 ### Factures PDF
 - Générées automatiquement après chaque paiement (barryvdh/laravel-dompdf)
@@ -257,11 +292,6 @@ Projet-CYNA-DEV/
 - Propulsé par **Claude (Anthropic)** via API
 - Messages non-répondus flaggés `requires_human` → visibles dans le panel admin
 
-### Formulaire de contact
-- Email, sujet, message
-- Enregistrement en base (support_messages)
-- Notification email envoyée au support CYNA
-
 ### Panel Admin (`/admin/*`)
 | Route | Page |
 |---|---|
@@ -270,17 +300,11 @@ Projet-CYNA-DEV/
 | `/admin/utilisateurs` | Liste clients, détail par utilisateur, suppression |
 | `/admin/commandes` | Historique toutes commandes, mise à jour statut |
 | `/admin/messages` | Messages chatbot et contact — résoudre, supprimer |
-
-### Sécurité
-- Routes admin protégées par `AdminMiddleware` (rôle `admin` requis)
-- Routes client protégées par `auth:sanctum`
-- Tokens révoqués à la déconnexion
-- Vérification serveur du PaymentIntent Stripe avant création commande
-- Validation stricte de toutes les entrées (Laravel FormRequest)
+| `/admin/securite` | Configuration et désactivation de la 2FA (Google Authenticator) |
 
 ### RGPD
-- Export des données personnelles (JSON) via `GET /api/auth/me/export`
-- Contient profil, commandes, abonnements
+- Export des données personnelles (JSON) via `GET /api/auth/me/export` — profil, commandes, abonnements
+- Suppression définitive du compte via `DELETE /api/auth/me` (confirmation par mot de passe)
 
 ---
 
@@ -289,17 +313,23 @@ Projet-CYNA-DEV/
 ### Authentification (public)
 ```
 POST   /api/auth/register              Inscription
-POST   /api/auth/login                 Connexion → token
+POST   /api/auth/login                 Connexion → token (ou requires_2fa si admin avec 2FA)
 POST   /api/auth/forgot-password       Envoi email reset
 POST   /api/auth/reset-password        Reset avec token
+POST   /api/auth/admin/verify-2fa      Vérification TOTP après login (pending_token + code)
+GET    /api/carousel                   Slides carousel d'accueil
 ```
 
 ### Authentification (auth:sanctum)
 ```
 POST   /api/auth/logout                Révocation token
-GET    /api/auth/me                    Profil utilisateur
+GET    /api/auth/me                    Profil + two_factor_enabled
 PUT    /api/auth/me                    Modifier profil / mot de passe
+DELETE /api/auth/me                    Supprimer le compte (RGPD) — requiert mot de passe
 GET    /api/auth/me/export             Export données RGPD (JSON)
+POST   /api/auth/admin/setup-2fa       Générer secret + QR code SVG (admin)
+POST   /api/auth/admin/confirm-2fa     Confirmer activation 2FA avec 1er code TOTP (admin)
+DELETE /api/auth/admin/disable-2fa     Désactiver 2FA (code TOTP requis) (admin)
 ```
 
 ### Catalogue (public)
@@ -322,8 +352,8 @@ POST   /api/payments/intent            Créer un Stripe PaymentIntent → client
 
 ### Commandes (auth:sanctum)
 ```
-GET    /api/orders                     Historique commandes (avec invoice_id)
-POST   /api/orders                     Créer commande (vérifie Stripe + crée facture + email)
+GET    /api/orders                     Historique commandes
+POST   /api/orders                     Créer commande (vérifie Stripe + facture + email)
 GET    /api/orders/{id}                Détail commande
 ```
 
@@ -411,11 +441,11 @@ DELETE /api/admin/logs                 Vider les logs
 | Admin | admin@cyna-it.fr | Admin1234! |
 | Utilisateur | jean.dupont@entreprise.fr | User1234! |
 
+> **Note :** si la 2FA est activée sur le compte admin, Google Authenticator sera requis à la connexion.
+
 ---
 
 ## Tests Stripe
-
-Pour tester le paiement en environnement de développement :
 
 | Carte | Numéro | Résultat |
 |---|---|---|
@@ -449,6 +479,62 @@ Client → CheckoutPaymentPage
 
 ---
 
+## Flux de connexion avec 2FA
+
+```
+Admin → POST /api/auth/login { email, password }
+  │
+  ├─ [2FA désactivée] → { token, user }  ──────────────→  /admin
+  │
+  └─ [2FA activée] → { requires_2fa: true, pending_token }
+       │
+       ├─ pending_token stocké en Cache (10 min, CACHE_STORE=file)
+       ├─ Frontend stocke pending_token dans sessionStorage
+       └─ Redirection → /verification-2fa
+            │
+            └─ POST /api/auth/admin/verify-2fa { pending_token, code }
+                 │
+                 ├─ Cache::get("2fa_pending:{token}") → user_id
+                 ├─ Google2FA::verifyKey(decrypt(secret), code)
+                 └─ { token, user }  ────────────────────→  /admin
+```
+
+---
+
+## Tests automatisés
+
+```bash
+cd backend-laravel
+php artisan test --testdox
+```
+
+**57 tests — 131 assertions**
+
+| Fichier | Tests | Couverture |
+|---|---|---|
+| `TwoFactorTest.php` | 24 | Setup, confirm, login 2FA, verify, disable, flux complet |
+| `AuthTest.php` | 7 | Register, login, wrong password, inactive, profil, reset |
+| `AdminTest.php` | 7 | Dashboard, users, products, orders, accès 2FA |
+| `OrderTest.php` | 7 | CRUD commandes, isolation user |
+| `SubscriptionTest.php` | 4 | Liste, annulation, isolation |
+| `RgpdTest.php` | 5 | Export, suppression compte, mot de passe |
+| `ProductTest.php` | 3 | Liste produits, détail, catégories |
+
+---
+
+## Sécurité
+
+- Routes admin protégées par `AdminMiddleware` (rôle `admin`)
+- Routes client protégées par `auth:sanctum`
+- Tokens révoqués à la déconnexion
+- **2FA TOTP (RFC 6238)** — secret stocké chiffré (`encrypt()`) en base, jamais sérialisé
+- Token temporaire 2FA en cache (expiration 10 min), consommé à usage unique
+- Vérification serveur du PaymentIntent Stripe avant création commande
+- `is_active` sur les comptes : les comptes désactivés reçoivent une 403
+- Validation stricte de toutes les entrées (Laravel Validator)
+
+---
+
 ## Build de production
 
 ```bash
@@ -470,7 +556,10 @@ php artisan optimize
 
 | Commit | Description |
 |---|---|
-| `fe25521` | Intégration Stripe, Mailtrap, factures PDF, corrections bugs |
+| `6b81535` | 2FA admin TOTP complet (Google Authenticator) + tests |
+| `3da9ec2` | Corrections Bloc 3 — RGPD, carousel, tests, logs admin |
+| `626c3fe` | README complet |
+| `fe25521` | Intégration Stripe, Mailtrap, factures PDF |
 | `3bdcefd` | Fix méthodes HTTP panel admin |
 | `0e69bb2` | Images produits + panel admin complet |
 | `8cb4f23` | Toutes les pages prioritaires implémentées |
@@ -479,13 +568,8 @@ php artisan optimize
 | `403edd9` | Fix SubscriptionController nouveau schéma |
 | `7c0f684` | Fix Order/OrderDetail/Subscription |
 | `b78b540` | Chatbot IA avec API Claude (Anthropic) |
-| `49b9714` | Refactor migrations (schema cyna_corrected.sql) |
-| `db2a851` | Réorganisation frontend dans `frontend-react/` |
-| `9a7f7ad` | Fonctionnalités RGPD, 2FA, pages légales |
-| `61810b8` | Chatbot global avec base de connaissances SOC/EDR/XDR |
 | `1b9136b` | Backend Laravel complet + couche API frontend |
 | `bf4e924` | MVP React + panel admin CYNA |
-| `a721b5a` | Import maquette Figma + améliorations UI/UX |
 
 ---
 
