@@ -51,8 +51,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
-  get:    <T>(url: string)              => request<T>(url),
-  post:   <T>(url: string, data: unknown) => request<T>(url, { method: 'POST',   body: JSON.stringify(data) }),
-  put:    <T>(url: string, data: unknown) => request<T>(url, { method: 'PUT',    body: JSON.stringify(data) }),
-  delete: <T>(url: string)              => request<T>(url, { method: 'DELETE' }),
+  get:    <T>(url: string)               => request<T>(url),
+  post:   <T>(url: string, data: unknown)  => request<T>(url, { method: 'POST',   body: JSON.stringify(data) }),
+  put:    <T>(url: string, data: unknown)  => request<T>(url, { method: 'PUT',    body: JSON.stringify(data) }),
+  patch:  <T>(url: string, data?: unknown) => request<T>(url, { method: 'PATCH',  body: data ? JSON.stringify(data) : undefined }),
+  delete: <T>(url: string)               => request<T>(url, { method: 'DELETE' }),
 };

@@ -80,7 +80,7 @@ export function AdminProductsPage() {
   }
 
   async function handleToggle(p: Product) {
-    const res = await api.delete<Product>(`/admin/products/${p.id}/toggle`);
+    await api.patch(`/admin/products/${p.id}/toggle`);
     setProducts(prev => prev.map(x => x.id === p.id ? { ...x, status: x.status === 'available' ? 'unavailable' : 'available' } : x));
   }
 

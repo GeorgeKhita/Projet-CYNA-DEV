@@ -36,7 +36,7 @@ export function AdminOrdersPage() {
   async function updateStatus(id: number, status: string) {
     setUpdatingId(id);
     try {
-      await api.put(`/admin/orders/${id}/status`, { status });
+      await api.patch(`/admin/orders/${id}/status`, { status });
       setOrders(o => o.map(x => x.id === id ? { ...x, status } : x));
     } catch (err: any) { alert(err.message); }
     finally { setUpdatingId(null); }

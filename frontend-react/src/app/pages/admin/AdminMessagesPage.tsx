@@ -30,7 +30,7 @@ export function AdminMessagesPage() {
   }, []);
 
   async function handleResolve(id: number) {
-    await api.put(`/admin/contact-messages/${id}/resolve`, {});
+    await api.patch(`/admin/contact-messages/${id}/resolve`);
     setMessages(m => m.map(x => x.id === id ? { ...x, status: 'resolved' } : x));
     setNewCount(n => Math.max(0, n - 1));
   }
