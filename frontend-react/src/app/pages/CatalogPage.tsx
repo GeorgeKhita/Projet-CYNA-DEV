@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client';
 import { CATEGORY_COLORS } from '../../lib/cart';
+import { ProductVisual } from '../components/ProductVisual';
 
 interface Product {
   id: number;
@@ -138,7 +139,11 @@ export function CatalogPage() {
               return (
                 <div key={product.id}
                   className={`bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden transition-all ${!available ? 'opacity-60' : 'hover:border-white/20 hover:scale-[1.01]'}`}>
-                  <div className="bg-gradient-to-r from-white/5 to-transparent p-6 border-b border-white/10">
+                  {/* Visuel produit */}
+                  <div className="h-36 border-b border-white/10">
+                    <ProductVisual category={product.category} color={color} size="sm" />
+                  </div>
+                  <div className="p-6 border-b border-white/10">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-semibold text-white">{product.name}</h3>
                       <div className="flex items-center gap-2">
@@ -153,7 +158,7 @@ export function CatalogPage() {
                     </div>
                   </div>
                   <div className="p-6">
-                    <p className="text-gray-400 mb-6 leading-relaxed min-h-[60px]">{product.description}</p>
+                    <p className="text-gray-400 mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
                     <div className="flex items-end justify-between mb-4">
                       <div>
                         <span className="text-3xl font-bold text-[#00B4D8]">{product.price_monthly?.toLocaleString('fr-FR')}€</span>

@@ -3,30 +3,28 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ContactMessage;
+use App\Models\SupportMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AdminContactController extends Controller
 {
-    /**
-     * GET /api/admin/contact-messages
-     */
     public function index(Request $request): JsonResponse
     {
-        $query = ContactMessage::latest();
+        $query = SupportMessage::with('user')->latest();
 
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(fn($q) => $q
-                ->where('email', 'like', "%{$s}%")
-                ->orWhere('name', 'like', "%{$s}%")
-                ->orWhere('subject', 'like', "%{$s}%")
+                ->where('email',   'like', "%{$s}%")
+                ->orWhere('subject','like', "%{$s}%")
             );
         }
-
         if ($request->filled('status')) {
-            $query->where('is_read', $request->status === 'read');
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
         }
 
         $messages = $query->paginate(20);
@@ -36,36 +34,27 @@ class AdminContactController extends Controller
             'current_page' => $messages->currentPage(),
             'last_page'    => $messages->lastPage(),
             'total'        => $messages->total(),
-            'unread_count' => ContactMessage::where('is_read', false)->count(),
+            'new_count'    => SupportMessage::where('status', 'new')->count(),
         ]);
     }
 
-    /**
-     * GET /api/admin/contact-messages/{id}
-     */
-    public function show(ContactMessage $contactMessage): JsonResponse
+    public function show(SupportMessage $supportMessage): JsonResponse
     {
-        if (! $contactMessage->is_read) {
-            $contactMessage->update(['is_read' => true, 'read_at' => now()]);
+        if ($supportMessage->status === 'new') {
+            $supportMessage->update(['status' => 'in_progress']);
         }
-        return response()->json($contactMessage);
+        return response()->json($supportMessage);
     }
 
-    /**
-     * PATCH /api/admin/contact-messages/{id}/read
-     */
-    public function markRead(ContactMessage $contactMessage): JsonResponse
+    public function markResolved(SupportMessage $supportMessage): JsonResponse
     {
-        $contactMessage->update(['is_read' => true, 'read_at' => now()]);
-        return response()->json(['message' => 'Message marqué comme lu.']);
+        $supportMessage->update(['status' => 'resolved']);
+        return response()->json(['message' => 'Message marqué comme résolu.']);
     }
 
-    /**
-     * DELETE /api/admin/contact-messages/{id}
-     */
-    public function destroy(ContactMessage $contactMessage): JsonResponse
+    public function destroy(SupportMessage $supportMessage): JsonResponse
     {
-        $contactMessage->delete();
+        $supportMessage->delete();
         return response()->json(['message' => 'Message supprimé.']);
     }
 }

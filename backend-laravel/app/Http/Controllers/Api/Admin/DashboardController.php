@@ -7,30 +7,20 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Subscription;
-use App\Models\ActivityLog;
+use App\Models\SupportMessage;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * GET /api/admin/dashboard
-     * KPIs principaux du tableau de bord
-     */
     public function index(): JsonResponse
     {
-        $totalRevenue   = Order::where('status', 'paid')->sum('total');
-        $activeClients  = User::where('role', 'user')->where('is_active', true)->count();
+        $totalRevenue    = Order::where('status', 'paid')->sum('total');
+        $activeClients   = User::where('role', 'user')->count();
         $activeContracts = Subscription::where('status', 'active')->count();
-        $openTickets    = 0; // Placeholder — à connecter au système de tickets
+        $openTickets     = SupportMessage::where('status', 'new')->count();
 
-        // Tendances (vs mois précédent)
         $lastMonthRevenue = Order::where('status', 'paid')
-            ->whereBetween('created_at', [
-                now()->subMonths(2)->startOfMonth(),
-                now()->subMonth()->endOfMonth(),
-            ])
+            ->whereBetween('created_at', [now()->subMonths(2)->startOfMonth(), now()->subMonth()->endOfMonth()])
             ->sum('total');
 
         $thisMonthRevenue = Order::where('status', 'paid')
@@ -41,39 +31,25 @@ class DashboardController extends Controller
             ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
             : 0;
 
-        // Répartition par catégorie
-        $categoryStats = Subscription::with('product')
-            ->where('status', 'active')
-            ->get()
-            ->groupBy(fn($s) => $s->product->category ?? 'Autre')
-            ->map(fn($items, $cat) => [
-                'name'  => $cat,
-                'value' => $items->count(),
-            ])
+        $categoryStats = Subscription::with('product.category')
+            ->where('status', 'active')->get()
+            ->groupBy(fn($s) => $s->product?->category?->name ?? 'Autre')
+            ->map(fn($items, $cat) => ['name' => $cat, 'value' => $items->count()])
             ->values();
 
-        // Commandes récentes
-        $recentOrders = Order::with('user')
-            ->latest()
-            ->take(5)
-            ->get()
+        $recentOrders = Order::with('user')->latest()->take(5)->get()
             ->map(fn($o) => [
                 'id'         => $o->id,
-                'ref'        => 'CMD-' . str_pad($o->id, 4, '0', STR_PAD_LEFT),
-                'client'     => $o->user
-                    ? $o->user->first_name . ' ' . $o->user->last_name
-                    : 'N/A',
-                'amount'     => $o->total,
+                'ref'        => 'CYN-' . str_pad($o->id, 6, '0', STR_PAD_LEFT),
+                'client'     => $o->user ? $o->user->first_name . ' ' . $o->user->last_name : 'N/A',
+                'amount'     => (float) $o->total,
                 'status'     => $o->status,
                 'created_at' => $o->created_at,
             ]);
 
-        // Logs récents
-        $recentLogs = ActivityLog::latest()->take(5)->get();
-
         return response()->json([
             'kpis' => [
-                'total_revenue'    => $totalRevenue,
+                'total_revenue'    => (float) $totalRevenue,
                 'active_clients'   => $activeClients,
                 'active_contracts' => $activeContracts,
                 'open_tickets'     => $openTickets,
@@ -81,27 +57,18 @@ class DashboardController extends Controller
             ],
             'category_stats' => $categoryStats,
             'recent_orders'  => $recentOrders,
-            'recent_logs'    => $recentLogs,
         ]);
     }
 
-    /**
-     * GET /api/admin/dashboard/revenue-chart
-     * Données de CA sur 12 mois pour le graphique
-     */
     public function revenueChart(): JsonResponse
     {
         $months = collect(range(11, 0))->map(function ($i) {
-            $month = now()->subMonths($i);
+            $month   = now()->subMonths($i);
             $revenue = Order::where('status', 'paid')
                 ->whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->sum('total');
-
-            return [
-                'month'   => $month->format('M Y'),
-                'revenue' => (float) $revenue,
-            ];
+            return ['month' => $month->locale('fr')->isoFormat('MMM YYYY'), 'revenue' => (float) $revenue];
         });
 
         return response()->json($months);

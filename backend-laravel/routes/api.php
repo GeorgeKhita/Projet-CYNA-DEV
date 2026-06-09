@@ -101,7 +101,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Utilisateurs admin
         Route::get('/users',               [AdminUserController::class, 'index']);
         Route::get('/users/{user}',        [AdminUserController::class, 'show']);
-        Route::patch('/users/{user}/toggle', [AdminUserController::class, 'toggle']);
         Route::delete('/users/{user}',     [AdminUserController::class, 'destroy']);
 
         // Carrousel
@@ -119,10 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/settings',  [AdminSettingsController::class, 'index']);
         Route::put('/settings',  [AdminSettingsController::class, 'update']);
 
-        // Messages de contact
-        Route::get('/contact-messages',                   [AdminContactController::class, 'index']);
-        Route::get('/contact-messages/{contactMessage}',  [AdminContactController::class, 'show']);
-        Route::patch('/contact-messages/{contactMessage}/read', [AdminContactController::class, 'markRead']);
-        Route::delete('/contact-messages/{contactMessage}', [AdminContactController::class, 'destroy']);
+        // Messages support
+        Route::get('/contact-messages',                            [AdminContactController::class, 'index']);
+        Route::get('/contact-messages/{supportMessage}',           [AdminContactController::class, 'show']);
+        Route::patch('/contact-messages/{supportMessage}/resolve', [AdminContactController::class, 'markResolved']);
+        Route::delete('/contact-messages/{supportMessage}',        [AdminContactController::class, 'destroy']);
     });
 });
