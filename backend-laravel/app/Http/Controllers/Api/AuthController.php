@@ -219,6 +219,31 @@ class AuthController extends Controller
         ]);
     }
 
+    // ── Droit à l'oubli RGPD ─────────────────────────────────────────────
+
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'password' => 'required|string',
+        ], [
+            'password.required' => 'Le mot de passe est requis pour confirmer la suppression.',
+        ]);
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Mot de passe incorrect.'], 422);
+        }
+
+        // Révocation de tous les tokens Sanctum
+        $user->tokens()->delete();
+
+        // Suppression du compte (cascade sur orders, subscriptions, invoices via FK)
+        $user->delete();
+
+        return response()->json(['message' => 'Votre compte a été supprimé définitivement conformément au RGPD.']);
+    }
+
     // ── 2FA admin (optionnel) ─────────────────────────────────────────────
 
     public function sendAdmin2FA(Request $request): JsonResponse

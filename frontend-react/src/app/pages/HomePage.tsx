@@ -1,8 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
-import { Shield, Laptop, Globe, ArrowRight, Star, Zap, Clock, Users, CheckCircle } from 'lucide-react';
+import { Shield, Laptop, Globe, ArrowRight, Star, Zap, Clock, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../../api/client';
 import { CATEGORY_COLORS } from '../../lib/cart';
+
+interface CarouselSlide {
+  id: number;
+  title: string;
+  subtitle?: string;
+  image_url?: string;
+  cta_text?: string;
+  cta_url?: string;
+}
 
 const CATEGORY_ICONS: Record<string, any> = { SOC: Shield, EDR: Laptop, XDR: Globe };
 const CATEGORY_TITLES: Record<string, string> = {
@@ -27,6 +36,11 @@ const steps = [
 export function HomePage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [slides, setSlides] = useState<CarouselSlide[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const nextSlide = useCallback(() => setCurrentSlide(i => (i + 1) % slides.length), [slides.length]);
+  const prevSlide = () => setCurrentSlide(i => (i - 1 + slides.length) % slides.length);
 
   useEffect(() => {
     api.get<any[]>('/categories').then(data => setCategories(Array.isArray(data) ? data : [])).catch(() => {});
@@ -34,7 +48,15 @@ export function HomePage() {
       const list = Array.isArray(data) ? data : [];
       setTopProducts(list.filter(p => p.status === 'available').slice(0, 3));
     }).catch(() => {});
+    api.get<CarouselSlide[]>('/carousel').then(data => setSlides(Array.isArray(data) ? data : [])).catch(() => {});
   }, []);
+
+  // Auto-rotation du carousel toutes les 5 secondes
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length, nextSlide]);
 
   return (
     <div className="bg-[#0A1628]">
@@ -71,6 +93,62 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Carousel — slides dynamiques depuis l'API admin */}
+      {slides.length > 0 && (
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#0A1628] to-[#0f2040] border-b border-white/10">
+          <div className="relative max-w-7xl mx-auto px-6 py-12">
+            <div className="relative min-h-[180px] flex items-center">
+              {slides.map((slide, idx) => (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 flex items-center transition-opacity duration-700 ${idx === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <div className="flex-1">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{slide.title}</h2>
+                    {slide.subtitle && <p className="text-gray-300 text-lg mb-4">{slide.subtitle}</p>}
+                    {slide.cta_text && slide.cta_url && (
+                      <Link
+                        to={slide.cta_url}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+                      >
+                        {slide.cta_text} <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    )}
+                  </div>
+                  {slide.image_url && (
+                    <div className="hidden md:block flex-shrink-0 ml-8">
+                      <img src={slide.image_url} alt={slide.title} className="h-32 w-auto object-contain rounded-lg opacity-90" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* Contrôles navigation */}
+            {slides.length > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex gap-2">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? 'bg-[#00B4D8] w-6' : 'bg-white/30'}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={prevSlide} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                    <ChevronLeft className="w-4 h-4 text-white" />
+                  </button>
+                  <button onClick={nextSlide} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                    <ChevronRight className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Stats */}
       <section className="border-y border-white/10 bg-white/[0.02]">

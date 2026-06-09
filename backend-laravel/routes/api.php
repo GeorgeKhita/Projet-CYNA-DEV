@@ -41,6 +41,13 @@ Route::get('/products',          [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/categories',        [CategoryController::class, 'index']);
 
+// Carousel homepage (public)
+Route::get('/carousel', function () {
+    return response()->json(
+        \App\Models\CarouselSlide::where('active', true)->orderBy('position')->get()
+    );
+});
+
 // Formulaire de contact
 Route::post('/contact', [ContactController::class, 'send']);
 
@@ -55,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout',        [AuthController::class, 'logout']);
     Route::get('/auth/me',             [AuthController::class, 'me']);
     Route::put('/auth/me',             [AuthController::class, 'updateProfile']);
+    Route::delete('/auth/me',          [AuthController::class, 'deleteAccount']);
     Route::post('/auth/admin/send-2fa',   [AuthController::class, 'sendAdmin2FA']);
     Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
     Route::get('/auth/me/export',         [AuthController::class, 'exportMyData']);

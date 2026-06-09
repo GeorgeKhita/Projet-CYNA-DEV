@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,9 @@ class AdminUserController extends Controller
         if ($user->id === $request->user()->id) {
             return response()->json(['message' => 'Impossible de se supprimer soi-même.'], 403);
         }
+
+        ActivityLog::record($request->user()->id, 'user_deleted', "Utilisateur supprimé : {$user->email} (id:{$user->id})", $request->ip());
+
         $user->delete();
         return response()->json(['message' => 'Utilisateur supprimé.']);
     }

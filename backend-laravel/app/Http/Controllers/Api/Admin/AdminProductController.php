@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
@@ -45,6 +46,8 @@ class AdminProductController extends Controller
 
         $product = Product::create($data);
 
+        ActivityLog::record($request->user()->id, 'product_created', "Produit créé : {$product->name} (id:{$product->id})", $request->ip());
+
         return response()->json($this->format($product->load('category')), 201);
     }
 
@@ -72,18 +75,23 @@ class AdminProductController extends Controller
 
         $product->update($data);
 
+        ActivityLog::record($request->user()->id, 'product_updated', "Produit modifié : {$product->name} (id:{$product->id})", $request->ip());
+
         return response()->json($this->format($product->load('category')));
     }
 
-    public function destroy(Product $product): JsonResponse
+    public function destroy(Request $request, Product $product): JsonResponse
     {
+        ActivityLog::record($request->user()->id, 'product_deleted', "Produit supprimé : {$product->name} (id:{$product->id})", $request->ip());
         $product->delete();
         return response()->json(['message' => 'Produit supprimé.']);
     }
 
-    public function toggle(Product $product): JsonResponse
+    public function toggle(Request $request, Product $product): JsonResponse
     {
-        $product->update(['status' => $product->status === 'available' ? 'unavailable' : 'available']);
+        $newStatus = $product->status === 'available' ? 'unavailable' : 'available';
+        $product->update(['status' => $newStatus]);
+        ActivityLog::record($request->user()->id, 'product_toggled', "Produit {$newStatus} : {$product->name} (id:{$product->id})", $request->ip());
         return response()->json($this->format($product->load('category')));
     }
 

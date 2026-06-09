@@ -1,17 +1,21 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { Navigate } from 'react-router';
-import { User, Mail, Building, Lock, Check } from 'lucide-react';
-import { api } from '../../api/client';
+import { Navigate, useNavigate } from 'react-router';
+import { User, Mail, Building, Lock, Check, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
 
 export function ParametresPage() {
-  const { user, isAuthenticated, loading: authLoading, login, getToken } = useAuth() as any;
+  const { user, isAuthenticated, loading: authLoading, login, logout } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ first_name: '', last_name: '', company: '', email: '' });
   const [pwd, setPwd] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user) setForm({ first_name: user.first_name ?? '', last_name: user.last_name ?? '', company: user.company ?? '', email: user.email ?? '' });
@@ -45,6 +49,34 @@ export function ParametresPage() {
       setSuccess('Mot de passe modifié avec succès.');
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
+  }
+
+  async function handleExportData() {
+    const token = getToken();
+    const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/auth/me/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mes-donnees-cyna-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleDeleteAccount() {
+    if (!deleteConfirm) return;
+    setDeleting(true); setError('');
+    try {
+      await api.delete('/auth/me', { password: deleteConfirm });
+      logout();
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message ?? 'Mot de passe incorrect.');
+      setDeleting(false);
+    }
   }
 
   if (authLoading) return <div className="min-h-screen bg-[#0A1628] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
@@ -147,9 +179,69 @@ export function ParametresPage() {
                 </button>
               </form>
             </div>
+
+            {/* RGPD */}
+            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-2">Mes données (RGPD)</h2>
+              <p className="text-gray-400 mb-6">Conformément au RGPD, vous pouvez exporter ou supprimer définitivement vos données personnelles.</p>
+              <button onClick={handleExportData}
+                className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors">
+                <Download className="w-4 h-4 text-[#00B4D8]" />
+                Exporter mes données (JSON)
+              </button>
+            </div>
+
+            {/* Zone danger */}
+            <div className="bg-red-500/5 border border-red-500/30 rounded-xl p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+                <h2 className="text-2xl font-bold text-red-400">Zone dangereuse</h2>
+              </div>
+              <p className="text-gray-400 mb-6">
+                La suppression de votre compte est <strong className="text-white">irréversible</strong>. Toutes vos données (commandes, abonnements, factures) seront définitivement supprimées.
+              </p>
+              <button onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-semibold rounded-lg hover:bg-red-500/20 transition-colors">
+                <Trash2 className="w-4 h-4" />
+                Supprimer mon compte
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Modal confirmation suppression */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#0f2040] border border-red-500/30 rounded-xl p-8 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" />
+              <h3 className="text-xl font-bold text-white">Confirmer la suppression</h3>
+            </div>
+            <p className="text-gray-300 mb-6">
+              Cette action est <strong className="text-red-400">irréversible</strong>. Entrez votre mot de passe pour confirmer.
+            </p>
+            {error && <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
+            <input
+              type="password"
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              placeholder="Votre mot de passe"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }}
+                className="flex-1 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
+                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50">
+                {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
