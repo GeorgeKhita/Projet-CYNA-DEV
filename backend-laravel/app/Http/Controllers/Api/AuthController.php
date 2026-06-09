@@ -4,13 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use PragmaRX\Google2FA\Google2FA;
 
 class AuthController extends Controller
 {
@@ -70,6 +75,18 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email ou mot de passe incorrect.'], 401);
         }
 
+        // Si admin avec 2FA activé et confirmé → demander le code TOTP
+        if ($user->role === 'admin' && $user->two_factor_enabled && $user->two_factor_confirmed_at) {
+            $pendingToken = Str::random(64);
+            Cache::put("2fa_pending:{$pendingToken}", $user->id, now()->addMinutes(10));
+
+            return response()->json([
+                'requires_2fa'  => true,
+                'pending_token' => $pendingToken,
+                'message'       => 'Code de vérification requis.',
+            ]);
+        }
+
         $user->tokens()->delete();
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -91,7 +108,10 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($this->formatUser($request->user()));
+        $user = $request->user();
+        return response()->json(array_merge($this->formatUser($user), [
+            'two_factor_enabled' => $user->two_factor_enabled && $user->two_factor_confirmed_at !== null,
+        ]));
     }
 
     public function updateProfile(Request $request): JsonResponse
@@ -125,6 +145,28 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json($this->formatUser($user));
+    }
+
+    // ── Droit à l'oubli RGPD ─────────────────────────────────────────────
+
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'password' => 'required|string',
+        ], [
+            'password.required' => 'Le mot de passe est requis pour confirmer la suppression.',
+        ]);
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Mot de passe incorrect.'], 422);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Votre compte a été supprimé définitivement conformément au RGPD.']);
     }
 
     // ── Mot de passe oublié ───────────────────────────────────────────────
@@ -219,45 +261,168 @@ class AuthController extends Controller
         ]);
     }
 
-    // ── Droit à l'oubli RGPD ─────────────────────────────────────────────
+    // ── 2FA — Vérification au login ───────────────────────────────────────
 
-    public function deleteAccount(Request $request): JsonResponse
+    /**
+     * POST /api/auth/admin/verify-2fa
+     * Vérifie le code TOTP après la connexion (si 2FA activé)
+     */
+    public function verifyAdmin2FA(Request $request): JsonResponse
     {
-        $user = $request->user();
-
         $request->validate([
-            'password' => 'required|string',
-        ], [
-            'password.required' => 'Le mot de passe est requis pour confirmer la suppression.',
+            'pending_token' => 'required|string',
+            'code'          => 'required|string|size:6',
         ]);
 
-        if (!Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Mot de passe incorrect.'], 422);
+        $userId = Cache::get("2fa_pending:{$request->pending_token}");
+
+        if (!$userId) {
+            return response()->json(['message' => 'Session expirée. Veuillez vous reconnecter.'], 401);
         }
 
-        // Révocation de tous les tokens Sanctum
+        $user = User::find($userId);
+
+        if (!$user || !$user->two_factor_secret) {
+            return response()->json(['message' => 'Configuration 2FA introuvable.'], 422);
+        }
+
+        $google2fa = new Google2FA();
+        $secret    = decrypt($user->two_factor_secret);
+
+        if (!$google2fa->verifyKey($secret, $request->code)) {
+            return response()->json(['message' => 'Code invalide. Vérifiez votre application d\'authentification.'], 422);
+        }
+
+        // Code valide → supprimer le token temporaire et créer le token Sanctum
+        Cache::forget("2fa_pending:{$request->pending_token}");
         $user->tokens()->delete();
+        $token = $user->createToken('api-token')->plainTextToken;
 
-        // Suppression du compte (cascade sur orders, subscriptions, invoices via FK)
-        $user->delete();
-
-        return response()->json(['message' => 'Votre compte a été supprimé définitivement conformément au RGPD.']);
+        return response()->json([
+            'user'  => $this->formatUser($user),
+            'token' => $token,
+        ]);
     }
 
-    // ── 2FA admin (optionnel) ─────────────────────────────────────────────
+    // ── 2FA — Configuration ───────────────────────────────────────────────
 
+    /**
+     * POST /api/auth/admin/setup-2fa
+     * Génère un secret TOTP et retourne le QR code (avant confirmation)
+     */
     public function sendAdmin2FA(Request $request): JsonResponse
     {
         $user = $request->user();
+
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Accès refusé.'], 403);
         }
-        return response()->json(['message' => '2FA non configuré sur cette version.'], 501);
+
+        $google2fa = new Google2FA();
+        $secret    = $google2fa->generateSecretKey();
+
+        // Stocker le secret (chiffré) sans encore activer la 2FA
+        $user->update([
+            'two_factor_secret'       => encrypt($secret),
+            'two_factor_enabled'      => false,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        $qrCodeUrl = $google2fa->getQRCodeUrl(
+            'CYNA',
+            $user->email,
+            $secret
+        );
+
+        // Générer le QR code en SVG base64
+        $renderer = new ImageRenderer(
+            new RendererStyle(300),
+            new SvgImageBackEnd()
+        );
+        $writer   = new Writer($renderer);
+        $svg      = $writer->writeString($qrCodeUrl);
+        $qrCode   = 'data:image/svg+xml;base64,' . base64_encode($svg);
+
+        return response()->json([
+            'message'    => 'Scannez ce QR code avec Google Authenticator.',
+            'qr_code'    => $qrCode,
+            'secret_key' => $secret,
+        ]);
     }
 
-    public function verifyAdmin2FA(Request $request): JsonResponse
+    /**
+     * POST /api/auth/admin/confirm-2fa
+     * Confirme l'activation de la 2FA avec le premier code TOTP
+     */
+    public function confirmAdmin2FA(Request $request): JsonResponse
     {
-        return response()->json(['message' => '2FA non configuré sur cette version.'], 501);
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $request->validate([
+            'code' => 'required|string|size:6',
+        ]);
+
+        if (!$user->two_factor_secret) {
+            return response()->json(['message' => 'Lancez d\'abord la configuration (POST /admin/setup-2fa).'], 422);
+        }
+
+        $google2fa = new Google2FA();
+        $secret    = decrypt($user->two_factor_secret);
+
+        if (!$google2fa->verifyKey($secret, $request->code)) {
+            return response()->json(['message' => 'Code invalide. Assurez-vous que l\'heure de votre appareil est correcte.'], 422);
+        }
+
+        $user->update([
+            'two_factor_enabled'      => true,
+            'two_factor_confirmed_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Authentification à deux facteurs activée avec succès.',
+        ]);
+    }
+
+    /**
+     * DELETE /api/auth/admin/disable-2fa
+     * Désactive la 2FA (requiert le code TOTP courant)
+     */
+    public function disableAdmin2FA(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
+        $request->validate([
+            'code' => 'required|string|size:6',
+        ]);
+
+        if (!$user->two_factor_enabled || !$user->two_factor_secret) {
+            return response()->json(['message' => 'La 2FA n\'est pas activée sur ce compte.'], 422);
+        }
+
+        $google2fa = new Google2FA();
+        $secret    = decrypt($user->two_factor_secret);
+
+        if (!$google2fa->verifyKey($secret, $request->code)) {
+            return response()->json(['message' => 'Code invalide.'], 422);
+        }
+
+        $user->update([
+            'two_factor_enabled'      => false,
+            'two_factor_secret'       => null,
+            'two_factor_confirmed_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Authentification à deux facteurs désactivée.',
+        ]);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

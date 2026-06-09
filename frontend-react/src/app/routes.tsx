@@ -23,6 +23,8 @@ import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
+import { AdminTwoFactorPage } from './pages/admin/AdminTwoFactorPage';
+import { TwoFactorVerifyPage } from './pages/TwoFactorVerifyPage';
 
 export const router = createBrowserRouter([
   // ── Site public ─────────────────────────────────────────────────────────
@@ -43,6 +45,7 @@ export const router = createBrowserRouter([
       { path: 'espace-client/commandes',     Component: CommandesPage },
       { path: 'espace-client/parametres',    Component: ParametresPage },
       { path: 'connexion',                   Component: LoginPage },
+      { path: 'verification-2fa',            Component: TwoFactorVerifyPage },
       { path: 'inscription',                 Component: RegisterPage },
       { path: 'mot-de-passe-oublie',         Component: ForgotPasswordPage },
       { path: 'reinitialiser-mot-de-passe',  Component: ResetPasswordPage },
@@ -61,6 +64,7 @@ export const router = createBrowserRouter([
       { path: 'utilisateurs',       Component: AdminUsersPage },
       { path: 'commandes',          Component: AdminOrdersPage },
       { path: 'messages',           Component: AdminMessagesPage },
+      { path: 'securite',           Component: AdminTwoFactorPage },
     ],
   },
 ]);

@@ -20,17 +20,21 @@ class User extends Authenticatable
         'company',
         'role',
         'two_factor_enabled',
+        'two_factor_secret',
+        'two_factor_confirmed_at',
         'is_email_verified',
     ];
 
     protected $hidden = [
         'password',
+        'two_factor_secret',
     ];
 
     protected $casts = [
-        'password'           => 'hashed',
-        'two_factor_enabled' => 'boolean',
-        'is_email_verified'  => 'boolean',
+        'password'                => 'hashed',
+        'two_factor_enabled'      => 'boolean',
+        'two_factor_confirmed_at' => 'datetime',
+        'is_email_verified'       => 'boolean',
     ];
 
     /**

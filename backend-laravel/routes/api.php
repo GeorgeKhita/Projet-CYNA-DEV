@@ -54,6 +54,9 @@ Route::post('/contact', [ContactController::class, 'send']);
 // Chatbot IA (public — fonctionne connecté ou anonyme)
 Route::post('/chatbot/message', [ChatbotController::class, 'message']);
 
+// 2FA — Vérification au login (public car pas encore de token Sanctum)
+Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
+
 // ── Routes authentifiées (Sanctum) ───────────────────────────────────────
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -63,9 +66,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me',             [AuthController::class, 'me']);
     Route::put('/auth/me',             [AuthController::class, 'updateProfile']);
     Route::delete('/auth/me',          [AuthController::class, 'deleteAccount']);
-    Route::post('/auth/admin/send-2fa',   [AuthController::class, 'sendAdmin2FA']);
-    Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
-    Route::get('/auth/me/export',         [AuthController::class, 'exportMyData']);
+    Route::get('/auth/me/export',      [AuthController::class, 'exportMyData']);
+
+    // 2FA — Configuration (admin seulement)
+    Route::post('/auth/admin/setup-2fa',   [AuthController::class, 'sendAdmin2FA']);
+    Route::post('/auth/admin/confirm-2fa', [AuthController::class, 'confirmAdmin2FA']);
+    Route::delete('/auth/admin/disable-2fa', [AuthController::class, 'disableAdmin2FA']);
 
     // Paiement Stripe
     Route::post('/payments/intent', [PaymentController::class, 'createIntent']);

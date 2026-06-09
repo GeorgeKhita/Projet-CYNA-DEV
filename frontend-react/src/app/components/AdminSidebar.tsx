@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
@@ -8,6 +8,7 @@ const menuItems = [
   { icon: Users,           label: 'Utilisateurs', href: '/admin/utilisateurs' },
   { icon: ShoppingCart,    label: 'Commandes',    href: '/admin/commandes' },
   { icon: MessageSquare,   label: 'Messages',     href: '/admin/messages' },
+  { icon: ShieldCheck,     label: 'Sécurité 2FA', href: '/admin/securite' },
 ];
 
 export function AdminSidebar() {

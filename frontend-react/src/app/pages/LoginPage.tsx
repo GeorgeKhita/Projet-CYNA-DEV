@@ -17,9 +17,17 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const data = await api.post<{ token: string; user: any }>('/auth/login', { email, password });
+      const data = await api.post<any>('/auth/login', { email, password });
+
+      // Admin avec 2FA activé → rediriger vers la page de vérification
+      if (data.requires_2fa) {
+        sessionStorage.setItem('2fa_pending_token', data.pending_token);
+        navigate('/verification-2fa');
+        return;
+      }
+
       login(data.token, data.user);
-      navigate('/espace-client');
+      navigate(data.user?.role === 'admin' ? '/admin' : '/espace-client');
     } catch (err: any) {
       setError(err.message || 'Email ou mot de passe incorrect.');
     } finally {
