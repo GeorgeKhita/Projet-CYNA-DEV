@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ShoppingCart, User, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getCartCount } from '../../lib/cart';
 
@@ -10,6 +10,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setCartCount(getCartCount());
@@ -23,6 +24,15 @@ export function Navbar() {
   function handleLogout() {
     logout();
     navigate('/connexion');
+  }
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/catalogue?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setMobileOpen(false);
+    }
   }
 
   const solutions = [
@@ -81,6 +91,16 @@ export function Navbar() {
             <Link to="/catalogue" className="text-gray-300 hover:text-white font-medium transition-colors">Tarifs</Link>
             <Link to="/contact" className="text-gray-300 hover:text-white font-medium transition-colors">Contact</Link>
           </div>
+
+          {/* Barre de recherche */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xs">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Rechercher..."
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] text-sm" />
+            </div>
+          </form>
 
           {/* Actions droite */}
           <div className="flex items-center gap-3">

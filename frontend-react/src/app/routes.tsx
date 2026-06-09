@@ -15,6 +15,8 @@ import { ParametresPage } from './pages/ParametresPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ContactPage } from './pages/ContactPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 export const router = createBrowserRouter([
   {
@@ -22,21 +24,23 @@ export const router = createBrowserRouter([
     Component: Layout,
     ErrorBoundary,
     children: [
-      { index: true,                       Component: HomePage },
-      { path: 'catalogue',                 Component: CatalogPage },
-      { path: 'produit/:id',               Component: ProductDetailPage },
-      { path: 'panier',                    Component: CartPage },
-      { path: 'checkout/identification',   Component: CheckoutIdentificationPage },
-      { path: 'checkout/paiement',         Component: CheckoutPaymentPage },
-      { path: 'confirmation',              Component: ConfirmationPage },
-      { path: 'espace-client',             Component: DashboardPage },
-      { path: 'espace-client/abonnements', Component: AbonnementsPage },
-      { path: 'espace-client/commandes',   Component: CommandesPage },
-      { path: 'espace-client/parametres',  Component: ParametresPage },
-      { path: 'connexion',                 Component: LoginPage },
-      { path: 'inscription',               Component: RegisterPage },
-      { path: 'contact',                   Component: ContactPage },
-      { path: '*',                         element: <Navigate to="/" replace /> },
+      { index: true,                           Component: HomePage },
+      { path: 'catalogue',                     Component: CatalogPage },
+      { path: 'produit/:id',                   Component: ProductDetailPage },
+      { path: 'panier',                        Component: CartPage },
+      { path: 'checkout/identification',       Component: CheckoutIdentificationPage },
+      { path: 'checkout/paiement',             Component: CheckoutPaymentPage },
+      { path: 'confirmation',                  Component: ConfirmationPage },
+      { path: 'espace-client',                 Component: DashboardPage },
+      { path: 'espace-client/abonnements',     Component: AbonnementsPage },
+      { path: 'espace-client/commandes',       Component: CommandesPage },
+      { path: 'espace-client/parametres',      Component: ParametresPage },
+      { path: 'connexion',                     Component: LoginPage },
+      { path: 'inscription',                   Component: RegisterPage },
+      { path: 'mot-de-passe-oublie',           Component: ForgotPasswordPage },
+      { path: 'reinitialiser-mot-de-passe',    Component: ResetPasswordPage },
+      { path: 'contact',                       Component: ContactPage },
+      { path: '*',                             element: <Navigate to="/" replace /> },
     ],
   },
 ]);
