@@ -1,55 +1,137 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, CreditCard, Shield, Lock } from 'lucide-react';
+import { Check, Shield, Lock } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { api } from '../../api/client';
 import { getCart, clearCart } from '../../lib/cart';
 
-export function CheckoutPaymentPage() {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      color: '#e5e7eb',
+      fontFamily: 'inherit',
+      fontSize: '16px',
+      '::placeholder': { color: '#6b7280' },
+    },
+    invalid: { color: '#f87171' },
+  },
+};
+
+const steps = [
+  { id: 1, name: 'Identification', active: false, completed: true },
+  { id: 2, name: 'Adresse', active: false, completed: true },
+  { id: 3, name: 'Paiement', active: true, completed: false },
+  { id: 4, name: 'Confirmation', active: false, completed: false },
+];
+
+function PaymentForm() {
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
+  const stripe = useStripe();
+  const elements = useElements();
+  const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const cart = getCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const steps = [
-    { id: 1, name: 'Identification', active: false, completed: true },
-    { id: 2, name: 'Adresse', active: false, completed: true },
-    { id: 3, name: 'Paiement', active: true, completed: false },
-    { id: 4, name: 'Confirmation', active: false, completed: false },
-  ];
+  useEffect(() => {
+    if (cart.length === 0) return;
+    api.post<{ client_secret: string }>('/payments/intent', { amount: total })
+      .then(res => setClientSecret(res.client_secret))
+      .catch(() => setError("Impossible d'initialiser le paiement. Réessayez."));
+  }, []);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!stripe || !elements || !clientSecret) return;
     if (cart.length === 0) { setError('Votre panier est vide.'); return; }
+
     setLoading(true);
     setError('');
-    try {
-      const orderData = {
-        subtotal: total,
-        tax: 0,
-        total,
-        items: cart.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          duration: item.duration,
-        })),
-      };
-      const res = await api.post<any>('/orders', orderData);
-      clearCart();
-      navigate('/confirmation', { state: { order: res, cart } });
-    } catch (err: any) {
-      // En dev, on passe quand même si le backend n'est pas encore branché
-      clearCart();
-      navigate('/confirmation', { state: { cart, total } });
-    } finally {
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) return;
+
+    const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    });
+
+    if (stripeError) {
+      setError(stripeError.message ?? 'Erreur de paiement.');
       setLoading(false);
+      return;
     }
+
+    if (paymentIntent?.status === 'succeeded') {
+      try {
+        const orderData = {
+          payment_intent_id: paymentIntent.id,
+          subtotal: total,
+          tax: 0,
+          total,
+          items: cart.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total_price: item.price * item.quantity,
+            duration: item.duration,
+          })),
+        };
+        const res = await api.post<any>('/orders', orderData);
+        clearCart();
+        navigate('/confirmation', { state: { order: res, cart } });
+      } catch {
+        setError('Paiement réussi mais erreur lors de la création de la commande. Contactez le support.');
+      }
+    }
+
+    setLoading(false);
   }
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-white font-medium mb-2">Informations de carte</label>
+        <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3.5 focus-within:ring-2 focus-within:ring-[#00B4D8]">
+          <CardElement options={CARD_ELEMENT_OPTIONS} />
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Testez avec <span className="text-gray-400 font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
+        </p>
+      </div>
+
+      <div className="bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Shield className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="text-[#10B981] font-semibold mb-1 flex items-center gap-2">
+              <Lock className="w-4 h-4" /> Paiement sécurisé par Stripe
+            </div>
+            <div className="text-sm text-gray-300">Conforme PCI-DSS · Données cryptées SSL · Transactions sécurisées</div>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || !stripe || !clientSecret}
+        className="block w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors disabled:opacity-60"
+      >
+        {loading ? 'Traitement...' : `Confirmer l'achat · ${total.toLocaleString('fr-FR')}€`}
+      </button>
+    </form>
+  );
+}
+
+export function CheckoutPaymentPage() {
   return (
     <div className="min-h-screen bg-[#0A1628] py-12">
       <div className="max-w-3xl mx-auto px-6">
@@ -76,60 +158,11 @@ export function CheckoutPaymentPage() {
 
         <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
           <h1 className="text-3xl font-bold text-white mb-2">Paiement</h1>
-          <p className="text-gray-400 mb-8">Choisissez votre méthode de paiement</p>
+          <p className="text-gray-400 mb-8">Entrez vos informations de carte bancaire</p>
 
-          {error && (
-            <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <button onClick={() => setPaymentMethod('card')}
-              className={`p-4 rounded-lg border-2 transition-all ${paymentMethod === 'card' ? 'border-[#00B4D8] bg-[#00B4D8]/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
-              <CreditCard className="w-6 h-6 text-white mx-auto mb-2" />
-              <div className="text-white font-semibold">Carte bancaire</div>
-            </button>
-            <button onClick={() => setPaymentMethod('paypal')}
-              className={`p-4 rounded-lg border-2 transition-all ${paymentMethod === 'paypal' ? 'border-[#00B4D8] bg-[#00B4D8]/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
-              <div className="text-2xl mb-2">PayPal</div>
-            </button>
-          </div>
-
-          {paymentMethod === 'card' && (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-white font-medium mb-2">Numéro de carte</label>
-                <input type="text" placeholder="1234 5678 9012 3456" required
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-white font-medium mb-2">Date d'expiration</label>
-                  <input type="text" placeholder="MM/AA" required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
-                </div>
-                <div>
-                  <label className="block text-white font-medium mb-2">CVV</label>
-                  <input type="text" placeholder="123" required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
-                </div>
-              </div>
-              <div className="bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Shield className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-[#10B981] font-semibold mb-1 flex items-center gap-2">
-                      <Lock className="w-4 h-4" /> Paiement sécurisé
-                    </div>
-                    <div className="text-sm text-gray-300">Conforme PCI-DSS • Données cryptées SSL • Transactions sécurisées</div>
-                  </div>
-                </div>
-              </div>
-              <button type="submit" disabled={loading}
-                className="block w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors disabled:opacity-60">
-                {loading ? 'Traitement...' : `Confirmer l'achat • ${total.toLocaleString('fr-FR')}€`}
-              </button>
-            </form>
-          )}
+          <Elements stripe={stripePromise}>
+            <PaymentForm />
+          </Elements>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
-import { ShoppingCart, Package, ChevronDown, ChevronUp } from 'lucide-react';
-import { api } from '../../api/client';
+import { ShoppingCart, Package, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
+import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
 
@@ -18,22 +18,39 @@ interface Order {
   ref: string;
   status: string;
   total: number;
+  invoice_id?: number;
   created_at: string;
   items?: OrderItem[];
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  paid:     { label: 'Payée',    color: '#10B981' },
+  paid:     { label: 'Payée',      color: '#10B981' },
   pending:  { label: 'En attente', color: '#F59E0B' },
-  failed:   { label: 'Échouée', color: '#EF4444' },
+  failed:   { label: 'Échouée',   color: '#EF4444' },
   refunded: { label: 'Remboursée', color: '#8B5CF6' },
 };
+
+async function downloadInvoice(invoiceId: number, ref: string) {
+  const token = getToken();
+  const res = await fetch(`/api/invoices/${invoiceId}/download`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
+  });
+  if (!res.ok) return;
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `facture-${ref}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function CommandesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -43,7 +60,20 @@ export function CommandesPage() {
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  if (authLoading) return <div className="min-h-screen bg-[#0A1628] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
+  async function handleDownload(invoiceId: number, ref: string) {
+    setDownloading(invoiceId);
+    try {
+      await downloadInvoice(invoiceId, ref);
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#0A1628] flex items-center justify-center">
+      <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   return (
@@ -75,8 +105,10 @@ export function CommandesPage() {
                   const isOpen = expanded === order.id;
                   return (
                     <div key={order.id} className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden">
-                      <button onClick={() => setExpanded(isOpen ? null : order.id)}
-                        className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+                      <button
+                        onClick={() => setExpanded(isOpen ? null : order.id)}
+                        className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors"
+                      >
                         <div className="flex items-center gap-4">
                           <Package className="w-6 h-6 text-[#00B4D8]" />
                           <div className="text-left">
@@ -87,32 +119,53 @@ export function CommandesPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{ backgroundColor: `${statusInfo.color}20`, color: statusInfo.color, border: `1px solid ${statusInfo.color}40` }}>
+                          <span
+                            className="px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{ backgroundColor: `${statusInfo.color}20`, color: statusInfo.color, border: `1px solid ${statusInfo.color}40` }}
+                          >
                             {statusInfo.label}
                           </span>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-[#00B4D8]">{order.total?.toLocaleString('fr-FR')}€</div>
+                          <div className="text-xl font-bold text-[#00B4D8]">
+                            {order.total?.toLocaleString('fr-FR')}€
                           </div>
                           {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
                         </div>
                       </button>
 
-                      {isOpen && order.items && (
-                        <div className="border-t border-white/10 p-6 space-y-3">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between text-sm">
-                              <div>
-                                <span className="text-white">{item.product?.name ?? `Produit #${item.product_id}`}</span>
-                                <span className="text-gray-500 ml-2">× {item.quantity} · {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
+                      {isOpen && (
+                        <div className="border-t border-white/10 p-6 space-y-4">
+                          {order.items && order.items.length > 0 && (
+                            <div className="space-y-3">
+                              {order.items.map((item, i) => (
+                                <div key={i} className="flex items-center justify-between text-sm">
+                                  <div>
+                                    <span className="text-white">{item.product?.name ?? `Produit #${item.product_id}`}</span>
+                                    <span className="text-gray-500 ml-2">× {item.quantity} · {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
+                                  </div>
+                                  <span className="text-[#00B4D8] font-semibold">
+                                    {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
+                                  </span>
+                                </div>
+                              ))}
+                              <div className="pt-3 border-t border-white/10 flex justify-between font-semibold">
+                                <span className="text-white">Total</span>
+                                <span className="text-[#00B4D8]">{order.total?.toLocaleString('fr-FR')}€</span>
                               </div>
-                              <span className="text-[#00B4D8] font-semibold">{(item.unit_price * item.quantity).toLocaleString('fr-FR')}€</span>
                             </div>
-                          ))}
-                          <div className="pt-3 border-t border-white/10 flex justify-between font-semibold">
-                            <span className="text-white">Total</span>
-                            <span className="text-[#00B4D8]">{order.total?.toLocaleString('fr-FR')}€</span>
-                          </div>
+                          )}
+
+                          {order.invoice_id && (
+                            <div className="pt-2">
+                              <button
+                                onClick={() => handleDownload(order.invoice_id!, order.ref)}
+                                disabled={downloading === order.invoice_id}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-lg text-sm text-white transition-colors disabled:opacity-50"
+                              >
+                                <FileDown className="w-4 h-4 text-[#00B4D8]" />
+                                {downloading === order.invoice_id ? 'Génération...' : 'Télécharger la facture PDF'}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

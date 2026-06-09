@@ -26,5 +26,7 @@ class Order extends Model
 
     public function user()        { return $this->belongsTo(User::class); }
     public function details()     { return $this->hasMany(OrderDetail::class); }
+    public function items()       { return $this->hasMany(OrderDetail::class); }
+    public function invoice()     { return $this->hasOne(Invoice::class); }
     public function subscriptions(){ return $this->hasMany(Subscription::class); }
 }

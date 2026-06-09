@@ -33,7 +33,7 @@ export function AbonnementsPage() {
     if (!confirm('Confirmer l\'annulation de cet abonnement ?')) return;
     setCancelling(id);
     try {
-      await api.delete(`/subscriptions/${id}/cancel`);
+      await api.patch(`/subscriptions/${id}/cancel`);
       setSubs(s => s.map(sub => sub.id === id ? { ...sub, status: 'cancelled' } : sub));
     } catch {
       alert('Erreur lors de l\'annulation.');

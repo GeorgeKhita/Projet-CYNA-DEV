@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
 /*
@@ -58,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
     Route::get('/auth/me/export',         [AuthController::class, 'exportMyData']);
 
+    // Paiement Stripe
+    Route::post('/payments/intent', [PaymentController::class, 'createIntent']);
+
     // Commandes client
     Route::get('/orders',        [OrderController::class, 'index']);
     Route::post('/orders',       [OrderController::class, 'store']);
@@ -65,7 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Abonnements
     Route::get('/subscriptions',           [SubscriptionController::class, 'index']);
-    Route::post('/subscriptions',          [SubscriptionController::class, 'store']);
     Route::patch('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel']);
 
     // Factures
