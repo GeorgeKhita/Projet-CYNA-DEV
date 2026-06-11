@@ -42,33 +42,33 @@ export function AbonnementsPage() {
     }
   }
 
-  if (authLoading) return <div className="min-h-screen bg-[#0A1628] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   const active = subs.filter(s => s.status === 'active');
   const cancelled = subs.filter(s => s.status !== 'active');
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1"><DashboardSidebar /></div>
 
           <div className="lg:col-span-3 space-y-8">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Mes abonnements</h1>
-              <p className="text-gray-400">{active.length} abonnement{active.length !== 1 ? 's' : ''} actif{active.length !== 1 ? 's' : ''}</p>
+              <h1 className="text-4xl font-bold text-[#0A1628] mb-2">Mes abonnements</h1>
+              <p className="text-[#69727F]">{active.length} abonnement{active.length !== 1 ? 's' : ''} actif{active.length !== 1 ? 's' : ''}</p>
             </div>
 
             {loading ? (
-              <div className="flex items-center gap-3 text-gray-400 py-8">
+              <div className="flex items-center gap-3 text-[#69727F] py-8">
                 <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
                 Chargement...
               </div>
             ) : active.length === 0 && cancelled.length === 0 ? (
-              <div className="text-center py-16 bg-white/5 border border-white/10 rounded-xl">
-                <ShoppingBag className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-6">Aucun abonnement pour le moment.</p>
+              <div className="text-center py-16 cyna-card">
+                <ShoppingBag className="w-12 h-12 text-[#CBD3DF] mx-auto mb-4" />
+                <p className="text-[#69727F] mb-6">Aucun abonnement pour le moment.</p>
               </div>
             ) : (
               <>
@@ -77,18 +77,17 @@ export function AbonnementsPage() {
                     {active.map(sub => {
                       const color = sub.product?.category_color ?? CATEGORY_COLORS[sub.product?.category ?? ''] ?? '#00B4D8';
                       return (
-                        <div key={sub.id} className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6">
+                        <div key={sub.id} className="cyna-card cyna-card-hover p-6">
                           <div className="flex items-center justify-between flex-wrap gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                <h3 className="text-xl font-semibold text-white">{sub.product?.name ?? `Abonnement #${sub.id}`}</h3>
-                                <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                                  style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }}>
+                                <h3 className="text-xl font-bold text-[#0A1628]">{sub.product?.name ?? `Abonnement #${sub.id}`}</h3>
+                                <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                                   {sub.product?.category}
                                 </span>
-                                <span className="px-3 py-1 bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 rounded-full text-xs font-semibold">Actif</span>
+                                <span className="px-3 py-1 bg-[#10B981]/12 text-[#059669] border border-[#10B981]/30 rounded-full text-xs font-semibold">Actif</span>
                               </div>
-                              <div className="flex items-center gap-4 text-sm text-gray-400">
+                              <div className="flex items-center gap-4 text-sm text-[#69727F]">
                                 <span>Facturation {sub.billing_cycle === 'annual' ? 'annuelle' : 'mensuelle'}</span>
                                 {sub.current_period_end && (
                                   <span className="flex items-center gap-1">
@@ -100,11 +99,10 @@ export function AbonnementsPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <div className="text-2xl font-bold text-[#00B4D8]">{sub.price?.toLocaleString('fr-FR')}€</div>
-                                <div className="text-sm text-gray-400">/mois</div>
+                                <div className="text-2xl font-bold text-[#0A1628]">{sub.price?.toLocaleString('fr-FR')}€</div>
+                                <div className="text-sm text-[#69727F]">/mois</div>
                               </div>
-                              <button onClick={() => handleCancel(sub.id)} disabled={cancelling === sub.id}
-                                className="px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-lg text-sm transition-colors disabled:opacity-50">
+                              <button onClick={() => handleCancel(sub.id)} disabled={cancelling === sub.id} className="btn btn-danger">
                                 {cancelling === sub.id ? 'Annulation...' : 'Annuler'}
                               </button>
                             </div>
@@ -117,15 +115,15 @@ export function AbonnementsPage() {
 
                 {cancelled.length > 0 && (
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-400 mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-[#69727F] mb-4 flex items-center gap-2">
                       <AlertCircle className="w-5 h-5" /> Abonnements annulés
                     </h2>
                     <div className="space-y-3">
                       {cancelled.map(sub => (
-                        <div key={sub.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 opacity-60">
+                        <div key={sub.id} className="bg-[#F6F8FB] border border-[#E5E9F0] rounded-2xl p-4 opacity-75">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-400">{sub.product?.name ?? `Abonnement #${sub.id}`}</span>
-                            <span className="px-3 py-1 bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-full text-xs">Annulé</span>
+                            <span className="text-[#69727F]">{sub.product?.name ?? `Abonnement #${sub.id}`}</span>
+                            <span className="px-3 py-1 bg-[#EDF1F7] text-[#69727F] border border-[#E5E9F0] rounded-full text-xs font-semibold">Annulé</span>
                           </div>
                         </div>
                       ))}

@@ -19,7 +19,6 @@ export function LoginPage() {
     try {
       const data = await api.post<any>('/auth/login', { email, password });
 
-      // Admin avec 2FA activé → rediriger vers la page de vérification
       if (data.requires_2fa) {
         sessionStorage.setItem('2fa_pending_token', data.pending_token);
         navigate('/verification-2fa');
@@ -36,87 +35,80 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex items-center justify-center py-12 px-6">
-      <div className="w-full max-w-md">
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+      <div className="w-full max-w-md fade-up">
+        <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="text-[#00B4D8] text-3xl">⬡</div>
-              <span className="text-2xl font-semibold text-[#00B4D8]">CYNA</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
+              <span className="text-2xl font-bold text-[#0A1628]">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Connexion</h1>
-            <p className="text-gray-400">Accédez à votre espace client</p>
+            <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Connexion</h1>
+            <p className="text-[#69727F]">Accédez à votre espace client</p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-white font-medium mb-2">Email</label>
+              <label className="block text-[#0A1628] mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="votre.email@entreprise.com"
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
+                  className="field field-icon"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-white font-medium mb-2">Mot de passe</label>
+              <label className="block text-[#0A1628] mb-2">Mot de passe</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
+                  className="field field-icon"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-400 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded bg-white/5 border-white/10 text-[#00B4D8]" />
+              <label className="flex items-center gap-2 text-[#69727F] cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 rounded border-[#D3DAE4] text-[#00B4D8]" />
                 Se souvenir de moi
               </label>
-              <Link to="/mot-de-passe-oublie" className="text-[#00B4D8] hover:underline">
+              <Link to="/mot-de-passe-oublie" className="text-[#0098B7] hover:underline font-semibold">
                 Mot de passe oublié ?
               </Link>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60"
-            >
+            <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t border-[#E5E9F0]" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#0F1F3A] text-gray-400">ou</span>
+              <span className="px-4 bg-white text-[#9AA3AF]">ou</span>
             </div>
           </div>
 
-          <Link
-            to="/inscription"
-            className="block w-full py-3 bg-transparent border-2 border-[#00B4D8] text-[#00B4D8] font-semibold rounded-lg text-center hover:bg-[#00B4D8]/10 transition-colors"
-          >
+          <Link to="/inscription" className="btn btn-outline btn-block btn-lg">
             Créer un compte
           </Link>
         </div>

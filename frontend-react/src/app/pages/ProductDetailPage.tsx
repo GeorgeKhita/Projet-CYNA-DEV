@@ -57,7 +57,7 @@ export function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A1628] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -73,19 +73,18 @@ export function ProductDetailPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           {/* Visuel */}
-          <div className="relative border border-white/10 rounded-xl p-12 flex items-center justify-center min-h-[500px]"
-            style={{ background: `radial-gradient(circle at 50% 40%, ${color}12, transparent 65%), linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)` }}>
+          <div className="relative cyna-card p-12 flex items-center justify-center min-h-[500px]"
+            style={{ background: `radial-gradient(circle at 50% 35%, ${color}14, #F6F8FB 70%)` }}>
             <div className="relative text-center">
-              <div className="w-48 h-48 rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6"
-                style={{ background: `linear-gradient(135deg, ${color}, ${color}99)`, boxShadow: `0 25px 50px -12px ${color}40` }}>
+              <div className="w-48 h-48 rounded-3xl flex items-center justify-center mx-auto mb-6"
+                style={{ background: `linear-gradient(135deg, ${color}, ${color}99)`, boxShadow: `0 25px 50px -12px ${color}55` }}>
                 <Icon className="w-24 h-24 text-white" />
               </div>
-              <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold"
-                style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }}>
+              <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35`, padding: '0.45rem 1rem', fontSize: '0.85rem' }}>
                 {product.category}
               </span>
             </div>
@@ -94,67 +93,65 @@ export function ProductDetailPage() {
           {/* Infos */}
           <div>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-bold text-white">{product.name}</h1>
+              <h1 className="text-4xl font-bold text-[#0A1628]">{product.name}</h1>
               {product.popular && (
-                <span className="px-3 py-1 bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/40 rounded-full text-sm font-semibold flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-[#8B5CF6]" />{CATEGORY_BADGES[product.category] ?? 'Premium'}
+                <span className="px-3 py-1 bg-[#7C5CFC]/12 text-[#7C5CFC] border border-[#7C5CFC]/30 rounded-full text-sm font-semibold flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-[#7C5CFC]" />{CATEGORY_BADGES[product.category] ?? 'Premium'}
                 </span>
               )}
             </div>
 
-            <p className="text-gray-300 leading-relaxed mb-8 text-lg">{product.description}</p>
+            <p className="text-[#3A4453] leading-relaxed mb-8 text-lg">{product.description}</p>
 
             {features.length > 0 && (
               <div className="space-y-3 mb-8">
                 {features.map((f, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="mt-0.5 w-5 h-5 bg-[#10B981]/20 border border-[#10B981]/40 rounded flex items-center justify-center flex-shrink-0">
+                    <div className="mt-0.5 w-5 h-5 bg-[#10B981]/15 border border-[#10B981]/35 rounded flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-[#10B981]" />
                     </div>
-                    <span className="text-gray-300">{f}</span>
+                    <span className="text-[#3A4453]">{f}</span>
                   </div>
                 ))}
               </div>
             )}
 
             <div className="mb-6">
-              <label className="block text-white font-semibold mb-3">Choisir un plan</label>
+              <label className="block text-[#0A1628] font-semibold mb-3">Choisir un plan</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setSelectedPlan('monthly')}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
-                  <div className="text-white font-semibold">Mensuel</div>
-                  <div className="text-sm text-gray-400">Facturation mensuelle</div>
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-[#E5E9F0] bg-white hover:border-[#CBD3DF]'}`}>
+                  <div className="text-[#0A1628] font-semibold">Mensuel</div>
+                  <div className="text-sm text-[#69727F]">Facturation mensuelle</div>
                 </button>
                 <button onClick={() => setSelectedPlan('annual')}
-                  className={`p-4 rounded-lg border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-[#E5E9F0] bg-white hover:border-[#CBD3DF]'}`}>
                   <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-17%</div>
-                  <div className="text-white font-semibold">Annuel</div>
-                  <div className="text-sm text-gray-400">Économisez 17%</div>
+                  <div className="text-[#0A1628] font-semibold">Annuel</div>
+                  <div className="text-sm text-[#69727F]">Économisez 17%</div>
                 </button>
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-bold text-[#00B4D8]">{currentPrice?.toLocaleString('fr-FR')}€</span>
-                <span className="text-xl text-gray-400">/mois</span>
+                <span className="text-5xl font-bold text-[#0A1628]">{currentPrice?.toLocaleString('fr-FR')}€</span>
+                <span className="text-xl text-[#69727F]">/mois</span>
               </div>
               {selectedPlan === 'annual' && product.price_annual && (
-                <p className="text-sm text-gray-400 mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}€ facturés annuellement</p>
+                <p className="text-sm text-[#69727F] mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}€ facturés annuellement</p>
               )}
             </div>
 
             {addedMsg && (
-              <div className="mb-4 px-4 py-2 bg-[#10B981]/20 border border-[#10B981]/40 rounded-lg text-[#10B981] text-sm">{addedMsg}</div>
+              <div className="mb-4 px-4 py-2 bg-[#10B981]/12 border border-[#10B981]/35 rounded-xl text-[#059669] text-sm font-semibold">{addedMsg}</div>
             )}
 
             <div className="flex gap-3">
-              <button onClick={handleAddToCart}
-                className="flex-1 py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors">
+              <button onClick={handleAddToCart} className="btn btn-primary btn-lg flex-1">
                 Ajouter au panier
               </button>
-              <Link to="/panier"
-                className="flex-1 py-4 bg-transparent border-2 border-[#00B4D8] text-[#00B4D8] font-semibold rounded-lg text-center hover:bg-[#00B4D8]/10 transition-colors">
+              <Link to="/panier" className="btn btn-outline btn-lg flex-1">
                 Voir le panier
               </Link>
             </div>
@@ -164,26 +161,25 @@ export function ProductDetailPage() {
         {/* Produits similaires */}
         {related.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Services similaires</h2>
+            <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Services similaires</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map(sim => {
                 const simColor = CATEGORY_COLORS[sim.category] ?? '#00B4D8';
                 const SimIcon = CATEGORY_ICONS[sim.category] ?? Shield;
                 return (
-                  <Link key={sim.id} to={`/produit/${sim.id}`}
-                    className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all hover:scale-[1.02] group">
+                  <Link key={sim.id} to={`/produit/${sim.id}`} className="cyna-card cyna-card-hover p-6 group">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: `${simColor}15`, border: `1px solid ${simColor}30` }}>
                         <SimIcon className="w-5 h-5" style={{ color: simColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-[#00B4D8] transition-colors truncate">{sim.name}</h3>
+                        <h3 className="text-lg font-bold text-[#0A1628] group-hover:text-[#0098B7] transition-colors truncate">{sim.name}</h3>
                         <span className="text-xs font-semibold" style={{ color: simColor }}>{sim.category}</span>
                       </div>
                     </div>
-                    <div className="text-2xl font-bold text-[#00B4D8]">
-                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-gray-400">/mois</span>
+                    <div className="text-2xl font-bold text-[#0A1628]">
+                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-[#69727F]">/mois</span>
                     </div>
                   </Link>
                 );

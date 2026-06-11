@@ -106,7 +106,7 @@ export function ChatBot() {
       <button
         onClick={() => setOpen(o => !o)}
         aria-label="Ouvrir le chat support"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#00B4D8] shadow-lg shadow-[#00B4D8]/30 flex items-center justify-center hover:bg-[#0090ad] transition-colors"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#00B4D8] to-[#0098B7] shadow-[0_10px_30px_rgba(0,180,216,0.4)] flex items-center justify-center hover:-translate-y-0.5 transition-transform"
       >
         {open
           ? <X className="w-6 h-6 text-white" />
@@ -116,7 +116,7 @@ export function ChatBot() {
 
       {/* Fenêtre de chat */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col bg-[#0d1f3c]">
+        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(10,22,40,0.25)] border border-[#E5E9F0] flex flex-col bg-white">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] px-4 py-3 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -135,7 +135,7 @@ export function ChatBot() {
                 <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-[#00B4D8] text-white rounded-br-sm'
-                    : 'bg-white/10 text-gray-200 rounded-bl-sm'
+                    : 'bg-[#F6F8FB] text-[#3A4453] border border-[#E5E9F0] rounded-bl-sm'
                 }`}>
                   <MessageContent text={msg.content} />
                 </div>
@@ -144,9 +144,9 @@ export function ChatBot() {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white/10 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
+                <div className="bg-[#F6F8FB] border border-[#E5E9F0] rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
                   <Loader2 className="w-3.5 h-3.5 text-[#00B4D8] animate-spin" />
-                  <span className="text-gray-400 text-xs">En train d'écrire...</span>
+                  <span className="text-[#69727F] text-xs">En train d'écrire...</span>
                 </div>
               </div>
             )}
@@ -159,7 +159,7 @@ export function ChatBot() {
             <div className="px-4 pb-2 flex flex-wrap gap-1.5">
               {SUGGESTED_QUESTIONS.map(q => (
                 <button key={q} onClick={() => sendMessage(q)}
-                  className="text-xs bg-white/5 hover:bg-[#00B4D8]/20 border border-white/10 hover:border-[#00B4D8]/40 text-gray-300 hover:text-white rounded-full px-3 py-1 transition-colors">
+                  className="text-xs bg-[#F6F8FB] hover:bg-[#00B4D8]/10 border border-[#E5E9F0] hover:border-[#00B4D8]/40 text-[#3A4453] hover:text-[#0A1628] rounded-full px-3 py-1 transition-colors">
                   {q}
                 </button>
               ))}
@@ -167,7 +167,7 @@ export function ChatBot() {
           )}
 
           {/* Zone de saisie */}
-          <div className="border-t border-white/10 p-3 flex items-center gap-2">
+          <div className="border-t border-[#E5E9F0] p-3 flex items-center gap-2">
             <input
               ref={inputRef}
               type="text"
@@ -176,7 +176,7 @@ export function ChatBot() {
               onKeyDown={handleKeyDown}
               placeholder="Votre question..."
               disabled={loading}
-              className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00B4D8] disabled:opacity-50"
+              className="flex-1 bg-[#F6F8FB] border border-[#E5E9F0] rounded-full px-4 py-2 text-sm text-[#0A1628] placeholder-[#9AA3AF] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#00B4D8]/20 focus:border-[#00B4D8] disabled:opacity-50"
             />
             <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
               aria-label="Envoyer"

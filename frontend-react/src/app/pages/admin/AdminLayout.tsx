@@ -7,7 +7,7 @@ export function AdminLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A1628] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FB] flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -18,7 +18,7 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#F6F8FB] flex">
       <AdminSidebar />
       <main className="flex-1 overflow-auto">
         <Outlet />

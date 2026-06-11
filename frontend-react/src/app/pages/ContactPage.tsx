@@ -29,54 +29,49 @@ export function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white py-16">
       <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Contactez-nous</h1>
-          <p className="text-xl text-gray-400">Notre équipe est là pour vous aider</p>
+        <div className="text-center mb-12 fade-up">
+          <h1 className="text-4xl lg:text-5xl font-bold text-[#0A1628] mb-4">Contactez-nous</h1>
+          <p className="text-xl text-[#69727F]">Notre équipe est là pour vous aider</p>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
+        <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
           {success ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-[#10B981]/20 border-2 border-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#10B981]/15 border-2 border-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4">
                 <Send className="w-8 h-8 text-[#10B981]" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Message envoyé !</h2>
-              <p className="text-gray-400 mb-6">Nous vous répondrons dans les 2 heures ouvrées.</p>
-              <button onClick={() => setSuccess(false)}
-                className="px-6 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors">
+              <h2 className="text-2xl font-bold text-[#0A1628] mb-2">Message envoyé !</h2>
+              <p className="text-[#69727F] mb-6">Nous vous répondrons dans les 2 heures ouvrées.</p>
+              <button onClick={() => setSuccess(false)} className="btn btn-primary">
                 Envoyer un autre message
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
+                <div className="px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
               )}
               <div>
-                <label className="block text-white font-medium mb-2">Email</label>
+                <label className="block text-[#0A1628] mb-2">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
                   <input type="email" value={form.email} onChange={set('email')} required
-                    placeholder="votre.email@entreprise.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    placeholder="votre.email@entreprise.com" className="field field-icon" />
                 </div>
               </div>
               <div>
-                <label className="block text-white font-medium mb-2">Sujet</label>
+                <label className="block text-[#0A1628] mb-2">Sujet</label>
                 <input type="text" value={form.subject} onChange={set('subject')} required
-                  placeholder="Quel est l'objet de votre message ?"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                  placeholder="Quel est l'objet de votre message ?" className="field" />
               </div>
               <div>
-                <label className="block text-white font-medium mb-2">Message</label>
+                <label className="block text-[#0A1628] mb-2">Message</label>
                 <textarea rows={6} value={form.message} onChange={set('message')} required
-                  placeholder="Décrivez votre demande en détail..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] resize-none" />
+                  placeholder="Décrivez votre demande en détail..." className="field resize-none" />
               </div>
-              <button type="submit" disabled={loading}
-                className="w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
+              <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
                 <Send className="w-5 h-5" />
                 {loading ? 'Envoi...' : 'Envoyer'}
               </button>

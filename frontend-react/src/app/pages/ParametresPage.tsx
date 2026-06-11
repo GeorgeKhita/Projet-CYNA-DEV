@@ -79,129 +79,118 @@ export function ParametresPage() {
     }
   }
 
-  if (authLoading) return <div className="min-h-screen bg-[#0A1628] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1"><DashboardSidebar /></div>
 
           <div className="lg:col-span-3 space-y-8">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Paramètres</h1>
-              <p className="text-gray-400">Gérez vos informations personnelles</p>
+              <h1 className="text-4xl font-bold text-[#0A1628] mb-2">Paramètres</h1>
+              <p className="text-[#69727F]">Gérez vos informations personnelles</p>
             </div>
 
             {success && (
-              <div className="flex items-center gap-2 px-4 py-3 bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg text-[#10B981]">
+              <div className="flex items-center gap-2 px-4 py-3 bg-[#10B981]/10 border border-[#10B981]/30 rounded-xl text-[#059669]">
                 <Check className="w-5 h-5" /> {success}
               </div>
             )}
             {error && (
-              <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">{error}</div>
+              <div className="px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626]">{error}</div>
             )}
 
             {/* Profil */}
-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Informations personnelles</h2>
+            <div className="cyna-card p-8">
+              <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Informations personnelles</h2>
               <form onSubmit={handleProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-white font-medium mb-2">Prénom</label>
+                    <label className="block text-[#0A1628] mb-2">Prénom</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="text" value={form.first_name} onChange={setField('first_name')} required
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                      <input type="text" value={form.first_name} onChange={setField('first_name')} required className="field field-icon" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-white font-medium mb-2">Nom</label>
-                    <input type="text" value={form.last_name} onChange={setField('last_name')} required
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <label className="block text-[#0A1628] mb-2">Nom</label>
+                    <input type="text" value={form.last_name} onChange={setField('last_name')} required className="field" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-2">Entreprise</label>
+                  <label className="block text-[#0A1628] mb-2">Entreprise</label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="text" value={form.company} onChange={setField('company')}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <input type="text" value={form.company} onChange={setField('company')} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-2">Email</label>
+                  <label className="block text-[#0A1628] mb-2">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="email" value={form.email} onChange={setField('email')} required
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <input type="email" value={form.email} onChange={setField('email')} required className="field field-icon" />
                   </div>
                 </div>
-                <button type="submit" disabled={saving}
-                  className="px-8 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60">
+                <button type="submit" disabled={saving} className="btn btn-primary">
                   {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </button>
               </form>
             </div>
 
             {/* Mot de passe */}
-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Changer le mot de passe</h2>
+            <div className="cyna-card p-8">
+              <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Changer le mot de passe</h2>
               <form onSubmit={handlePassword} className="space-y-5">
                 <div>
-                  <label className="block text-white font-medium mb-2">Mot de passe actuel</label>
+                  <label className="block text-[#0A1628] mb-2">Mot de passe actuel</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-2">Nouveau mot de passe</label>
+                  <label className="block text-[#0A1628] mb-2">Nouveau mot de passe</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white font-medium mb-2">Confirmer le nouveau mot de passe</label>
+                  <label className="block text-[#0A1628] mb-2">Confirmer le nouveau mot de passe</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
-                <button type="submit" disabled={saving}
-                  className="px-8 py-3 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors disabled:opacity-60">
+                <button type="submit" disabled={saving} className="btn btn-ghost">
                   {saving ? 'Modification...' : 'Changer le mot de passe'}
                 </button>
               </form>
             </div>
 
             {/* RGPD */}
-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Mes données (RGPD)</h2>
-              <p className="text-gray-400 mb-6">Conformément au RGPD, vous pouvez exporter ou supprimer définitivement vos données personnelles.</p>
-              <button onClick={handleExportData}
-                className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors">
+            <div className="cyna-card p-8">
+              <h2 className="text-2xl font-bold text-[#0A1628] mb-2">Mes données (RGPD)</h2>
+              <p className="text-[#69727F] mb-6">Conformément au RGPD, vous pouvez exporter ou supprimer définitivement vos données personnelles.</p>
+              <button onClick={handleExportData} className="btn btn-ghost">
                 <Download className="w-4 h-4 text-[#00B4D8]" />
                 Exporter mes données (JSON)
               </button>
             </div>
 
             {/* Zone danger */}
-            <div className="bg-red-500/5 border border-red-500/30 rounded-xl p-8">
+            <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-2">
-                <AlertTriangle className="w-6 h-6 text-red-400" />
-                <h2 className="text-2xl font-bold text-red-400">Zone dangereuse</h2>
+                <AlertTriangle className="w-6 h-6 text-[#EF4444]" />
+                <h2 className="text-2xl font-bold text-[#DC2626]">Zone dangereuse</h2>
               </div>
-              <p className="text-gray-400 mb-6">
-                La suppression de votre compte est <strong className="text-white">irréversible</strong>. Toutes vos données (commandes, abonnements, factures) seront définitivement supprimées.
+              <p className="text-[#69727F] mb-6">
+                La suppression de votre compte est <strong className="text-[#0A1628]">irréversible</strong>. Toutes vos données (commandes, abonnements, factures) seront définitivement supprimées.
               </p>
-              <button onClick={() => setShowDeleteModal(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-semibold rounded-lg hover:bg-red-500/20 transition-colors">
+              <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger">
                 <Trash2 className="w-4 h-4" />
                 Supprimer mon compte
               </button>
@@ -212,30 +201,29 @@ export function ParametresPage() {
 
       {/* Modal confirmation suppression */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0f2040] border border-red-500/30 rounded-xl p-8 max-w-md w-full">
+        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-[#FECACA] rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
             <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" />
-              <h3 className="text-xl font-bold text-white">Confirmer la suppression</h3>
+              <AlertTriangle className="w-8 h-8 text-[#EF4444] flex-shrink-0" />
+              <h3 className="text-xl font-bold text-[#0A1628]">Confirmer la suppression</h3>
             </div>
-            <p className="text-gray-300 mb-6">
-              Cette action est <strong className="text-red-400">irréversible</strong>. Entrez votre mot de passe pour confirmer.
+            <p className="text-[#3A4453] mb-6">
+              Cette action est <strong className="text-[#DC2626]">irréversible</strong>. Entrez votre mot de passe pour confirmer.
             </p>
-            {error && <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
+            {error && <div className="mb-4 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>}
             <input
               type="password"
               value={deleteConfirm}
               onChange={e => setDeleteConfirm(e.target.value)}
               placeholder="Votre mot de passe"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+              className="field mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }}
-                className="flex-1 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors">
+              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
                 Annuler
               </button>
               <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
-                className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50">
+                className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
                 {deleting ? 'Suppression...' : 'Supprimer définitivement'}
               </button>
             </div>

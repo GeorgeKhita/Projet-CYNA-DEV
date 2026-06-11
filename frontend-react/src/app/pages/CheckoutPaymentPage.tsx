@@ -11,12 +11,12 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
-      color: '#e5e7eb',
+      color: '#0A1628',
       fontFamily: 'inherit',
       fontSize: '16px',
-      '::placeholder': { color: '#6b7280' },
+      '::placeholder': { color: '#9AA3AF' },
     },
-    invalid: { color: '#f87171' },
+    invalid: { color: '#EF4444' },
   },
 };
 
@@ -95,36 +95,32 @@ function PaymentForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-white font-medium mb-2">Informations de carte</label>
-        <div className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3.5 focus-within:ring-2 focus-within:ring-[#00B4D8]">
+        <label className="block text-[#0A1628] mb-2">Informations de carte</label>
+        <div className="w-full bg-white border border-[#E5E9F0] rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
-        <p className="mt-2 text-xs text-gray-500">
-          Testez avec <span className="text-gray-400 font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
+        <p className="mt-2 text-xs text-[#9AA3AF]">
+          Testez avec <span className="text-[#3A4453] font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
         </p>
       </div>
 
-      <div className="bg-[#10B981]/10 border border-[#10B981]/30 rounded-lg p-4">
+      <div className="bg-[#10B981]/8 border border-[#10B981]/30 rounded-xl p-4">
         <div className="flex items-start gap-3">
           <Shield className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-0.5" />
           <div>
-            <div className="text-[#10B981] font-semibold mb-1 flex items-center gap-2">
+            <div className="text-[#059669] font-semibold mb-1 flex items-center gap-2">
               <Lock className="w-4 h-4" /> Paiement sécurisé par Stripe
             </div>
-            <div className="text-sm text-gray-300">Conforme PCI-DSS · Données cryptées SSL · Transactions sécurisées</div>
+            <div className="text-sm text-[#3A4453]">Conforme PCI-DSS · Données cryptées SSL · Transactions sécurisées</div>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
+        <div className="px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading || !stripe || !clientSecret}
-        className="block w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors disabled:opacity-60"
-      >
+      <button type="submit" disabled={loading || !stripe || !clientSecret} className="btn btn-primary btn-lg btn-block">
         {loading ? 'Traitement...' : `Confirmer l'achat · ${total.toLocaleString('fr-FR')}€`}
       </button>
     </form>
@@ -133,7 +129,7 @@ function PaymentForm() {
 
 export function CheckoutPaymentPage() {
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -142,23 +138,23 @@ export function CheckoutPaymentPage() {
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#0A1628]' : 'bg-white/5 border border-white/10 text-gray-400'
+                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-[#F6F8FB] border border-[#E5E9F0] text-[#9AA3AF]'
                   }`}>
                     {step.completed ? <Check className="w-5 h-5" /> : step.id}
                   </div>
-                  <span className={`font-medium hidden sm:block ${step.active || step.completed ? 'text-white' : 'text-gray-400'}`}>{step.name}</span>
+                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-[#0A1628]' : 'text-[#9AA3AF]'}`}>{step.name}</span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-white/10'}`} />
+                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-[#E5E9F0]'}`} />
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Paiement</h1>
-          <p className="text-gray-400 mb-8">Entrez vos informations de carte bancaire</p>
+        <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
+          <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Paiement</h1>
+          <p className="text-[#69727F] mb-8">Entrez vos informations de carte bancaire</p>
 
           <Elements stripe={stripePromise}>
             <PaymentForm />

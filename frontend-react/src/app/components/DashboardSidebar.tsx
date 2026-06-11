@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User } from 'lucide-react';
+import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
@@ -15,38 +15,39 @@ export function DashboardSidebar() {
   const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.toUpperCase() || 'U';
 
   return (
-    <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6 sticky top-24">
+    <div className="cyna-card p-6 sticky top-24">
       <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-[#00B4D8] to-[#0096B8] rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-20 h-20 bg-gradient-to-br from-[#00B4D8] to-[#0098B7] rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_10px_24px_rgba(0,180,216,0.3)]">
           {initials
             ? <span className="text-white text-2xl font-bold">{initials}</span>
             : <User className="w-10 h-10 text-white" />
           }
         </div>
-        <h3 className="text-xl font-semibold text-white mb-1">{user?.first_name} {user?.last_name}</h3>
-        <p className="text-sm text-gray-400">{user?.email}</p>
-        {user?.company && <p className="text-xs text-gray-500 mt-1">{user.company}</p>}
+        <h3 className="text-xl font-bold text-[#0A1628] mb-1">{user?.first_name} {user?.last_name}</h3>
+        <p className="text-sm text-[#69727F]">{user?.email}</p>
+        {user?.company && <p className="text-xs text-[#9AA3AF] mt-1">{user.company}</p>}
       </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-1.5">
         {menuItems.map(item => {
           const Icon = item.icon;
           const active = location.pathname === item.href;
           return (
             <Link key={item.href} to={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 active
-                  ? 'bg-[#00B4D8]/20 text-[#00B4D8] border border-[#00B4D8]/30'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-[#00B4D8]/12 text-[#0098B7] border border-[#00B4D8]/30'
+                  : 'text-[#69727F] hover:bg-[#F6F8FB] hover:text-[#0A1628]'
               }`}>
               <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <span className="font-semibold">{item.label}</span>
             </Link>
           );
         })}
         <button onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-left mt-2">
-          <span className="font-medium">Se déconnecter</span>
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#EF4444] hover:bg-[#FEF2F2] transition-colors text-left mt-2">
+          <LogOut className="w-5 h-5" />
+          <span className="font-semibold">Se déconnecter</span>
         </button>
       </nav>
     </div>

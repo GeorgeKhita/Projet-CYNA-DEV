@@ -46,7 +46,6 @@ export function CatalogPage() {
 
   const filteredAndSortedProducts = useMemo(() => {
     let result = products.filter(p => {
-      const available = p.status === 'available' || p.available !== false;
       const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
       const matchSearch = searchQuery === '' ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,37 +63,36 @@ export function CatalogPage() {
   }, [products, searchQuery, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-white py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-10">
-          <h1 className="text-4xl font-bold text-white mb-3">Catalogue des solutions</h1>
-          <p className="text-gray-400 text-lg">
+          <h1 className="text-4xl lg:text-5xl font-bold text-[#0A1628] mb-3">Catalogue des solutions</h1>
+          <p className="text-[#69727F] text-lg">
             {filteredAndSortedProducts.length} solution{filteredAndSortedProducts.length !== 1 ? 's' : ''} disponible{filteredAndSortedProducts.length !== 1 ? 's' : ''}
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6 mb-8">
+        <div className="cyna-card p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
                 <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher un produit..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                  placeholder="Rechercher un produit..." className="field field-icon" />
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
               {categories.map(cat => (
                 <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-5 py-2.5 rounded-lg font-medium transition-all ${selectedCategory === cat.id ? 'bg-[#00B4D8] text-[#0A1628]' : 'bg-white/5 text-gray-300 hover:bg-white/10'}`}>
+                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all ${selectedCategory === cat.id ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-[#F6F8FB] text-[#3A4453] hover:bg-[#EDF1F7]'}`}>
                   {cat.label}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <SlidersHorizontal className="w-5 h-5 text-[#9AA3AF] flex-shrink-0" />
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]">
+                className="bg-white border border-[#E5E9F0] rounded-xl px-4 py-2.5 text-[#0A1628] focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
                 <option value="popular">Popularité</option>
                 <option value="price-asc">Prix croissant</option>
                 <option value="price-desc">Prix décroissant</option>
@@ -107,14 +105,14 @@ export function CatalogPage() {
         {loading && (
           <div className="text-center py-20">
             <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Chargement des produits...</p>
+            <p className="text-[#69727F]">Chargement des produits...</p>
           </div>
         )}
 
         {error && (
           <div className="text-center py-20">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="px-6 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg">
+            <p className="text-[#DC2626] mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="btn btn-primary">
               Réessayer
             </button>
           </div>
@@ -122,10 +120,9 @@ export function CatalogPage() {
 
         {!loading && !error && filteredAndSortedProducts.length === 0 && (
           <div className="text-center py-20">
-            <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-xl text-gray-400 mb-2">Aucun produit trouvé</p>
-            <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
-              className="mt-4 px-6 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg">
+            <Search className="w-16 h-16 text-[#CBD3DF] mx-auto mb-4" />
+            <p className="text-xl text-[#69727F] mb-2">Aucun produit trouvé</p>
+            <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary mt-4">
               Réinitialiser les filtres
             </button>
           </div>
@@ -138,46 +135,42 @@ export function CatalogPage() {
               const available = product.status === 'available' || product.available !== false;
               return (
                 <div key={product.id}
-                  className={`bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden transition-all ${!available ? 'opacity-60' : 'hover:border-white/20 hover:scale-[1.01]'}`}>
-                  {/* Visuel produit */}
-                  <div className="h-36 border-b border-white/10">
+                  className={`cyna-card overflow-hidden flex flex-col ${available ? 'cyna-card-hover' : 'opacity-60'}`}>
+                  <div className="h-36 border-b border-[#E5E9F0] bg-[#F6F8FB]">
                     <ProductVisual category={product.category} color={color} size="sm" />
                   </div>
-                  <div className="p-6 border-b border-white/10">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-white">{product.name}</h3>
-                      <div className="flex items-center gap-2">
+                  <div className="p-6 border-b border-[#E5E9F0]">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-xl font-bold text-[#0A1628]">{product.name}</h3>
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {product.popular && (
-                          <span className="px-2 py-0.5 bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30 rounded text-xs font-semibold">Populaire</span>
+                          <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#B45309] border border-[#F59E0B]/30 rounded text-xs font-semibold">Populaire</span>
                         )}
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                          style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}40` }}>
+                        <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                           {product.category}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <p className="text-gray-400 mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
-                    <div className="flex items-end justify-between mb-4">
+                  <div className="p-6 flex-1 flex flex-col">
+                    <p className="text-[#69727F] mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
+                    <div className="flex items-end justify-between mb-4 mt-auto">
                       <div>
-                        <span className="text-3xl font-bold text-[#00B4D8]">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-                        <span className="text-gray-400">/mois</span>
+                        <span className="text-3xl font-bold text-[#0A1628]">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
+                        <span className="text-[#69727F]">/mois</span>
                       </div>
                     </div>
                     {available ? (
                       <div className="flex gap-2">
-                        <Link to={`/produit/${product.id}`}
-                          className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors">
+                        <Link to={`/produit/${product.id}`} className="btn btn-primary flex-1">
                           Voir le produit
                         </Link>
-                        <Link to={`/produit/${product.id}`}
-                          className="px-4 py-3 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 hover:text-white transition-colors text-sm">
+                        <Link to={`/produit/${product.id}`} className="btn btn-ghost">
                           Essai
                         </Link>
                       </div>
                     ) : (
-                      <button disabled className="w-full py-3 bg-white/5 text-gray-500 font-semibold rounded-lg cursor-not-allowed">
+                      <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed' }}>
                         Bientôt disponible
                       </button>
                     )}
