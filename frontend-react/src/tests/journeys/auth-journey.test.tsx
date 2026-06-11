@@ -1,12 +1,5 @@
 /**
  * Parcours Auth — tests de bout en bout simulés avec RTL.
- *
- * Chaque test représente un scénario utilisateur complet :
- *   1. Connexion réussie → session persistée
- *   2. Mauvais mot de passe → message d'erreur
- *   3. Inscription → redirection connexion
- *   4. Déconnexion → token effacé + redirect
- *   5. Mot de passe oublié → email envoyé
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -70,9 +63,10 @@ describe('parcours : inscription', () => {
     const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({});
 
     renderWithProviders(<RegisterPage />);
-    fireEvent.change(screen.getByPlaceholderText(/prénom/i),   { target: { value: 'Alice' } });
-    fireEvent.change(screen.getByPlaceholderText(/nom/i),      { target: { value: 'Dupont' } });
-    fireEvent.change(screen.getByPlaceholderText(/email/i),    { target: { value: 'alice@x.fr' } });
+    // RegisterPage utilise placeholder "Jean" pour prénom, "Dupont" pour nom
+    fireEvent.change(screen.getByPlaceholderText('Jean'),                   { target: { value: 'Alice' } });
+    fireEvent.change(screen.getByPlaceholderText('Dupont'),                 { target: { value: 'Martin' } });
+    fireEvent.change(screen.getByPlaceholderText(/votre.email/i),           { target: { value: 'alice@x.fr' } });
     const pwds = screen.getAllByPlaceholderText('••••••••');
     fireEvent.change(pwds[0], { target: { value: 'Pass123!' } });
     fireEvent.change(pwds[1], { target: { value: 'Pass123!' } });
@@ -87,6 +81,8 @@ describe('parcours : inscription', () => {
   });
 
   it('affiche une erreur si les mots de passe ne correspondent pas', async () => {
+    const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({});
+
     renderWithProviders(<RegisterPage />);
     const pwds = screen.getAllByPlaceholderText('••••••••');
     fireEvent.change(pwds[0], { target: { value: 'Pass123!' } });
@@ -94,23 +90,23 @@ describe('parcours : inscription', () => {
     fireEvent.submit(screen.getByRole('button', { name: /créer mon compte/i }).closest('form')!);
 
     expect(await screen.findByText(/ne correspondent pas/i)).toBeInTheDocument();
-    expect(clientModule.api.post).not.toHaveBeenCalled();
+    expect(postSpy).not.toHaveBeenCalled();
   });
 });
 
 // ── 4. Déconnexion ────────────────────────────────────────────────────────
 
 describe('parcours : déconnexion', () => {
-  it('efface le token après logout', async () => {
+  it('efface le token après clearToken()', async () => {
     localStorage.setItem('cyna_token', 'tok-to-clear');
     localStorage.setItem('cyna_user', JSON.stringify({ id: 1, first_name: 'Nouh', role: 'user' }));
     vi.spyOn(clientModule.api, 'get').mockResolvedValue([]);
 
     renderWithProviders(<DashboardPage />);
-    expect(await screen.findByText(/vue d'ensemble/i)).toBeInTheDocument();
+    // Le DashboardSidebar a aussi "Vue d'ensemble" → findByRole heading
+    expect(await screen.findByRole('heading', { name: /vue d'ensemble/i })).toBeInTheDocument();
     expect(localStorage.getItem('cyna_token')).toBe('tok-to-clear');
 
-    // Simule le logout directement via clearToken
     clientModule.clearToken();
     expect(localStorage.getItem('cyna_token')).toBeNull();
   });

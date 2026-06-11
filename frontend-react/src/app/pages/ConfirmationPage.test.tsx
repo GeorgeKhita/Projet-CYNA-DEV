@@ -43,8 +43,9 @@ describe('rendu', () => {
 
   it('affiche le label Mensuel / Annuel', () => {
     renderConfirmation({ cart: cartItems, order: { id: 42 } });
-    expect(screen.getByText(/mensuel/i)).toBeInTheDocument();
-    expect(screen.getByText(/annuel/i)).toBeInTheDocument();
+    // "Mensuel" et "Total mensuel" sont tous les deux dans le DOM → getAllByText
+    expect(screen.getAllByText(/mensuel/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/annuel/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('affiche le total calculé (299 + 199×2 = 697)', () => {

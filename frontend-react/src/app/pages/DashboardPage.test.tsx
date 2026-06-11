@@ -43,7 +43,8 @@ describe('utilisateur connecté', () => {
   it('affiche les 3 stats KPI', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue([]);
     renderWithProviders(<DashboardPage />);
-    await screen.findByText(/vue d'ensemble/i);
+    // Le DashboardSidebar a aussi "Vue d'ensemble" → utiliser findByRole
+    await screen.findByRole('heading', { name: /vue d'ensemble/i });
     // "Abonnements actifs" apparaît en stat ET en titre h2 → getAllByText
     expect(screen.getAllByText(/abonnements actifs/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/total mensuel/i)).toBeInTheDocument();

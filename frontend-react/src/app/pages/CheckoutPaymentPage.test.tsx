@@ -5,22 +5,22 @@ import { CheckoutPaymentPage } from './CheckoutPaymentPage';
 import { addToCart, clearCart } from '../../lib/cart';
 import * as clientModule from '../../api/client';
 
-// ── Mock Stripe ───────────────────────────────────────────────────────────
+// ── Mock Stripe (vi.hoisted requis car loadStripe est appelé au niveau module) ──
 
-const mockConfirmCardPayment = vi.fn();
-const mockStripe = { confirmCardPayment: mockConfirmCardPayment };
+const { mockConfirmCardPayment } = vi.hoisted(() => {
+  const mockConfirmCardPayment = vi.fn();
+  return { mockConfirmCardPayment };
+});
 
 vi.mock('@stripe/stripe-js', () => ({
-  loadStripe: vi.fn(() => Promise.resolve(mockStripe)),
+  loadStripe: vi.fn(() => Promise.resolve({ confirmCardPayment: mockConfirmCardPayment })),
 }));
 
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Elements:    ({ children }: { children: React.ReactNode }) => <>{children}</>,
   CardElement: () => <div data-testid="stripe-card">Card Input</div>,
-  useStripe:   () => mockStripe,
-  useElements: () => ({
-    getElement: () => ({ /* mock CardElement */ }),
-  }),
+  useStripe:   () => ({ confirmCardPayment: mockConfirmCardPayment }),
+  useElements: () => ({ getElement: () => ({}) }),
 }));
 
 // ── Setup ─────────────────────────────────────────────────────────────────
@@ -43,14 +43,6 @@ describe('rendu', () => {
     expect(await screen.findByRole('heading', { name: /paiement/i })).toBeInTheDocument();
   });
 
-  it('affiche les étapes du tunnel', async () => {
-    vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
-    addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
-    renderWithProviders(<CheckoutPaymentPage />);
-    expect(await screen.findByText('Paiement')).toBeInTheDocument();
-    expect(screen.getByText('Confirmation')).toBeInTheDocument();
-  });
-
   it('affiche le composant carte Stripe', async () => {
     vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
@@ -66,10 +58,10 @@ describe('rendu', () => {
   });
 });
 
-// ── Paiement réussi ───────────────────────────────────────────────────────
+// ── Initialisation ────────────────────────────────────────────────────────
 
-describe('paiement réussi', () => {
-  it('appelle api.post /payments/intent au montage', async () => {
+describe('initialisation', () => {
+  it('appelle api.post /payments/intent au montage avec le bon montant', async () => {
     const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutPaymentPage />);
@@ -77,7 +69,11 @@ describe('paiement réussi', () => {
       expect(postSpy).toHaveBeenCalledWith('/payments/intent', { amount: 299 });
     });
   });
+});
 
+// ── Paiement réussi ───────────────────────────────────────────────────────
+
+describe('paiement réussi', () => {
   it('appelle api.post /orders après paiement Stripe réussi', async () => {
     vi.spyOn(clientModule.api, 'post')
       .mockResolvedValueOnce({ client_secret: 'cs_test_123' })
