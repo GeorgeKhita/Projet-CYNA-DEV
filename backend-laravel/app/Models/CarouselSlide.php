@@ -2,21 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CarouselSlide extends Model
 {
+    use HasFactory;
+
+    protected $table = 'homepage_carousel';
+
     protected $fillable = [
+        'product_id',
+        'image_url',
         'title',
         'subtitle',
-        'image_url',
         'cta_text',
-        'cta_url',
-        'position',
-        'active',
+        'link',
+        'display_order',
     ];
 
-    protected $casts = [
-        'active' => 'boolean',
-    ];
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
