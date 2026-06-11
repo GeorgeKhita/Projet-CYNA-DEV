@@ -48,20 +48,20 @@ export function CartPage() {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-5xl mx-auto px-6">
         <div className="flex items-center gap-3 mb-10">
           <ShoppingCart className="w-8 h-8 text-[#00B4D8]" />
-          <h1 className="text-4xl font-bold text-white">Votre panier</h1>
+          <h1 className="text-4xl font-bold text-foreground">Votre panier</h1>
         </div>
 
         {cartItems.length === 0 ? (
           <div className="text-center py-20">
-            <ShoppingCart className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-            <p className="text-xl text-gray-400 mb-6">Votre panier est vide</p>
+            <ShoppingCart className="w-20 h-20 text-muted-foreground mx-auto mb-4" />
+            <p className="text-xl text-muted-foreground mb-6">Votre panier est vide</p>
             <Link
               to="/catalogue"
-              className="inline-block px-8 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+              className="inline-block px-8 py-3 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
             >
               Découvrir nos solutions
             </Link>
@@ -72,13 +72,13 @@ export function CartPage() {
               {cartItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all"
+                  className="bg-gradient-to-br from-card to-card border border-border rounded-xl p-6 hover:border-border transition-all"
                 >
                   <div className="flex items-center gap-6">
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="text-xl font-semibold text-white">{item.name}</h3>
+                        <h3 className="text-xl font-semibold text-foreground">{item.name}</h3>
                         <span
                           className="px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0"
                           style={{
@@ -90,24 +90,24 @@ export function CartPage() {
                           {item.category}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-sm">Abonnement {item.subscriptionType}</p>
+                      <p className="text-muted-foreground text-sm">Abonnement {item.subscriptionType}</p>
                     </div>
 
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
-                        className="w-8 h-8 bg-white/5 border border-white/10 rounded flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-40"
+                        className="w-8 h-8 bg-muted/50 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                         disabled={item.quantity <= 1}
                       >
-                        <Minus className="w-4 h-4 text-gray-300" />
+                        <Minus className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <span className="w-8 text-center font-semibold text-white">{item.quantity}</span>
+                      <span className="w-8 text-center font-semibold text-foreground">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, 1)}
-                        className="w-8 h-8 bg-white/5 border border-white/10 rounded flex items-center justify-center hover:bg-white/10 transition-colors"
+                        className="w-8 h-8 bg-muted/50 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors"
                       >
-                        <Plus className="w-4 h-4 text-gray-300" />
+                        <Plus className="w-4 h-4 text-muted-foreground" />
                       </button>
                     </div>
 
@@ -116,7 +116,7 @@ export function CartPage() {
                       <div className="text-2xl font-bold text-[#00B4D8]">
                         {(item.price * item.quantity).toLocaleString('fr-FR')}€
                       </div>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm text-muted-foreground">
                         {item.price.toLocaleString('fr-FR')}€ × {item.quantity}
                       </div>
                     </div>
@@ -133,11 +133,11 @@ export function CartPage() {
               ))}
             </div>
 
-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
+            <div className="bg-gradient-to-br from-card to-card border border-border rounded-xl p-8">
               {/* Subtotal lines */}
-              <div className="space-y-2 mb-6 pb-6 border-b border-white/10">
+              <div className="space-y-2 mb-6 pb-6 border-b border-border">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm text-gray-400">
+                  <div key={item.id} className="flex justify-between text-sm text-muted-foreground">
                     <span>
                       {item.name} × {item.quantity}
                     </span>
@@ -147,18 +147,18 @@ export function CartPage() {
               </div>
 
               <div className="flex items-center justify-between mb-6">
-                <span className="text-xl text-gray-300">Total mensuel</span>
+                <span className="text-xl text-muted-foreground">Total mensuel</span>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-[#00B4D8]">
                     {total.toLocaleString('fr-FR')}€
                   </div>
-                  <div className="text-sm text-gray-400">par mois</div>
+                  <div className="text-sm text-muted-foreground">par mois</div>
                 </div>
               </div>
 
               <Link
                 to="/checkout/identification"
-                className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors text-lg"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg hover:bg-[#0096B8] transition-colors text-lg"
               >
                 Passer à la caisse
                 <ArrowRight className="w-5 h-5" />
@@ -166,7 +166,7 @@ export function CartPage() {
 
               <Link
                 to="/catalogue"
-                className="block text-center mt-4 text-gray-400 hover:text-[#00B4D8] transition-colors text-sm"
+                className="block text-center mt-4 text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm"
               >
                 ← Continuer mes achats
               </Link>

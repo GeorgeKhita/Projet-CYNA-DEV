@@ -10,7 +10,7 @@ export function CheckoutIdentificationPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -21,17 +21,17 @@ export function CheckoutIdentificationPage() {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
                       step.completed
-                        ? 'bg-[#10B981] text-white'
+                        ? 'bg-[#10B981] text-primary-foreground'
                         : step.active
-                        ? 'bg-[#00B4D8] text-[#0A1628]'
-                        : 'bg-white/5 border border-white/10 text-gray-400'
+                        ? 'bg-[#00B4D8] text-primary-foreground'
+                        : 'bg-muted/50 border border-border text-muted-foreground'
                     }`}
                   >
                     {step.completed ? <Check className="w-5 h-5" /> : step.id}
                   </div>
                   <span
                     className={`font-medium hidden sm:block ${
-                      step.active || step.completed ? 'text-white' : 'text-gray-400'
+                      step.active || step.completed ? 'text-foreground' : 'text-muted-foreground'
                     }`}
                   >
                     {step.name}
@@ -40,7 +40,7 @@ export function CheckoutIdentificationPage() {
                 {index < steps.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-4 transition-all ${
-                      step.completed ? 'bg-[#10B981]' : 'bg-white/10'
+                      step.completed ? 'bg-[#10B981]' : 'bg-muted'
                     }`}
                   />
                 )}
@@ -50,32 +50,32 @@ export function CheckoutIdentificationPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Identification</h1>
-          <p className="text-gray-400 mb-8">Connectez-vous ou créez un compte pour continuer</p>
+        <div className="bg-gradient-to-br from-card to-card border border-border rounded-xl p-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Identification</h1>
+          <p className="text-muted-foreground mb-8">Connectez-vous ou créez un compte pour continuer</p>
 
           <form className="space-y-6">
             <div>
-              <label className="block text-white font-medium mb-2">Email</label>
+              <label className="block text-foreground font-medium mb-2">Email</label>
               <input
                 type="email"
                 placeholder="votre.email@entreprise.com"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
+                className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-white font-medium mb-2">Mot de passe</label>
+              <label className="block text-foreground font-medium mb-2">Mot de passe</label>
               <input
                 type="password"
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
+                className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-transparent"
               />
             </div>
 
             <Link
               to="/checkout/paiement"
-              className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-4 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg hover:bg-[#0096B8] transition-colors"
             >
               Continuer
             </Link>
@@ -85,7 +85,7 @@ export function CheckoutIdentificationPage() {
             <Link to="/inscription" className="text-[#00B4D8] hover:underline">
               Pas de compte ? S'inscrire
             </Link>
-            <button className="text-gray-400 hover:text-[#00B4D8] transition-colors">
+            <button className="text-muted-foreground hover:text-[#00B4D8] transition-colors">
               Continuer en invité
             </button>
           </div>

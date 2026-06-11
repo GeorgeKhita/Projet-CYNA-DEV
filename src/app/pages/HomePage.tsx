@@ -85,7 +85,7 @@ export function HomePage() {
   ];
 
   return (
-    <div className="bg-[#0A1628]">
+    <div className="bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background effects */}
@@ -114,23 +114,23 @@ export function HomePage() {
               </span>
             </div>
 
-            <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Protégez votre entreprise avec les solutions{' '}
               <span className="text-[#00B4D8]">Cyna</span>
             </h1>
-            <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
               Découvrez nos solutions SaaS de cybersécurité de nouvelle génération : SOC, EDR et XDR.
               Détection intelligente, réponse automatisée, conformité garantie.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/catalogue"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-all hover:gap-3"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg hover:bg-[#0096B8] transition-all hover:gap-3"
               >
                 Découvrir nos solutions
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <button className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border-2 border-white/20 text-white font-semibold rounded-lg hover:border-white/40 hover:bg-white/5 transition-all">
+              <button className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border-2 border-border text-foreground font-semibold rounded-lg hover:border-foreground/40 hover:bg-muted/50 transition-all">
                 Essai gratuit 14 jours
               </button>
             </div>
@@ -139,7 +139,7 @@ export function HomePage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="border-y border-white/10 bg-white/[0.02]">
+      <section className="border-y border-border bg-muted/30">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => {
@@ -150,8 +150,8 @@ export function HomePage() {
                     <Icon className="w-5 h-5 text-[#00B4D8]" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-sm text-gray-400">{stat.label}</div>
+                    <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
                   </div>
                 </div>
               );
@@ -163,8 +163,8 @@ export function HomePage() {
       {/* Categories Grid */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Nos catégories de solutions</h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4">Nos catégories de solutions</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Chaque solution est conçue pour répondre à des besoins spécifiques de cybersécurité en entreprise
           </p>
         </div>
@@ -175,7 +175,7 @@ export function HomePage() {
               <Link
                 key={category.id}
                 to={`/catalogue?category=${category.id}`}
-                className="group relative bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8 hover:border-white/20 transition-all hover:scale-[1.02]"
+                className="group relative bg-gradient-to-br from-card to-card border border-border rounded-xl p-8 hover:border-border transition-all hover:scale-[1.02]"
               >
                 <div
                   className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all group-hover:scale-110"
@@ -183,13 +183,13 @@ export function HomePage() {
                 >
                   <Icon className="w-8 h-8" style={{ color: category.color }} />
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-1">{category.name}</h3>
+                <h3 className="text-2xl font-semibold text-foreground mb-1">{category.name}</h3>
                 <p className="text-sm font-medium mb-3" style={{ color: category.color }}>
                   {category.title}
                 </p>
-                <p className="text-gray-400 leading-relaxed mb-4">{category.description}</p>
+                <p className="text-muted-foreground leading-relaxed mb-4">{category.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{category.count} solutions disponibles</span>
+                  <span className="text-xs text-muted-foreground">{category.count} solutions disponibles</span>
                   <div
                     className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-sm font-medium"
                     style={{ color: category.color }}
@@ -204,11 +204,11 @@ export function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="bg-white/[0.02] border-y border-white/10">
+      <section className="bg-muted/30 border-y border-border">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Comment ça marche ?</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Comment ça marche ?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Déployez votre protection cybersécurité en 3 étapes simples
             </p>
           </div>
@@ -222,8 +222,8 @@ export function HomePage() {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#00B4D8]/20 to-[#00B4D8]/5 border-2 border-[#00B4D8]/40 rounded-2xl mb-6 mx-auto relative z-10">
                   <span className="text-2xl font-bold text-[#00B4D8]">{step.number}</span>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
@@ -235,7 +235,7 @@ export function HomePage() {
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
             <Star className="w-6 h-6 text-[#F59E0B] fill-[#F59E0B]" />
-            <h2 className="text-3xl font-bold text-white">Top Produits du moment</h2>
+            <h2 className="text-3xl font-bold text-foreground">Top Produits du moment</h2>
           </div>
           <Link
             to="/catalogue"
@@ -249,11 +249,11 @@ export function HomePage() {
           {topProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-all hover:scale-[1.02] group"
+              className="bg-gradient-to-br from-card to-card border border-border rounded-xl overflow-hidden hover:border-border transition-all hover:scale-[1.02] group"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">{product.name}</h3>
+                  <h3 className="text-xl font-semibold text-foreground">{product.name}</h3>
                   <span
                     className="px-3 py-1 rounded-full text-xs font-semibold"
                     style={{
@@ -265,25 +265,25 @@ export function HomePage() {
                     {product.category}
                   </span>
                 </div>
-                <p className="text-gray-400 mb-6 leading-relaxed">{product.description}</p>
+                <p className="text-muted-foreground mb-6 leading-relaxed">{product.description}</p>
                 <div className="flex items-end justify-between mb-5">
                   <div>
                     <span className="text-3xl font-bold text-[#00B4D8]">{product.price}€</span>
-                    <span className="text-gray-400">/mois</span>
+                    <span className="text-muted-foreground">/mois</span>
                   </div>
-                  <span className="text-xs text-gray-500">Facturation mensuelle</span>
+                  <span className="text-xs text-muted-foreground">Facturation mensuelle</span>
                 </div>
               </div>
               <div className="px-6 pb-6 flex gap-3">
                 <Link
                   to={`/produit/${product.id}`}
-                  className="flex-1 py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
+                  className="flex-1 py-3 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
                 >
                   Voir le produit
                 </Link>
                 <Link
                   to={`/produit/${product.id}`}
-                  className="px-4 py-3 border border-white/10 text-gray-300 rounded-lg hover:bg-white/5 hover:text-white transition-colors text-sm font-medium"
+                  className="px-4 py-3 border border-border text-muted-foreground rounded-lg hover:bg-muted/50 hover:text-foreground transition-colors text-sm font-medium"
                 >
                   Essai
                 </Link>
@@ -294,27 +294,27 @@ export function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative overflow-hidden border-t border-white/10">
+      <section className="relative overflow-hidden border-t border-border">
         <div className="absolute inset-0 bg-gradient-to-r from-[#00B4D8]/10 to-[#8B5CF6]/10" />
         <div className="max-w-7xl mx-auto px-6 py-20 relative text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-foreground mb-4">
             Prêt à sécuriser votre infrastructure ?
           </h2>
-          <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
             Rejoignez plus de 500 entreprises qui font confiance à CYNA pour leur cybersécurité.
             Essai gratuit 14 jours, sans engagement.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/catalogue"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg hover:bg-[#0096B8] transition-all"
             >
               Commencer maintenant
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-8 py-4 border-2 border-white/20 text-white font-semibold rounded-lg hover:border-white/40 hover:bg-white/5 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 border-2 border-border text-foreground font-semibold rounded-lg hover:border-foreground/40 hover:bg-muted/50 transition-all"
             >
               Parler à un expert
             </Link>

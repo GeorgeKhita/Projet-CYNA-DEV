@@ -114,12 +114,12 @@ export function ProductDetailPage() {
   const Icon = product.icon;
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           {/* Left - Product Visual */}
           <div
-            className="relative border border-white/10 rounded-xl p-12 flex items-center justify-center min-h-[500px]"
+            className="relative border border-border rounded-xl p-12 flex items-center justify-center min-h-[500px]"
             style={{
               background: `radial-gradient(circle at 50% 40%, ${product.categoryColor}12, transparent 65%), linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)`,
             }}
@@ -132,7 +132,7 @@ export function ProductDetailPage() {
                   boxShadow: `0 25px 50px -12px ${product.categoryColor}40`,
                 }}
               >
-                <Icon className="w-24 h-24 text-white" />
+                <Icon className="w-24 h-24 text-foreground" />
               </div>
               <span
                 className="inline-block px-4 py-2 rounded-full text-sm font-semibold"
@@ -150,14 +150,14 @@ export function ProductDetailPage() {
           {/* Right - Product Info */}
           <div>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-bold text-white">{product.name}</h1>
+              <h1 className="text-4xl font-bold text-foreground">{product.name}</h1>
               <span className="px-3 py-1 bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/40 rounded-full text-sm font-semibold flex items-center gap-1">
                 <Star className="w-4 h-4 fill-[#8B5CF6]" />
                 {product.badge}
               </span>
             </div>
 
-            <p className="text-gray-300 leading-relaxed mb-8 text-lg">{product.description}</p>
+            <p className="text-muted-foreground leading-relaxed mb-8 text-lg">{product.description}</p>
 
             <div className="space-y-3 mb-8">
               {product.features.map((feature, index) => (
@@ -165,39 +165,39 @@ export function ProductDetailPage() {
                   <div className="mt-0.5 w-5 h-5 bg-[#10B981]/20 border border-[#10B981]/40 rounded flex items-center justify-center flex-shrink-0">
                     <Check className="w-3 h-3 text-[#10B981]" />
                   </div>
-                  <span className="text-gray-300">{feature}</span>
+                  <span className="text-muted-foreground">{feature}</span>
                 </div>
               ))}
             </div>
 
             {/* Plan Selector */}
             <div className="mb-6">
-              <label className="block text-white font-semibold mb-3">Choisir un plan</label>
+              <label className="block text-foreground font-semibold mb-3">Choisir un plan</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setSelectedPlan('monthly')}
                   className={`p-4 rounded-lg border-2 transition-all text-left ${
                     selectedPlan === 'monthly'
                       ? 'border-[#00B4D8] bg-[#00B4D8]/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                      : 'border-border bg-muted/50 hover:border-border'
                   }`}
                 >
-                  <div className="text-white font-semibold">Mensuel</div>
-                  <div className="text-sm text-gray-400">Facturation mensuelle</div>
+                  <div className="text-foreground font-semibold">Mensuel</div>
+                  <div className="text-sm text-muted-foreground">Facturation mensuelle</div>
                 </button>
                 <button
                   onClick={() => setSelectedPlan('annual')}
                   className={`p-4 rounded-lg border-2 transition-all text-left relative ${
                     selectedPlan === 'annual'
                       ? 'border-[#00B4D8] bg-[#00B4D8]/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                      : 'border-border bg-muted/50 hover:border-border'
                   }`}
                 >
-                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">
+                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">
                     -17%
                   </div>
-                  <div className="text-white font-semibold">Annuel</div>
-                  <div className="text-sm text-gray-400">Économisez 17%</div>
+                  <div className="text-foreground font-semibold">Annuel</div>
+                  <div className="text-sm text-muted-foreground">Économisez 17%</div>
                 </button>
               </div>
             </div>
@@ -208,10 +208,10 @@ export function ProductDetailPage() {
                 <span className="text-5xl font-bold text-[#00B4D8]">
                   {currentPrice.toLocaleString('fr-FR')}€
                 </span>
-                <span className="text-xl text-gray-400">/mois</span>
+                <span className="text-xl text-muted-foreground">/mois</span>
               </div>
               {selectedPlan === 'annual' && (
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Soit {(product.priceAnnual * 12).toLocaleString('fr-FR')}€ facturés annuellement
                 </p>
               )}
@@ -221,7 +221,7 @@ export function ProductDetailPage() {
             <div className="flex gap-3">
               <Link
                 to="/panier"
-                className="flex-1 py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
+                className="flex-1 py-4 bg-[#00B4D8] text-primary-foreground font-semibold rounded-lg text-center hover:bg-[#0096B8] transition-colors"
               >
                 Ajouter au panier
               </Link>
@@ -234,7 +234,7 @@ export function ProductDetailPage() {
 
         {/* Similar Products */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-6">Services similaires</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Services similaires</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {similarProducts.map((similar) => {
               const SimilarIcon = similar.icon;
@@ -242,7 +242,7 @@ export function ProductDetailPage() {
                 <Link
                   key={similar.id}
                   to={`/produit/${similar.id}`}
-                  className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all hover:scale-[1.02] group"
+                  className="bg-gradient-to-br from-card to-card border border-border rounded-xl p-6 hover:border-border transition-all hover:scale-[1.02] group"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div
@@ -255,7 +255,7 @@ export function ProductDetailPage() {
                       <SimilarIcon className="w-5 h-5" style={{ color: similar.categoryColor }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-white group-hover:text-[#00B4D8] transition-colors truncate">
+                      <h3 className="text-lg font-semibold text-foreground group-hover:text-[#00B4D8] transition-colors truncate">
                         {similar.name}
                       </h3>
                       <span className="text-xs font-semibold" style={{ color: similar.categoryColor }}>
@@ -265,7 +265,7 @@ export function ProductDetailPage() {
                   </div>
                   <div className="text-2xl font-bold text-[#00B4D8]">
                     {similar.priceMonthly.toLocaleString('fr-FR')}€
-                    <span className="text-sm text-gray-400">/mois</span>
+                    <span className="text-sm text-muted-foreground">/mois</span>
                   </div>
                 </Link>
               );
