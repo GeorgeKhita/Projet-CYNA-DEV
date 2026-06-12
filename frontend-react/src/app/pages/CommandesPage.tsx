@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { ShoppingCart, Package, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
 import { api, getToken } from '../../api/client';
@@ -24,10 +24,10 @@ interface Order {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  paid:     { label: 'PayÃ©e',      color: '#10B981' },
+  paid:     { label: 'Payée',      color: '#10B981' },
   pending:  { label: 'En attente', color: '#F59E0B' },
-  failed:   { label: 'Ã‰chouÃ©e',   color: '#EF4444' },
-  refunded: { label: 'RemboursÃ©e', color: '#7C5CFC' },
+  failed:   { label: 'Échouée',   color: '#EF4444' },
+  refunded: { label: 'Remboursée', color: '#7C5CFC' },
 };
 
 async function downloadInvoice(invoiceId: number, ref: string) {
@@ -70,14 +70,14 @@ export function CommandesPage() {
   }
 
   if (authLoading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="min-h-screen bg-card flex items-center justify-center">
       <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
     </div>
   );
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1"><DashboardSidebar /></div>
@@ -95,7 +95,7 @@ export function CommandesPage() {
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-16 cyna-card">
-                <ShoppingCart className="w-12 h-12 text-[#CBD3DF] mx-auto mb-4" />
+                <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Aucune commande pour le moment.</p>
               </div>
             ) : (
@@ -126,7 +126,7 @@ export function CommandesPage() {
                             {statusInfo.label}
                           </span>
                           <div className="text-xl font-bold text-ink">
-                            {order.total?.toLocaleString('fr-FR')}â‚¬
+                            {order.total?.toLocaleString('fr-FR')}€
                           </div>
                           {isOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                         </div>
@@ -140,16 +140,16 @@ export function CommandesPage() {
                                 <div key={i} className="flex items-center justify-between text-sm">
                                   <div>
                                     <span className="text-ink font-medium">{item.product?.name ?? `Produit #${item.product_id}`}</span>
-                                    <span className="text-muted-foreground ml-2">Ã— {item.quantity} Â· {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
+                                    <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
                                   </div>
                                   <span className="text-ink font-semibold">
-                                    {(item.unit_price * item.quantity).toLocaleString('fr-FR')}â‚¬
+                                    {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
                                   </span>
                                 </div>
                               ))}
                               <div className="pt-3 border-t border-border flex justify-between font-semibold">
                                 <span className="text-ink">Total</span>
-                                <span className="text-ink">{order.total?.toLocaleString('fr-FR')}â‚¬</span>
+                                <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
                               </div>
                             </div>
                           )}
@@ -162,7 +162,7 @@ export function CommandesPage() {
                                 className="btn btn-ghost"
                               >
                                 <FileDown className="w-4 h-4 text-[#00B4D8]" />
-                                {downloading === order.invoice_id ? 'GÃ©nÃ©ration...' : 'TÃ©lÃ©charger la facture PDF'}
+                                {downloading === order.invoice_id ? 'Génération...' : 'Télécharger la facture PDF'}
                               </button>
                             </div>
                           )}

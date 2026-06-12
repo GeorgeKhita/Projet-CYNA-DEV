@@ -1,4 +1,4 @@
-﻿import { useState, FormEvent, useEffect, useRef } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ShieldCheck } from 'lucide-react';
 import { api } from '../../api/client';
@@ -69,7 +69,7 @@ export function TwoFactorVerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-bg-subtle to-background flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md fade-up">
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
 
@@ -77,15 +77,15 @@ export function TwoFactorVerifyPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#00B4D8]/10 border border-[#00B4D8]/30 rounded-2xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#00B4D8]" />
             </div>
-            <h1 className="text-2xl font-bold text-ink mb-2">VÃ©rification en 2 Ã©tapes</h1>
+            <h1 className="text-2xl font-bold text-ink mb-2">Vérification en 2 étapes</h1>
             <p className="text-muted-foreground text-sm">
               Ouvrez <strong className="text-ink">Google Authenticator</strong> et entrez
-              le code Ã  6 chiffres affichÃ© pour CYNA.
+              le code à 6 chiffres affiché pour CYNA.
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">
+            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
@@ -102,7 +102,7 @@ export function TwoFactorVerifyPage() {
                   value={d}
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-bg-subtle border border-border rounded-xl text-ink focus:outline-none focus:bg-background focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-bg-subtle border border-border rounded-xl text-ink focus:outline-none focus:bg-card focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
                 />
               ))}
             </div>
@@ -112,14 +112,14 @@ export function TwoFactorVerifyPage() {
               disabled={loading || digits.join('').length !== 6}
               className="btn btn-primary btn-block btn-lg"
             >
-              {loading ? 'VÃ©rification...' : 'VÃ©rifier le code'}
+              {loading ? 'Vérification...' : 'Vérifier le code'}
             </button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Le code change toutes les 30 secondes.{' '}
-            <button onClick={() => navigate('/connexion')} className="text-[#0098B7] hover:underline font-semibold">
-              Retour Ã  la connexion
+            <button onClick={() => navigate('/connexion')} className="text-primary hover:underline font-semibold">
+              Retour à la connexion
             </button>
           </p>
         </div>

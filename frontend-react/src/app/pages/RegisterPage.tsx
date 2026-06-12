@@ -1,4 +1,4 @@
-﻿import { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { User, Mail, Lock, Info, Building } from 'lucide-react';
 import { api } from '../../api/client';
@@ -28,27 +28,27 @@ export function RegisterPage() {
       login(data.token, data.user);
       navigate('/espace-client');
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la crÃ©ation du compte.');
+      setError(err.message || 'Erreur lors de la création du compte.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-bg-subtle to-background flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md fade-up">
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">â¬¡</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
               <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-ink mb-2">CrÃ©er un compte</h1>
-            <p className="text-muted-foreground">Rejoignez la communautÃ© CYNA</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">Créer un compte</h1>
+            <p className="text-muted-foreground">Rejoignez la communauté CYNA</p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">
+            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
@@ -56,7 +56,7 @@ export function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-ink mb-2">PrÃ©nom</label>
+                <label className="block text-ink mb-2">Prénom</label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input type="text" value={form.first_name} onChange={set('first_name')} placeholder="Jean" required className="field field-icon" />
@@ -88,7 +88,7 @@ export function RegisterPage() {
               <label className="block text-ink mb-2">Mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="password" value={form.password} onChange={set('password')} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required className="field field-icon" />
+                <input type="password" value={form.password} onChange={set('password')} placeholder="••••••••" required className="field field-icon" />
               </div>
             </div>
 
@@ -96,7 +96,7 @@ export function RegisterPage() {
               <label className="block text-ink mb-2">Confirmer le mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required className="field field-icon" />
+                <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')} placeholder="••••••••" required className="field field-icon" />
               </div>
             </div>
 
@@ -104,19 +104,19 @@ export function RegisterPage() {
               <div className="flex items-start gap-2">
                 <Info className="w-4 h-4 text-[#00B4D8] mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Minimum 8 caractÃ¨res, avec au moins une majuscule, une minuscule, un chiffre et un caractÃ¨re spÃ©cial
+                  Minimum 8 caractères, avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial
                 </p>
               </div>
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
-              {loading ? 'CrÃ©ation...' : 'CrÃ©er mon compte'}
+              {loading ? 'Création...' : 'Créer mon compte'}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">DÃ©jÃ  un compte ? </span>
-            <Link to="/connexion" className="text-[#0098B7] hover:underline font-semibold">Se connecter</Link>
+            <span className="text-muted-foreground">Déjà un compte ? </span>
+            <Link to="/connexion" className="text-primary hover:underline font-semibold">Se connecter</Link>
           </div>
         </div>
       </div>

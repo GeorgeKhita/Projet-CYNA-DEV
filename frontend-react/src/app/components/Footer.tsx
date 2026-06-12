@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router';
+import { Link } from 'react-router';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Github } from 'lucide-react';
 
 export function Footer() {
@@ -9,11 +9,11 @@ export function Footer() {
           {/* Company Info */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.3)]">â¬¡</div>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.3)]">⬡</div>
               <span className="text-xl font-bold text-ink">CYNA</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Solutions de cybersÃ©curitÃ© SaaS pour protÃ©ger votre entreprise contre les menaces numÃ©riques.
+              Solutions de cybersécurité SaaS pour protéger votre entreprise contre les menaces numériques.
             </p>
           </div>
 
@@ -21,9 +21,9 @@ export function Footer() {
           <div>
             <h3 className="text-ink font-semibold mb-4">Nos solutions</h3>
             <div className="space-y-2.5">
-              <Link to="/catalogue?category=soc" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">SOC â€“ Security Operations</Link>
-              <Link to="/catalogue?category=edr" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">EDR â€“ Endpoint Detection</Link>
-              <Link to="/catalogue?category=xdr" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">XDR â€“ Extended Detection</Link>
+              <Link to="/catalogue?category=soc" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">SOC – Security Operations</Link>
+              <Link to="/catalogue?category=edr" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">EDR – Endpoint Detection</Link>
+              <Link to="/catalogue?category=xdr" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">XDR – Extended Detection</Link>
               <Link to="/catalogue" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Voir tout le catalogue</Link>
             </div>
           </div>
@@ -40,18 +40,18 @@ export function Footer() {
               </a>
               <div className="flex items-start gap-2 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>123 Avenue de la SÃ©curitÃ©<br />75001 Paris, France</span>
+                <span>123 Avenue de la Sécurité<br />75001 Paris, France</span>
               </div>
             </div>
           </div>
 
           {/* Legal */}
           <div>
-            <h3 className="text-ink font-semibold mb-4">LÃ©gal</h3>
+            <h3 className="text-ink font-semibold mb-4">Légal</h3>
             <div className="space-y-2.5">
-              <Link to="/cgu" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Conditions gÃ©nÃ©rales d'utilisation</Link>
-              <Link to="/mentions-legales" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Mentions lÃ©gales</Link>
-              <Link to="/confidentialite" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Politique de confidentialitÃ©</Link>
+              <Link to="/cgu" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Conditions générales d'utilisation</Link>
+              <Link to="/mentions-legales" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Mentions légales</Link>
+              <Link to="/confidentialite" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Politique de confidentialité</Link>
               <Link to="/contact" className="block text-muted-foreground hover:text-[#00B4D8] transition-colors text-sm">Nous contacter</Link>
             </div>
           </div>
@@ -70,10 +70,10 @@ export function Footer() {
         </div>
 
         <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <span>Â© 2026 CYNA DEV. Tous droits rÃ©servÃ©s.</span>
+          <span>© 2026 CYNA DEV. Tous droits réservés.</span>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse" />
-            <span>Tous les services opÃ©rationnels</span>
+            <span>Tous les services opérationnels</span>
           </div>
         </div>
       </div>

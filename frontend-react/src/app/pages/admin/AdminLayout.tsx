@@ -1,4 +1,4 @@
-﻿import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../../../context/AuthContext';
 import { AdminSidebar } from '../../components/AdminSidebar';
 

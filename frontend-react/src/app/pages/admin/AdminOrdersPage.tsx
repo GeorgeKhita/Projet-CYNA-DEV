@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../../api/client';
 
@@ -14,7 +14,7 @@ interface OrderRow {
 }
 
 const STATUS_COLORS: Record<string, string> = { paid: '#10B981', pending: '#F59E0B', failed: '#EF4444', refunded: '#7C5CFC' };
-const STATUS_LABELS: Record<string, string> = { paid: 'PayÃ©e', pending: 'En attente', failed: 'Ã‰chouÃ©e', refunded: 'RemboursÃ©e' };
+const STATUS_LABELS: Record<string, string> = { paid: 'Payée', pending: 'En attente', failed: 'Échouée', refunded: 'Remboursée' };
 
 export function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -74,12 +74,12 @@ export function AdminOrdersPage() {
                   <button onClick={() => setExpanded(isOpen ? null : order.id)} className="text-muted-foreground hover:text-ink">
                     {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </button>
-                  <span className="text-[#0098B7] font-mono text-sm font-bold w-28">{order.ref}</span>
+                  <span className="text-primary font-mono text-sm font-bold w-28">{order.ref}</span>
                   <div className="flex-1 min-w-[140px]">
                     <div className="text-ink text-sm font-semibold">{order.client}</div>
                     <div className="text-muted-foreground text-xs">{order.email}</div>
                   </div>
-                  <div className="text-ink font-bold">{order.total?.toLocaleString('fr-FR')}â‚¬</div>
+                  <div className="text-ink font-bold">{order.total?.toLocaleString('fr-FR')}€</div>
                   <select value={order.status} onChange={e => updateStatus(order.id, e.target.value)}
                     disabled={updatingId === order.id}
                     className="bg-card border rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00B4D8]/30 disabled:opacity-50"
@@ -94,9 +94,9 @@ export function AdminOrdersPage() {
                       <div key={i} className="flex items-center justify-between text-sm">
                         <div>
                           <span className="text-ink font-medium">{item.product_name}</span>
-                          <span className="text-muted-foreground ml-2">Ã— {item.quantity} Â· {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
+                          <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
                         </div>
-                        <span className="text-ink font-semibold">{(item.unit_price * item.quantity).toLocaleString('fr-FR')}â‚¬</span>
+                        <span className="text-ink font-semibold">{(item.unit_price * item.quantity).toLocaleString('fr-FR')}€</span>
                       </div>
                     ))}
                   </div>

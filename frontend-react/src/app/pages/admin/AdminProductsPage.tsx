@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check } from 'lucide-react';
 import { api } from '../../../api/client';
 
@@ -106,7 +106,7 @@ export function AdminProductsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle">
-                  {['Produit', 'CatÃ©gorie', 'Prix/mois', 'Statut', 'Actions'].map(h => (
+                  {['Produit', 'Catégorie', 'Prix/mois', 'Statut', 'Actions'].map(h => (
                     <th key={h} className="text-left px-6 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -124,15 +124,15 @@ export function AdminProductsPage() {
                         {p.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-ink font-semibold text-sm">{p.price_monthly?.toLocaleString('fr-FR')}â‚¬</td>
+                    <td className="px-6 py-4 text-ink font-semibold text-sm">{p.price_monthly?.toLocaleString('fr-FR')}€</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${p.status === 'available' ? 'bg-[#10B981]/12 text-[#059669] border border-[#10B981]/30' : 'bg-bg-muted text-muted-foreground border border-border'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${p.status === 'available' ? 'bg-[#10B981]/12 text-success border border-[#10B981]/30' : 'bg-bg-muted text-muted-foreground border border-border'}`}>
                         {p.status === 'available' ? 'Disponible' : 'Indisponible'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleToggle(p)} title="Basculer disponibilitÃ©"
+                        <button onClick={() => handleToggle(p)} title="Basculer disponibilité"
                           className="p-1.5 hover:bg-bg-subtle rounded-lg transition-colors text-muted-foreground hover:text-ink">
                           {p.status === 'available' ? <ToggleRight className="w-5 h-5 text-[#10B981]" /> : <ToggleLeft className="w-5 h-5" />}
                         </button>
@@ -141,7 +141,7 @@ export function AdminProductsPage() {
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(p.id)}
-                          className="p-1.5 hover:bg-[#FEF2F2] rounded-lg transition-colors text-muted-foreground hover:text-[#EF4444]">
+                          className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -154,9 +154,9 @@ export function AdminProductsPage() {
         </div>
       )}
 
-      {/* Modal crÃ©ation/Ã©dition */}
+      {/* Modal création/édition */}
       {modal && (
-        <div className="fixed inset-0 bg-background/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-lg)]">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-bold text-ink">{modal === 'create' ? 'Nouveau produit' : 'Modifier le produit'}</h2>
@@ -168,7 +168,7 @@ export function AdminProductsPage() {
                 <input type="text" value={current.name} onChange={e => setCurrent((c: any) => ({ ...c, name: e.target.value }))} className={fieldCls} />
               </div>
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">CatÃ©gorie</label>
+                <label className="block text-ink text-sm font-semibold mb-1">Catégorie</label>
                 <select value={current.category_id} onChange={e => setCurrent((c: any) => ({ ...c, category_id: Number(e.target.value) }))} className={fieldCls}>
                   <option value={0}>-- Choisir --</option>
                   {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
@@ -180,18 +180,18 @@ export function AdminProductsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Prix mensuel (â‚¬)</label>
+                  <label className="block text-ink text-sm font-semibold mb-1">Prix mensuel (€)</label>
                   <input type="number" value={current.price_monthly} onChange={e => setCurrent((c: any) => ({ ...c, price_monthly: Number(e.target.value) }))} className={fieldCls} />
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Prix annuel (â‚¬)</label>
+                  <label className="block text-ink text-sm font-semibold mb-1">Prix annuel (€)</label>
                   <input type="number" value={current.price_annual} onChange={e => setCurrent((c: any) => ({ ...c, price_annual: Number(e.target.value) }))} className={fieldCls} />
                 </div>
               </div>
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">FonctionnalitÃ©s (une par ligne)</label>
+                <label className="block text-ink text-sm font-semibold mb-1">Fonctionnalités (une par ligne)</label>
                 <textarea rows={4} value={featuresInput} onChange={e => setFeaturesInput(e.target.value)}
-                  placeholder="Surveillance 24/7&#10;DÃ©tection IA&#10;ConformitÃ© ISO 27001"
+                  placeholder="Surveillance 24/7&#10;Détection IA&#10;Conformité ISO 27001"
                   className={`${fieldCls} resize-none`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -203,7 +203,7 @@ export function AdminProductsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">PrioritÃ©</label>
+                  <label className="block text-ink text-sm font-semibold mb-1">Priorité</label>
                   <input type="number" value={current.priority} onChange={e => setCurrent((c: any) => ({ ...c, priority: Number(e.target.value) }))} className={fieldCls} />
                 </div>
               </div>
