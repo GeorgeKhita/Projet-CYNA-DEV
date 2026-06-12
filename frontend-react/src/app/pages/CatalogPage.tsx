@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+﻿import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client';
@@ -63,11 +63,11 @@ export function CatalogPage() {
   }, [products, searchQuery, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-10">
-          <h1 className="text-4xl lg:text-5xl font-bold text-[#0A1628] mb-3">Catalogue des solutions</h1>
-          <p className="text-[#69727F] text-lg">
+          <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-3">Catalogue des solutions</h1>
+          <p className="text-muted-foreground text-lg">
             {filteredAndSortedProducts.length} solution{filteredAndSortedProducts.length !== 1 ? 's' : ''} disponible{filteredAndSortedProducts.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -76,7 +76,7 @@ export function CatalogPage() {
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Rechercher un produit..." className="field field-icon" />
               </div>
@@ -84,18 +84,18 @@ export function CatalogPage() {
             <div className="flex gap-2 flex-wrap">
               {categories.map(cat => (
                 <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all ${selectedCategory === cat.id ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-[#F6F8FB] text-[#3A4453] hover:bg-[#EDF1F7]'}`}>
+                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all ${selectedCategory === cat.id ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted'}`}>
                   {cat.label}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-[#9AA3AF] flex-shrink-0" />
+              <SlidersHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="bg-white border border-[#E5E9F0] rounded-xl px-4 py-2.5 text-[#0A1628] focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
-                <option value="popular">Popularité</option>
+                className="bg-card border border-border rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
+                <option value="popular">PopularitÃ©</option>
                 <option value="price-asc">Prix croissant</option>
-                <option value="price-desc">Prix décroissant</option>
+                <option value="price-desc">Prix dÃ©croissant</option>
                 <option value="name">Nom A-Z</option>
               </select>
             </div>
@@ -105,7 +105,7 @@ export function CatalogPage() {
         {loading && (
           <div className="text-center py-20">
             <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-[#69727F]">Chargement des produits...</p>
+            <p className="text-muted-foreground">Chargement des produits...</p>
           </div>
         )}
 
@@ -113,7 +113,7 @@ export function CatalogPage() {
           <div className="text-center py-20">
             <p className="text-[#DC2626] mb-4">{error}</p>
             <button onClick={() => window.location.reload()} className="btn btn-primary">
-              Réessayer
+              RÃ©essayer
             </button>
           </div>
         )}
@@ -121,9 +121,9 @@ export function CatalogPage() {
         {!loading && !error && filteredAndSortedProducts.length === 0 && (
           <div className="text-center py-20">
             <Search className="w-16 h-16 text-[#CBD3DF] mx-auto mb-4" />
-            <p className="text-xl text-[#69727F] mb-2">Aucun produit trouvé</p>
+            <p className="text-xl text-muted-foreground mb-2">Aucun produit trouvÃ©</p>
             <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary mt-4">
-              Réinitialiser les filtres
+              RÃ©initialiser les filtres
             </button>
           </div>
         )}
@@ -136,12 +136,12 @@ export function CatalogPage() {
               return (
                 <div key={product.id}
                   className={`cyna-card overflow-hidden flex flex-col ${available ? 'cyna-card-hover' : 'opacity-60'}`}>
-                  <div className="h-36 border-b border-[#E5E9F0] bg-[#F6F8FB]">
+                  <div className="h-36 border-b border-border bg-bg-subtle">
                     <ProductVisual category={product.category} color={color} size="sm" />
                   </div>
-                  <div className="p-6 border-b border-[#E5E9F0]">
+                  <div className="p-6 border-b border-border">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-xl font-bold text-[#0A1628]">{product.name}</h3>
+                      <h3 className="text-xl font-bold text-ink">{product.name}</h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {product.popular && (
                           <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#B45309] border border-[#F59E0B]/30 rounded text-xs font-semibold">Populaire</span>
@@ -153,11 +153,11 @@ export function CatalogPage() {
                     </div>
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
-                    <p className="text-[#69727F] mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
+                    <p className="text-muted-foreground mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
                     <div className="flex items-end justify-between mb-4 mt-auto">
                       <div>
-                        <span className="text-3xl font-bold text-[#0A1628]">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-                        <span className="text-[#69727F]">/mois</span>
+                        <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}â‚¬</span>
+                        <span className="text-muted-foreground">/mois</span>
                       </div>
                     </div>
                     {available ? (
@@ -171,7 +171,7 @@ export function CatalogPage() {
                       </div>
                     ) : (
                       <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed' }}>
-                        Bientôt disponible
+                        BientÃ´t disponible
                       </button>
                     )}
                   </div>

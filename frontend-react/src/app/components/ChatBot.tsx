@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Loader2 } from 'lucide-react';
 
 interface Message {
@@ -7,10 +7,10 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  'Quelle est la différence entre SOC et EDR ?',
+  'Quelle est la diffÃ©rence entre SOC et EDR ?',
   'Quels sont vos tarifs ?',
   'Avez-vous un essai gratuit ?',
-  'Êtes-vous conformes RGPD / NIS2 ?',
+  'ÃŠtes-vous conformes RGPD / NIS2 ?',
 ];
 
 // Rendu markdown safe sans dangerouslySetInnerHTML
@@ -114,17 +114,17 @@ export function ChatBot() {
         }
       </button>
 
-      {/* Fenêtre de chat */}
+      {/* FenÃªtre de chat */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(10,22,40,0.25)] border border-[#E5E9F0] flex flex-col bg-white">
+        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(10,22,40,0.25)] border border-border flex flex-col bg-white">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] px-4 py-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-bg-subtle flex items-center justify-center flex-shrink-0">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
             <div>
               <p className="text-white font-semibold text-sm leading-none">Support CYNA</p>
-              <p className="text-white/70 text-xs mt-0.5">Assistant virtuel · En ligne</p>
+              <p className="text-white/70 text-xs mt-0.5">Assistant virtuel Â· En ligne</p>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export function ChatBot() {
                 <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-[#00B4D8] text-white rounded-br-sm'
-                    : 'bg-[#F6F8FB] text-[#3A4453] border border-[#E5E9F0] rounded-bl-sm'
+                    : 'bg-bg-subtle text-ink-soft border border-border rounded-bl-sm'
                 }`}>
                   <MessageContent text={msg.content} />
                 </div>
@@ -144,9 +144,9 @@ export function ChatBot() {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-[#F6F8FB] border border-[#E5E9F0] rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
+                <div className="bg-bg-subtle border border-border rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1.5">
                   <Loader2 className="w-3.5 h-3.5 text-[#00B4D8] animate-spin" />
-                  <span className="text-[#69727F] text-xs">En train d'écrire...</span>
+                  <span className="text-muted-foreground text-xs">En train d'Ã©crire...</span>
                 </div>
               </div>
             )}
@@ -154,12 +154,12 @@ export function ChatBot() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Questions suggérées */}
+          {/* Questions suggÃ©rÃ©es */}
           {history.length === 1 && !loading && (
             <div className="px-4 pb-2 flex flex-wrap gap-1.5">
               {SUGGESTED_QUESTIONS.map(q => (
                 <button key={q} onClick={() => sendMessage(q)}
-                  className="text-xs bg-[#F6F8FB] hover:bg-[#00B4D8]/10 border border-[#E5E9F0] hover:border-[#00B4D8]/40 text-[#3A4453] hover:text-[#0A1628] rounded-full px-3 py-1 transition-colors">
+                  className="text-xs bg-bg-subtle hover:bg-[#00B4D8]/10 border border-border hover:border-[#00B4D8]/40 text-ink-soft hover:text-ink rounded-full px-3 py-1 transition-colors">
                   {q}
                 </button>
               ))}
@@ -167,7 +167,7 @@ export function ChatBot() {
           )}
 
           {/* Zone de saisie */}
-          <div className="border-t border-[#E5E9F0] p-3 flex items-center gap-2">
+          <div className="border-t border-border p-3 flex items-center gap-2">
             <input
               ref={inputRef}
               type="text"
@@ -176,7 +176,7 @@ export function ChatBot() {
               onKeyDown={handleKeyDown}
               placeholder="Votre question..."
               disabled={loading}
-              className="flex-1 bg-[#F6F8FB] border border-[#E5E9F0] rounded-full px-4 py-2 text-sm text-[#0A1628] placeholder-[#9AA3AF] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#00B4D8]/20 focus:border-[#00B4D8] disabled:opacity-50"
+              className="flex-1 bg-bg-subtle border border-border rounded-full px-4 py-2 text-sm text-ink placeholder:text-muted-foreground focus:outline-none focus:bg-background focus:ring-2 focus:ring-[#00B4D8]/20 focus:border-[#00B4D8] disabled:opacity-50"
             />
             <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
               aria-label="Envoyer"

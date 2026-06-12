@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import { Shield, Laptop, Globe, Check, Star } from 'lucide-react';
 import { api } from '../../api/client';
@@ -51,13 +51,13 @@ export function ProductDetailPage() {
     const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
     const price = selectedPlan === 'monthly' ? product.price_monthly : product.price_annual;
     addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan });
-    setAddedMsg('Ajouté au panier !');
+    setAddedMsg('AjoutÃ© au panier !');
     setTimeout(() => setAddedMsg(''), 2000);
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -73,7 +73,7 @@ export function ProductDetailPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           {/* Visuel */}
@@ -93,7 +93,7 @@ export function ProductDetailPage() {
           {/* Infos */}
           <div>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-bold text-[#0A1628]">{product.name}</h1>
+              <h1 className="text-4xl font-bold text-ink">{product.name}</h1>
               {product.popular && (
                 <span className="px-3 py-1 bg-[#7C5CFC]/12 text-[#7C5CFC] border border-[#7C5CFC]/30 rounded-full text-sm font-semibold flex items-center gap-1">
                   <Star className="w-4 h-4 fill-[#7C5CFC]" />{CATEGORY_BADGES[product.category] ?? 'Premium'}
@@ -101,7 +101,7 @@ export function ProductDetailPage() {
               )}
             </div>
 
-            <p className="text-[#3A4453] leading-relaxed mb-8 text-lg">{product.description}</p>
+            <p className="text-ink-soft leading-relaxed mb-8 text-lg">{product.description}</p>
 
             {features.length > 0 && (
               <div className="space-y-3 mb-8">
@@ -110,36 +110,36 @@ export function ProductDetailPage() {
                     <div className="mt-0.5 w-5 h-5 bg-[#10B981]/15 border border-[#10B981]/35 rounded flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-[#10B981]" />
                     </div>
-                    <span className="text-[#3A4453]">{f}</span>
+                    <span className="text-ink-soft">{f}</span>
                   </div>
                 ))}
               </div>
             )}
 
             <div className="mb-6">
-              <label className="block text-[#0A1628] font-semibold mb-3">Choisir un plan</label>
+              <label className="block text-ink font-semibold mb-3">Choisir un plan</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setSelectedPlan('monthly')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-[#E5E9F0] bg-white hover:border-[#CBD3DF]'}`}>
-                  <div className="text-[#0A1628] font-semibold">Mensuel</div>
-                  <div className="text-sm text-[#69727F]">Facturation mensuelle</div>
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-border-strong'}`}>
+                  <div className="text-ink font-semibold">Mensuel</div>
+                  <div className="text-sm text-muted-foreground">Facturation mensuelle</div>
                 </button>
                 <button onClick={() => setSelectedPlan('annual')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-[#E5E9F0] bg-white hover:border-[#CBD3DF]'}`}>
+                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-border-strong'}`}>
                   <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-17%</div>
-                  <div className="text-[#0A1628] font-semibold">Annuel</div>
-                  <div className="text-sm text-[#69727F]">Économisez 17%</div>
+                  <div className="text-ink font-semibold">Annuel</div>
+                  <div className="text-sm text-muted-foreground">Ã‰conomisez 17%</div>
                 </button>
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-bold text-[#0A1628]">{currentPrice?.toLocaleString('fr-FR')}€</span>
-                <span className="text-xl text-[#69727F]">/mois</span>
+                <span className="text-5xl font-bold text-ink">{currentPrice?.toLocaleString('fr-FR')}â‚¬</span>
+                <span className="text-xl text-muted-foreground">/mois</span>
               </div>
               {selectedPlan === 'annual' && product.price_annual && (
-                <p className="text-sm text-[#69727F] mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}€ facturés annuellement</p>
+                <p className="text-sm text-muted-foreground mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}â‚¬ facturÃ©s annuellement</p>
               )}
             </div>
 
@@ -161,7 +161,7 @@ export function ProductDetailPage() {
         {/* Produits similaires */}
         {related.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Services similaires</h2>
+            <h2 className="text-2xl font-bold text-ink mb-6">Services similaires</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map(sim => {
                 const simColor = CATEGORY_COLORS[sim.category] ?? '#00B4D8';
@@ -174,12 +174,12 @@ export function ProductDetailPage() {
                         <SimIcon className="w-5 h-5" style={{ color: simColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-[#0A1628] group-hover:text-[#0098B7] transition-colors truncate">{sim.name}</h3>
+                        <h3 className="text-lg font-bold text-ink group-hover:text-[#0098B7] transition-colors truncate">{sim.name}</h3>
                         <span className="text-xs font-semibold" style={{ color: simColor }}>{sim.category}</span>
                       </div>
                     </div>
-                    <div className="text-2xl font-bold text-[#0A1628]">
-                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-[#69727F]">/mois</span>
+                    <div className="text-2xl font-bold text-ink">
+                      {sim.price_monthly?.toLocaleString('fr-FR')}â‚¬<span className="text-sm text-muted-foreground">/mois</span>
                     </div>
                   </Link>
                 );

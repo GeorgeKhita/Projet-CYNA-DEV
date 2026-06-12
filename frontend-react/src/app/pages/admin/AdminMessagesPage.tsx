@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { MessageSquare, Bot, Check, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../../api/client';
 
@@ -14,7 +14,7 @@ interface Message {
 }
 
 const STATUS_COLORS: Record<string, string> = { new: '#F59E0B', in_progress: '#00B4D8', resolved: '#10B981' };
-const STATUS_LABELS: Record<string, string> = { new: 'Nouveau', in_progress: 'En cours', resolved: 'Résolu' };
+const STATUS_LABELS: Record<string, string> = { new: 'Nouveau', in_progress: 'En cours', resolved: 'RÃ©solu' };
 
 export function AdminMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -45,20 +45,20 @@ export function AdminMessagesPage() {
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-3xl font-bold text-[#0A1628]">Messages support</h1>
+          <h1 className="text-3xl font-bold text-ink">Messages support</h1>
           {newCount > 0 && (
             <span className="px-2.5 py-1 bg-[#F59E0B]/15 text-[#B45309] border border-[#F59E0B]/30 rounded-full text-xs font-bold">
               {newCount} nouveau{newCount > 1 ? 'x' : ''}
             </span>
           )}
         </div>
-        <p className="text-[#69727F]">{messages.length} message{messages.length !== 1 ? 's' : ''} au total</p>
+        <p className="text-muted-foreground">{messages.length} message{messages.length !== 1 ? 's' : ''} au total</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-3 text-[#69727F]"><div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />Chargement...</div>
+        <div className="flex items-center gap-3 text-muted-foreground"><div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />Chargement...</div>
       ) : messages.length === 0 ? (
-        <div className="text-center py-16 cyna-card text-[#9AA3AF]">Aucun message</div>
+        <div className="text-center py-16 cyna-card text-muted-foreground">Aucun message</div>
       ) : (
         <div className="space-y-3">
           {messages.map(msg => {
@@ -67,7 +67,7 @@ export function AdminMessagesPage() {
             return (
               <div key={msg.id} className={`cyna-card overflow-hidden ${msg.requires_human ? '!border-[#F59E0B]/40' : ''}`}>
                 <div className="flex items-center gap-4 p-5">
-                  <button onClick={() => setExpanded(isOpen ? null : msg.id)} className="text-[#9AA3AF] hover:text-[#0A1628]">
+                  <button onClick={() => setExpanded(isOpen ? null : msg.id)} className="text-muted-foreground hover:text-ink">
                     {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </button>
 
@@ -80,12 +80,12 @@ export function AdminMessagesPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[#0A1628] text-sm font-semibold">{msg.email}</span>
+                      <span className="text-ink text-sm font-semibold">{msg.email}</span>
                       {msg.requires_human && (
                         <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#B45309] border border-[#F59E0B]/30 rounded-full text-xs">Intervention requise</span>
                       )}
                     </div>
-                    <div className="text-[#9AA3AF] text-xs truncate">{msg.subject ?? '(sans sujet)'}</div>
+                    <div className="text-muted-foreground text-xs truncate">{msg.subject ?? '(sans sujet)'}</div>
                   </div>
 
                   <span className="px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0"
@@ -93,27 +93,27 @@ export function AdminMessagesPage() {
                     {STATUS_LABELS[msg.status] ?? msg.status}
                   </span>
 
-                  <span className="text-[#9AA3AF] text-xs flex-shrink-0">
+                  <span className="text-muted-foreground text-xs flex-shrink-0">
                     {new Date(msg.created_at).toLocaleDateString('fr-FR')}
                   </span>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {msg.status !== 'resolved' && (
-                      <button onClick={() => handleResolve(msg.id)} title="Marquer résolu"
-                        className="p-1.5 hover:bg-[#10B981]/10 rounded-lg transition-colors text-[#9AA3AF] hover:text-[#10B981]">
+                      <button onClick={() => handleResolve(msg.id)} title="Marquer rÃ©solu"
+                        className="p-1.5 hover:bg-[#10B981]/10 rounded-lg transition-colors text-muted-foreground hover:text-[#10B981]">
                         <Check className="w-4 h-4" />
                       </button>
                     )}
                     <button onClick={() => handleDelete(msg.id)}
-                      className="p-1.5 hover:bg-[#FEF2F2] rounded-lg transition-colors text-[#9AA3AF] hover:text-[#EF4444]">
+                      className="p-1.5 hover:bg-[#FEF2F2] rounded-lg transition-colors text-muted-foreground hover:text-[#EF4444]">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 {isOpen && (
-                  <div className="border-t border-[#E5E9F0] px-5 py-4 bg-[#F6F8FB]">
-                    <p className="text-[#3A4453] text-sm whitespace-pre-wrap leading-relaxed">{msg.message_body}</p>
+                  <div className="border-t border-border px-5 py-4 bg-bg-subtle">
+                    <p className="text-ink-soft text-sm whitespace-pre-wrap leading-relaxed">{msg.message_body}</p>
                   </div>
                 )}
               </div>

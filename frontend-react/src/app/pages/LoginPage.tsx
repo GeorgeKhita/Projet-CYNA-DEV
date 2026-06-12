@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+﻿import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
 import { api } from '../../api/client';
@@ -40,11 +40,11 @@ export function LoginPage() {
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
-              <span className="text-2xl font-bold text-[#0A1628]">CYNA</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">â¬¡</div>
+              <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Connexion</h1>
-            <p className="text-[#69727F]">Accédez à votre espace client</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">Connexion</h1>
+            <p className="text-muted-foreground">AccÃ©dez Ã  votre espace client</p>
           </div>
 
           {error && (
@@ -55,9 +55,9 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-[#0A1628] mb-2">Email</label>
+              <label className="block text-ink mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="email"
                   value={email}
@@ -70,14 +70,14 @@ export function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-[#0A1628] mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">Mot de passe</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   required
                   className="field field-icon"
                 />
@@ -85,12 +85,12 @@ export function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-[#69727F] cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-[#D3DAE4] text-[#00B4D8]" />
+              <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 rounded border-border-strong text-[#00B4D8]" />
                 Se souvenir de moi
               </label>
               <Link to="/mot-de-passe-oublie" className="text-[#0098B7] hover:underline font-semibold">
-                Mot de passe oublié ?
+                Mot de passe oubliÃ© ?
               </Link>
             </div>
 
@@ -101,15 +101,15 @@ export function LoginPage() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E5E9F0]" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-[#9AA3AF]">ou</span>
+              <span className="px-4 bg-background text-muted-foreground">ou</span>
             </div>
           </div>
 
           <Link to="/inscription" className="btn btn-outline btn-block btn-lg">
-            Créer un compte
+            CrÃ©er un compte
           </Link>
         </div>
       </div>

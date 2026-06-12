@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Check, Shield, Lock } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -42,7 +42,7 @@ function PaymentForm() {
     if (cart.length === 0) return;
     api.post<{ client_secret: string }>('/payments/intent', { amount: total })
       .then(res => setClientSecret(res.client_secret))
-      .catch(() => setError("Impossible d'initialiser le paiement. Réessayez."));
+      .catch(() => setError("Impossible d'initialiser le paiement. RÃ©essayez."));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -85,7 +85,7 @@ function PaymentForm() {
         clearCart();
         navigate('/confirmation', { state: { order: res, cart } });
       } catch {
-        setError('Paiement réussi mais erreur lors de la création de la commande. Contactez le support.');
+        setError('Paiement rÃ©ussi mais erreur lors de la crÃ©ation de la commande. Contactez le support.');
       }
     }
 
@@ -95,12 +95,12 @@ function PaymentForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-[#0A1628] mb-2">Informations de carte</label>
-        <div className="w-full bg-white border border-[#E5E9F0] rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
+        <label className="block text-ink mb-2">Informations de carte</label>
+        <div className="w-full bg-card border border-border rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
-        <p className="mt-2 text-xs text-[#9AA3AF]">
-          Testez avec <span className="text-[#3A4453] font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
+        <p className="mt-2 text-xs text-muted-foreground">
+          Testez avec <span className="text-ink-soft font-mono">4242 4242 4242 4242</span> Â· exp. future Â· CVV quelconque
         </p>
       </div>
 
@@ -109,9 +109,9 @@ function PaymentForm() {
           <Shield className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-0.5" />
           <div>
             <div className="text-[#059669] font-semibold mb-1 flex items-center gap-2">
-              <Lock className="w-4 h-4" /> Paiement sécurisé par Stripe
+              <Lock className="w-4 h-4" /> Paiement sÃ©curisÃ© par Stripe
             </div>
-            <div className="text-sm text-[#3A4453]">Conforme PCI-DSS · Données cryptées SSL · Transactions sécurisées</div>
+            <div className="text-sm text-ink-soft">Conforme PCI-DSS Â· DonnÃ©es cryptÃ©es SSL Â· Transactions sÃ©curisÃ©es</div>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ function PaymentForm() {
       )}
 
       <button type="submit" disabled={loading || !stripe || !clientSecret} className="btn btn-primary btn-lg btn-block">
-        {loading ? 'Traitement...' : `Confirmer l'achat · ${total.toLocaleString('fr-FR')}€`}
+        {loading ? 'Traitement...' : `Confirmer l'achat Â· ${total.toLocaleString('fr-FR')}â‚¬`}
       </button>
     </form>
   );
@@ -129,7 +129,7 @@ function PaymentForm() {
 
 export function CheckoutPaymentPage() {
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -138,11 +138,11 @@ export function CheckoutPaymentPage() {
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-[#F6F8FB] border border-[#E5E9F0] text-[#9AA3AF]'
+                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle border border-border text-muted-foreground'
                   }`}>
                     {step.completed ? <Check className="w-5 h-5" /> : step.id}
                   </div>
-                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-[#0A1628]' : 'text-[#9AA3AF]'}`}>{step.name}</span>
+                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-ink' : 'text-muted-foreground'}`}>{step.name}</span>
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-[#E5E9F0]'}`} />
@@ -153,8 +153,8 @@ export function CheckoutPaymentPage() {
         </div>
 
         <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
-          <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Paiement</h1>
-          <p className="text-[#69727F] mb-8">Entrez vos informations de carte bancaire</p>
+          <h1 className="text-3xl font-bold text-ink mb-2">Paiement</h1>
+          <p className="text-muted-foreground mb-8">Entrez vos informations de carte bancaire</p>
 
           <Elements stripe={stripePromise}>
             <PaymentForm />

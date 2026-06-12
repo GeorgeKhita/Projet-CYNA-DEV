@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router';
+﻿import { Link, useLocation } from 'react-router';
 import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -6,7 +6,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client' },
   { icon: ShoppingBag,     label: 'Abonnements',    href: '/espace-client/abonnements' },
   { icon: CreditCard,      label: 'Commandes',       href: '/espace-client/commandes' },
-  { icon: Settings,        label: 'Paramètres',      href: '/espace-client/parametres' },
+  { icon: Settings,        label: 'ParamÃ¨tres',      href: '/espace-client/parametres' },
 ];
 
 export function DashboardSidebar() {
@@ -23,9 +23,9 @@ export function DashboardSidebar() {
             : <User className="w-10 h-10 text-white" />
           }
         </div>
-        <h3 className="text-xl font-bold text-[#0A1628] mb-1">{user?.first_name} {user?.last_name}</h3>
-        <p className="text-sm text-[#69727F]">{user?.email}</p>
-        {user?.company && <p className="text-xs text-[#9AA3AF] mt-1">{user.company}</p>}
+        <h3 className="text-xl font-bold text-ink mb-1">{user?.first_name} {user?.last_name}</h3>
+        <p className="text-sm text-muted-foreground">{user?.email}</p>
+        {user?.company && <p className="text-xs text-muted-foreground mt-1">{user.company}</p>}
       </div>
 
       <nav className="space-y-1.5">
@@ -37,7 +37,7 @@ export function DashboardSidebar() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 active
                   ? 'bg-[#00B4D8]/12 text-[#0098B7] border border-[#00B4D8]/30'
-                  : 'text-[#69727F] hover:bg-[#F6F8FB] hover:text-[#0A1628]'
+                  : 'text-muted-foreground hover:bg-bg-subtle hover:text-ink'
               }`}>
               <Icon className="w-5 h-5" />
               <span className="font-semibold">{item.label}</span>
@@ -47,7 +47,7 @@ export function DashboardSidebar() {
         <button onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#EF4444] hover:bg-[#FEF2F2] transition-colors text-left mt-2">
           <LogOut className="w-5 h-5" />
-          <span className="font-semibold">Se déconnecter</span>
+          <span className="font-semibold">Se dÃ©connecter</span>
         </button>
       </nav>
     </div>

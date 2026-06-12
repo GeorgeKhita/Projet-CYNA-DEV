@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect, useRef } from 'react';
+﻿import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ShieldCheck } from 'lucide-react';
 import { api } from '../../api/client';
@@ -77,10 +77,10 @@ export function TwoFactorVerifyPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#00B4D8]/10 border border-[#00B4D8]/30 rounded-2xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#00B4D8]" />
             </div>
-            <h1 className="text-2xl font-bold text-[#0A1628] mb-2">Vérification en 2 étapes</h1>
-            <p className="text-[#69727F] text-sm">
-              Ouvrez <strong className="text-[#0A1628]">Google Authenticator</strong> et entrez
-              le code à 6 chiffres affiché pour CYNA.
+            <h1 className="text-2xl font-bold text-ink mb-2">VÃ©rification en 2 Ã©tapes</h1>
+            <p className="text-muted-foreground text-sm">
+              Ouvrez <strong className="text-ink">Google Authenticator</strong> et entrez
+              le code Ã  6 chiffres affichÃ© pour CYNA.
             </p>
           </div>
 
@@ -102,7 +102,7 @@ export function TwoFactorVerifyPage() {
                   value={d}
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-[#F6F8FB] border border-[#E5E9F0] rounded-xl text-[#0A1628] focus:outline-none focus:bg-white focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-bg-subtle border border-border rounded-xl text-ink focus:outline-none focus:bg-background focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
                 />
               ))}
             </div>
@@ -112,14 +112,14 @@ export function TwoFactorVerifyPage() {
               disabled={loading || digits.join('').length !== 6}
               className="btn btn-primary btn-block btn-lg"
             >
-              {loading ? 'Vérification...' : 'Vérifier le code'}
+              {loading ? 'VÃ©rification...' : 'VÃ©rifier le code'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#9AA3AF] mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             Le code change toutes les 30 secondes.{' '}
             <button onClick={() => navigate('/connexion')} className="text-[#0098B7] hover:underline font-semibold">
-              Retour à la connexion
+              Retour Ã  la connexion
             </button>
           </p>
         </div>

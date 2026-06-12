@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect } from 'react';
+﻿import { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Check, Mail, Lock } from 'lucide-react';
 import { api } from '../../api/client';
@@ -38,7 +38,7 @@ export function CheckoutIdentificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -47,11 +47,11 @@ export function CheckoutIdentificationPage() {
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-[#F6F8FB] border border-[#E5E9F0] text-[#9AA3AF]'
+                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle border border-border text-muted-foreground'
                   }`}>
                     {step.completed ? <Check className="w-5 h-5" /> : step.id}
                   </div>
-                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-[#0A1628]' : 'text-[#9AA3AF]'}`}>
+                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-ink' : 'text-muted-foreground'}`}>
                     {step.name}
                   </span>
                 </div>
@@ -64,8 +64,8 @@ export function CheckoutIdentificationPage() {
         </div>
 
         <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
-          <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Identification</h1>
-          <p className="text-[#69727F] mb-8">Connectez-vous pour finaliser votre commande</p>
+          <h1 className="text-3xl font-bold text-ink mb-2">Identification</h1>
+          <p className="text-muted-foreground mb-8">Connectez-vous pour finaliser votre commande</p>
 
           {error && (
             <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
@@ -73,19 +73,19 @@ export function CheckoutIdentificationPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-[#0A1628] mb-2">Email</label>
+              <label className="block text-ink mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                   placeholder="votre.email@entreprise.com" className="field field-icon" />
               </div>
             </div>
             <div>
-              <label className="block text-[#0A1628] mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">Mot de passe</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••" className="field field-icon" />
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" className="field field-icon" />
               </div>
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
@@ -95,7 +95,7 @@ export function CheckoutIdentificationPage() {
 
           <div className="mt-6 flex items-center justify-between text-sm">
             <Link to="/inscription" className="text-[#0098B7] hover:underline font-semibold">Pas de compte ? S'inscrire</Link>
-            <Link to="/mot-de-passe-oublie" className="text-[#69727F] hover:text-[#0098B7] transition-colors">Mot de passe oublié ?</Link>
+            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-[#0098B7] transition-colors">Mot de passe oubliÃ© ?</Link>
           </div>
         </div>
       </div>

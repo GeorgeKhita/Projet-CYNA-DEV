@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+﻿import { useState, FormEvent } from 'react';
 import { Link } from 'react-router';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { api } from '../../api/client';
@@ -29,19 +29,19 @@ export function ForgotPasswordPage() {
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
-              <span className="text-2xl font-bold text-[#0A1628]">CYNA</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">â¬¡</div>
+              <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-[#0A1628] mb-2">Mot de passe oublié</h1>
-            <p className="text-[#69727F]">Entrez votre email pour recevoir un lien de réinitialisation</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">Mot de passe oubliÃ©</h1>
+            <p className="text-muted-foreground">Entrez votre email pour recevoir un lien de rÃ©initialisation</p>
           </div>
 
           {success ? (
             <div className="text-center py-4">
               <CheckCircle className="w-16 h-16 text-[#10B981] mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-[#0A1628] mb-2">Email envoyé !</h2>
-              <p className="text-[#69727F] mb-6">Si cet email existe, vous recevrez un lien de réinitialisation sous quelques minutes.</p>
-              <Link to="/connexion" className="text-[#0098B7] hover:underline font-semibold">Retour à la connexion</Link>
+              <h2 className="text-xl font-bold text-ink mb-2">Email envoyÃ© !</h2>
+              <p className="text-muted-foreground mb-6">Si cet email existe, vous recevrez un lien de rÃ©initialisation sous quelques minutes.</p>
+              <Link to="/connexion" className="text-[#0098B7] hover:underline font-semibold">Retour Ã  la connexion</Link>
             </div>
           ) : (
             <>
@@ -50,9 +50,9 @@ export function ForgotPasswordPage() {
               )}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Email</label>
+                  <label className="block text-ink mb-2">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                       placeholder="votre.email@entreprise.com" className="field field-icon" />
                   </div>
@@ -62,8 +62,8 @@ export function ForgotPasswordPage() {
                 </button>
               </form>
               <div className="mt-6 text-center">
-                <Link to="/connexion" className="inline-flex items-center gap-2 text-[#69727F] hover:text-[#0098B7] transition-colors text-sm font-semibold">
-                  <ArrowLeft className="w-4 h-4" /> Retour à la connexion
+                <Link to="/connexion" className="inline-flex items-center gap-2 text-muted-foreground hover:text-[#0098B7] transition-colors text-sm font-semibold">
+                  <ArrowLeft className="w-4 h-4" /> Retour Ã  la connexion
                 </Link>
               </div>
             </>

@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+﻿import { useState, useEffect, FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { User, Mail, Building, Lock, Check, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { api, getToken } from '../../api/client';
@@ -34,7 +34,7 @@ export function ParametresPage() {
     try {
       const updated = await api.put<any>('/auth/me', form);
       login(localStorage.getItem('cyna_token')!, updated);
-      setSuccess('Profil mis à jour avec succès.');
+      setSuccess('Profil mis Ã  jour avec succÃ¨s.');
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -46,7 +46,7 @@ export function ParametresPage() {
     try {
       await api.put('/auth/me', pwd);
       setPwd({ current_password: '', password: '', password_confirmation: '' });
-      setSuccess('Mot de passe modifié avec succès.');
+      setSuccess('Mot de passe modifiÃ© avec succÃ¨s.');
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -79,19 +79,19 @@ export function ParametresPage() {
     }
   }
 
-  if (authLoading) return <div className="min-h-screen bg-white flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1"><DashboardSidebar /></div>
 
           <div className="lg:col-span-3 space-y-8">
             <div>
-              <h1 className="text-4xl font-bold text-[#0A1628] mb-2">Paramètres</h1>
-              <p className="text-[#69727F]">Gérez vos informations personnelles</p>
+              <h1 className="text-4xl font-bold text-ink mb-2">ParamÃ¨tres</h1>
+              <p className="text-muted-foreground">GÃ©rez vos informations personnelles</p>
             </div>
 
             {success && (
@@ -105,32 +105,32 @@ export function ParametresPage() {
 
             {/* Profil */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Informations personnelles</h2>
+              <h2 className="text-2xl font-bold text-ink mb-6">Informations personnelles</h2>
               <form onSubmit={handleProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[#0A1628] mb-2">Prénom</label>
+                    <label className="block text-ink mb-2">PrÃ©nom</label>
                     <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input type="text" value={form.first_name} onChange={setField('first_name')} required className="field field-icon" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[#0A1628] mb-2">Nom</label>
+                    <label className="block text-ink mb-2">Nom</label>
                     <input type="text" value={form.last_name} onChange={setField('last_name')} required className="field" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Entreprise</label>
+                  <label className="block text-ink mb-2">Entreprise</label>
                   <div className="relative">
-                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="text" value={form.company} onChange={setField('company')} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Email</label>
+                  <label className="block text-ink mb-2">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="email" value={form.email} onChange={setField('email')} required className="field field-icon" />
                   </div>
                 </div>
@@ -142,27 +142,27 @@ export function ParametresPage() {
 
             {/* Mot de passe */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-[#0A1628] mb-6">Changer le mot de passe</h2>
+              <h2 className="text-2xl font-bold text-ink mb-6">Changer le mot de passe</h2>
               <form onSubmit={handlePassword} className="space-y-5">
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Mot de passe actuel</label>
+                  <label className="block text-ink mb-2">Mot de passe actuel</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
-                    <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••" className="field field-icon" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Nouveau mot de passe</label>
+                  <label className="block text-ink mb-2">Nouveau mot de passe</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
-                    <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8} className="field field-icon" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" minLength={8} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[#0A1628] mb-2">Confirmer le nouveau mot de passe</label>
+                  <label className="block text-ink mb-2">Confirmer le nouveau mot de passe</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9AA3AF]" />
-                    <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••" className="field field-icon" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" className="field field-icon" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving} className="btn btn-ghost">
@@ -173,11 +173,11 @@ export function ParametresPage() {
 
             {/* RGPD */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-[#0A1628] mb-2">Mes données (RGPD)</h2>
-              <p className="text-[#69727F] mb-6">Conformément au RGPD, vous pouvez exporter ou supprimer définitivement vos données personnelles.</p>
+              <h2 className="text-2xl font-bold text-ink mb-2">Mes donnÃ©es (RGPD)</h2>
+              <p className="text-muted-foreground mb-6">ConformÃ©ment au RGPD, vous pouvez exporter ou supprimer dÃ©finitivement vos donnÃ©es personnelles.</p>
               <button onClick={handleExportData} className="btn btn-ghost">
                 <Download className="w-4 h-4 text-[#00B4D8]" />
-                Exporter mes données (JSON)
+                Exporter mes donnÃ©es (JSON)
               </button>
             </div>
 
@@ -187,8 +187,8 @@ export function ParametresPage() {
                 <AlertTriangle className="w-6 h-6 text-[#EF4444]" />
                 <h2 className="text-2xl font-bold text-[#DC2626]">Zone dangereuse</h2>
               </div>
-              <p className="text-[#69727F] mb-6">
-                La suppression de votre compte est <strong className="text-[#0A1628]">irréversible</strong>. Toutes vos données (commandes, abonnements, factures) seront définitivement supprimées.
+              <p className="text-muted-foreground mb-6">
+                La suppression de votre compte est <strong className="text-ink">irrÃ©versible</strong>. Toutes vos donnÃ©es (commandes, abonnements, factures) seront dÃ©finitivement supprimÃ©es.
               </p>
               <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger">
                 <Trash2 className="w-4 h-4" />
@@ -201,14 +201,14 @@ export function ParametresPage() {
 
       {/* Modal confirmation suppression */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#FECACA] rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
+        <div className="fixed inset-0 bg-background/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-card border border-destructive/40 rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-8 h-8 text-[#EF4444] flex-shrink-0" />
-              <h3 className="text-xl font-bold text-[#0A1628]">Confirmer la suppression</h3>
+              <h3 className="text-xl font-bold text-ink">Confirmer la suppression</h3>
             </div>
-            <p className="text-[#3A4453] mb-6">
-              Cette action est <strong className="text-[#DC2626]">irréversible</strong>. Entrez votre mot de passe pour confirmer.
+            <p className="text-ink-soft mb-6">
+              Cette action est <strong className="text-[#DC2626]">irrÃ©versible</strong>. Entrez votre mot de passe pour confirmer.
             </p>
             {error && <div className="mb-4 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>}
             <input
@@ -224,7 +224,7 @@ export function ParametresPage() {
               </button>
               <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
                 className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
-                {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+                {deleting ? 'Suppression...' : 'Supprimer dÃ©finitivement'}
               </button>
             </div>
           </div>
