@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Trash2, Shield, User } from 'lucide-react';
 import { api } from '../../../api/client';
 
@@ -67,7 +67,7 @@ export function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle">
-                  {['Utilisateur', 'Email', 'Entreprise', 'Commandes', 'Abonnements', 'RÃ´le', 'Actions'].map(h => (
+                  {['Utilisateur', 'Email', 'Entreprise', 'Commandes', 'Abonnements', 'Rôle', 'Actions'].map(h => (
                     <th key={h} className="text-left px-6 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -79,14 +79,14 @@ export function AdminUsersPage() {
                   <tr key={u.id} className="border-b border-border last:border-0 hover:bg-bg-subtle transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#00B4D8]/15 border border-[#00B4D8]/30 flex items-center justify-center text-xs font-bold text-[#0098B7]">
+                        <div className="w-8 h-8 rounded-full bg-[#00B4D8]/15 border border-[#00B4D8]/30 flex items-center justify-center text-xs font-bold text-primary">
                           {(u.first_name?.[0] ?? '') + (u.last_name?.[0] ?? '')}
                         </div>
                         <span className="text-ink text-sm font-semibold">{u.first_name} {u.last_name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-sm">{u.email}</td>
-                    <td className="px-6 py-4 text-muted-foreground text-sm">{u.company ?? 'â€”'}</td>
+                    <td className="px-6 py-4 text-muted-foreground text-sm">{u.company ?? '—'}</td>
                     <td className="px-6 py-4 text-ink text-sm text-center">{u.orders_count}</td>
                     <td className="px-6 py-4 text-ink text-sm text-center">{u.subscriptions_count}</td>
                     <td className="px-6 py-4">
@@ -98,7 +98,7 @@ export function AdminUsersPage() {
                     <td className="px-6 py-4">
                       {u.role !== 'admin' && (
                         <button onClick={() => handleDelete(u.id, u.email)}
-                          className="p-1.5 hover:bg-[#FEF2F2] rounded-lg transition-colors text-muted-foreground hover:text-[#EF4444]">
+                          className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Bot, Check, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../../api/client';
 
@@ -14,7 +14,7 @@ interface Message {
 }
 
 const STATUS_COLORS: Record<string, string> = { new: '#F59E0B', in_progress: '#00B4D8', resolved: '#10B981' };
-const STATUS_LABELS: Record<string, string> = { new: 'Nouveau', in_progress: 'En cours', resolved: 'RÃ©solu' };
+const STATUS_LABELS: Record<string, string> = { new: 'Nouveau', in_progress: 'En cours', resolved: 'Résolu' };
 
 export function AdminMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -99,13 +99,13 @@ export function AdminMessagesPage() {
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {msg.status !== 'resolved' && (
-                      <button onClick={() => handleResolve(msg.id)} title="Marquer rÃ©solu"
+                      <button onClick={() => handleResolve(msg.id)} title="Marquer résolu"
                         className="p-1.5 hover:bg-[#10B981]/10 rounded-lg transition-colors text-muted-foreground hover:text-[#10B981]">
                         <Check className="w-4 h-4" />
                       </button>
                     )}
                     <button onClick={() => handleDelete(msg.id)}
-                      className="p-1.5 hover:bg-[#FEF2F2] rounded-lg transition-colors text-muted-foreground hover:text-[#EF4444]">
+                      className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

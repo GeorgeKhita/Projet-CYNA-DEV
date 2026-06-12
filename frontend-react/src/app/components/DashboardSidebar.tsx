@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -6,7 +6,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client' },
   { icon: ShoppingBag,     label: 'Abonnements',    href: '/espace-client/abonnements' },
   { icon: CreditCard,      label: 'Commandes',       href: '/espace-client/commandes' },
-  { icon: Settings,        label: 'ParamÃ¨tres',      href: '/espace-client/parametres' },
+  { icon: Settings,        label: 'Paramètres',      href: '/espace-client/parametres' },
 ];
 
 export function DashboardSidebar() {
@@ -36,7 +36,7 @@ export function DashboardSidebar() {
             <Link key={item.href} to={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 active
-                  ? 'bg-[#00B4D8]/12 text-[#0098B7] border border-[#00B4D8]/30'
+                  ? 'bg-[#00B4D8]/12 text-primary border border-[#00B4D8]/30'
                   : 'text-muted-foreground hover:bg-bg-subtle hover:text-ink'
               }`}>
               <Icon className="w-5 h-5" />
@@ -45,9 +45,9 @@ export function DashboardSidebar() {
           );
         })}
         <button onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[#EF4444] hover:bg-[#FEF2F2] transition-colors text-left mt-2">
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">
           <LogOut className="w-5 h-5" />
-          <span className="font-semibold">Se dÃ©connecter</span>
+          <span className="font-semibold">Se déconnecter</span>
         </button>
       </nav>
     </div>

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
 import { ShoppingBag, Calendar, AlertCircle } from 'lucide-react';
 import { api } from '../../api/client';
@@ -42,14 +42,14 @@ export function AbonnementsPage() {
     }
   }
 
-  if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
+  if (authLoading) return <div className="min-h-screen bg-card flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
   const active = subs.filter(s => s.status === 'active');
   const cancelled = subs.filter(s => s.status !== 'active');
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1"><DashboardSidebar /></div>
@@ -67,7 +67,7 @@ export function AbonnementsPage() {
               </div>
             ) : active.length === 0 && cancelled.length === 0 ? (
               <div className="text-center py-16 cyna-card">
-                <ShoppingBag className="w-12 h-12 text-[#CBD3DF] mx-auto mb-4" />
+                <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground mb-6">Aucun abonnement pour le moment.</p>
               </div>
             ) : (
@@ -85,7 +85,7 @@ export function AbonnementsPage() {
                                 <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                                   {sub.product?.category}
                                 </span>
-                                <span className="px-3 py-1 bg-[#10B981]/12 text-[#059669] border border-[#10B981]/30 rounded-full text-xs font-semibold">Actif</span>
+                                <span className="px-3 py-1 bg-[#10B981]/12 text-success border border-[#10B981]/30 rounded-full text-xs font-semibold">Actif</span>
                               </div>
                               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span>Facturation {sub.billing_cycle === 'annual' ? 'annuelle' : 'mensuelle'}</span>
@@ -99,7 +99,7 @@ export function AbonnementsPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <div className="text-2xl font-bold text-ink">{sub.price?.toLocaleString('fr-FR')}â‚¬</div>
+                                <div className="text-2xl font-bold text-ink">{sub.price?.toLocaleString('fr-FR')}€</div>
                                 <div className="text-sm text-muted-foreground">/mois</div>
                               </div>
                               <button onClick={() => handleCancel(sub.id)} disabled={cancelling === sub.id} className="btn btn-danger">
@@ -116,14 +116,14 @@ export function AbonnementsPage() {
                 {cancelled.length > 0 && (
                   <div>
                     <h2 className="text-lg font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" /> Abonnements annulÃ©s
+                      <AlertCircle className="w-5 h-5" /> Abonnements annulés
                     </h2>
                     <div className="space-y-3">
                       {cancelled.map(sub => (
                         <div key={sub.id} className="bg-bg-subtle border border-border rounded-2xl p-4 opacity-75">
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">{sub.product?.name ?? `Abonnement #${sub.id}`}</span>
-                            <span className="px-3 py-1 bg-bg-muted text-muted-foreground border border-border rounded-full text-xs font-semibold">AnnulÃ©</span>
+                            <span className="px-3 py-1 bg-bg-muted text-muted-foreground border border-border rounded-full text-xs font-semibold">Annulé</span>
                           </div>
                         </div>
                       ))}

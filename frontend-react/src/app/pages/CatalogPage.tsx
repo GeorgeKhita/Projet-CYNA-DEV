@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client';
@@ -63,7 +63,7 @@ export function CatalogPage() {
   }, [products, searchQuery, selectedCategory, sortBy]);
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-10">
           <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-3">Catalogue des solutions</h1>
@@ -93,9 +93,9 @@ export function CatalogPage() {
               <SlidersHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 className="bg-card border border-border rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
-                <option value="popular">PopularitÃ©</option>
+                <option value="popular">Popularité</option>
                 <option value="price-asc">Prix croissant</option>
-                <option value="price-desc">Prix dÃ©croissant</option>
+                <option value="price-desc">Prix décroissant</option>
                 <option value="name">Nom A-Z</option>
               </select>
             </div>
@@ -111,19 +111,19 @@ export function CatalogPage() {
 
         {error && (
           <div className="text-center py-20">
-            <p className="text-[#DC2626] mb-4">{error}</p>
+            <p className="text-destructive mb-4">{error}</p>
             <button onClick={() => window.location.reload()} className="btn btn-primary">
-              RÃ©essayer
+              Réessayer
             </button>
           </div>
         )}
 
         {!loading && !error && filteredAndSortedProducts.length === 0 && (
           <div className="text-center py-20">
-            <Search className="w-16 h-16 text-[#CBD3DF] mx-auto mb-4" />
-            <p className="text-xl text-muted-foreground mb-2">Aucun produit trouvÃ©</p>
+            <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <p className="text-xl text-muted-foreground mb-2">Aucun produit trouvé</p>
             <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary mt-4">
-              RÃ©initialiser les filtres
+              Réinitialiser les filtres
             </button>
           </div>
         )}
@@ -156,7 +156,7 @@ export function CatalogPage() {
                     <p className="text-muted-foreground mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
                     <div className="flex items-end justify-between mb-4 mt-auto">
                       <div>
-                        <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}â‚¬</span>
+                        <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
                         <span className="text-muted-foreground">/mois</span>
                       </div>
                     </div>
@@ -171,7 +171,7 @@ export function CatalogPage() {
                       </div>
                     ) : (
                       <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed' }}>
-                        BientÃ´t disponible
+                        Bientôt disponible
                       </button>
                     )}
                   </div>

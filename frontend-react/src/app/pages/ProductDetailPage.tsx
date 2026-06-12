@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import { Shield, Laptop, Globe, Check, Star } from 'lucide-react';
 import { api } from '../../api/client';
@@ -51,13 +51,13 @@ export function ProductDetailPage() {
     const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
     const price = selectedPlan === 'monthly' ? product.price_monthly : product.price_annual;
     addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan });
-    setAddedMsg('AjoutÃ© au panier !');
+    setAddedMsg('Ajouté au panier !');
     setTimeout(() => setAddedMsg(''), 2000);
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -73,7 +73,7 @@ export function ProductDetailPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           {/* Visuel */}
@@ -120,31 +120,31 @@ export function ProductDetailPage() {
               <label className="block text-ink font-semibold mb-3">Choisir un plan</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setSelectedPlan('monthly')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-border-strong'}`}>
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-[#CBD3DF]'}`}>
                   <div className="text-ink font-semibold">Mensuel</div>
                   <div className="text-sm text-muted-foreground">Facturation mensuelle</div>
                 </button>
                 <button onClick={() => setSelectedPlan('annual')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-border-strong'}`}>
+                  className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-[#CBD3DF]'}`}>
                   <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-17%</div>
                   <div className="text-ink font-semibold">Annuel</div>
-                  <div className="text-sm text-muted-foreground">Ã‰conomisez 17%</div>
+                  <div className="text-sm text-muted-foreground">Économisez 17%</div>
                 </button>
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-bold text-ink">{currentPrice?.toLocaleString('fr-FR')}â‚¬</span>
+                <span className="text-5xl font-bold text-ink">{currentPrice?.toLocaleString('fr-FR')}€</span>
                 <span className="text-xl text-muted-foreground">/mois</span>
               </div>
               {selectedPlan === 'annual' && product.price_annual && (
-                <p className="text-sm text-muted-foreground mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}â‚¬ facturÃ©s annuellement</p>
+                <p className="text-sm text-muted-foreground mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}€ facturés annuellement</p>
               )}
             </div>
 
             {addedMsg && (
-              <div className="mb-4 px-4 py-2 bg-[#10B981]/12 border border-[#10B981]/35 rounded-xl text-[#059669] text-sm font-semibold">{addedMsg}</div>
+              <div className="mb-4 px-4 py-2 bg-[#10B981]/12 border border-[#10B981]/35 rounded-xl text-success text-sm font-semibold">{addedMsg}</div>
             )}
 
             <div className="flex gap-3">
@@ -174,12 +174,12 @@ export function ProductDetailPage() {
                         <SimIcon className="w-5 h-5" style={{ color: simColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-ink group-hover:text-[#0098B7] transition-colors truncate">{sim.name}</h3>
+                        <h3 className="text-lg font-bold text-ink group-hover:text-primary transition-colors truncate">{sim.name}</h3>
                         <span className="text-xs font-semibold" style={{ color: simColor }}>{sim.category}</span>
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-ink">
-                      {sim.price_monthly?.toLocaleString('fr-FR')}â‚¬<span className="text-sm text-muted-foreground">/mois</span>
+                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-muted-foreground">/mois</span>
                     </div>
                   </Link>
                 );

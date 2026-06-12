@@ -1,4 +1,4 @@
-﻿import { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { Link } from 'react-router';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { api } from '../../api/client';
@@ -24,29 +24,29 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-bg-subtle to-background flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md fade-up">
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">â¬¡</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
               <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-ink mb-2">Mot de passe oubliÃ©</h1>
-            <p className="text-muted-foreground">Entrez votre email pour recevoir un lien de rÃ©initialisation</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">Mot de passe oublié</h1>
+            <p className="text-muted-foreground">Entrez votre email pour recevoir un lien de réinitialisation</p>
           </div>
 
           {success ? (
             <div className="text-center py-4">
               <CheckCircle className="w-16 h-16 text-[#10B981] mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-ink mb-2">Email envoyÃ© !</h2>
-              <p className="text-muted-foreground mb-6">Si cet email existe, vous recevrez un lien de rÃ©initialisation sous quelques minutes.</p>
-              <Link to="/connexion" className="text-[#0098B7] hover:underline font-semibold">Retour Ã  la connexion</Link>
+              <h2 className="text-xl font-bold text-ink mb-2">Email envoyé !</h2>
+              <p className="text-muted-foreground mb-6">Si cet email existe, vous recevrez un lien de réinitialisation sous quelques minutes.</p>
+              <Link to="/connexion" className="text-primary hover:underline font-semibold">Retour à la connexion</Link>
             </div>
           ) : (
             <>
               {error && (
-                <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
+                <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
               )}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -62,8 +62,8 @@ export function ForgotPasswordPage() {
                 </button>
               </form>
               <div className="mt-6 text-center">
-                <Link to="/connexion" className="inline-flex items-center gap-2 text-muted-foreground hover:text-[#0098B7] transition-colors text-sm font-semibold">
-                  <ArrowLeft className="w-4 h-4" /> Retour Ã  la connexion
+                <Link to="/connexion" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-semibold">
+                  <ArrowLeft className="w-4 h-4" /> Retour à la connexion
                 </Link>
               </div>
             </>

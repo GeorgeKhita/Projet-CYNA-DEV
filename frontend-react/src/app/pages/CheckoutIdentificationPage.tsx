@@ -1,4 +1,4 @@
-﻿import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Check, Mail, Lock } from 'lucide-react';
 import { api } from '../../api/client';
@@ -38,7 +38,7 @@ export function CheckoutIdentificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -68,7 +68,7 @@ export function CheckoutIdentificationPage() {
           <p className="text-muted-foreground mb-8">Connectez-vous pour finaliser votre commande</p>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
+            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -85,7 +85,7 @@ export function CheckoutIdentificationPage() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" className="field field-icon" />
+                  placeholder="••••••••" className="field field-icon" />
               </div>
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
@@ -94,8 +94,8 @@ export function CheckoutIdentificationPage() {
           </form>
 
           <div className="mt-6 flex items-center justify-between text-sm">
-            <Link to="/inscription" className="text-[#0098B7] hover:underline font-semibold">Pas de compte ? S'inscrire</Link>
-            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-[#0098B7] transition-colors">Mot de passe oubliÃ© ?</Link>
+            <Link to="/inscription" className="text-primary hover:underline font-semibold">Pas de compte ? S'inscrire</Link>
+            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-primary transition-colors">Mot de passe oublié ?</Link>
           </div>
         </div>
       </div>

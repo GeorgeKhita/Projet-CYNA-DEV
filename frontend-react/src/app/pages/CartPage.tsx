@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { ShoppingCart, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { getCart, updateQuantity, removeFromCart, CartItem } from '../../lib/cart';
@@ -21,7 +21,7 @@ export function CartPage() {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-card py-12">
       <div className="max-w-5xl mx-auto px-6">
         <div className="flex items-center gap-3 mb-10">
           <ShoppingCart className="w-8 h-8 text-[#00B4D8]" />
@@ -30,10 +30,10 @@ export function CartPage() {
 
         {cartItems.length === 0 ? (
           <div className="text-center py-20">
-            <ShoppingCart className="w-20 h-20 text-[#CBD3DF] mx-auto mb-4" />
+            <ShoppingCart className="w-20 h-20 text-muted-foreground mx-auto mb-4" />
             <p className="text-xl text-muted-foreground mb-6">Votre panier est vide</p>
             <Link to="/catalogue" className="btn btn-primary btn-lg">
-              DÃ©couvrir nos solutions
+              Découvrir nos solutions
             </Link>
           </div>
         ) : (
@@ -66,13 +66,13 @@ export function CartPage() {
                     </div>
 
                     <div className="text-right min-w-[130px]">
-                      <div className="text-2xl font-bold text-ink">{(item.price * item.quantity).toLocaleString('fr-FR')}â‚¬</div>
-                      <div className="text-sm text-muted-foreground">{item.price.toLocaleString('fr-FR')}â‚¬ Ã— {item.quantity}</div>
+                      <div className="text-2xl font-bold text-ink">{(item.price * item.quantity).toLocaleString('fr-FR')}€</div>
+                      <div className="text-sm text-muted-foreground">{item.price.toLocaleString('fr-FR')}€ × {item.quantity}</div>
                     </div>
 
                     <button onClick={() => handleRemove(item.id, item.duration)}
-                      className="w-10 h-10 bg-[#FEF2F2] border border-[#FECACA] rounded-xl flex items-center justify-center hover:bg-[#FEE2E2] transition-colors flex-shrink-0">
-                      <Trash2 className="w-5 h-5 text-[#EF4444]" />
+                      className="w-10 h-10 bg-destructive/10 border border-destructive/30 rounded-xl flex items-center justify-center hover:bg-[#FEE2E2] transition-colors flex-shrink-0">
+                      <Trash2 className="w-5 h-5 text-destructive" />
                     </button>
                   </div>
                 </div>
@@ -83,23 +83,23 @@ export function CartPage() {
               <div className="space-y-2 mb-6 pb-6 border-b border-border">
                 {cartItems.map(item => (
                   <div key={`${item.id}-${item.duration}`} className="flex justify-between text-sm text-muted-foreground">
-                    <span>{item.name} Ã— {item.quantity}</span>
-                    <span>{(item.price * item.quantity).toLocaleString('fr-FR')}â‚¬</span>
+                    <span>{item.name} × {item.quantity}</span>
+                    <span>{(item.price * item.quantity).toLocaleString('fr-FR')}€</span>
                   </div>
                 ))}
               </div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-xl text-ink-soft">Total mensuel</span>
                 <div className="text-right">
-                  <div className="text-4xl font-bold text-ink">{total.toLocaleString('fr-FR')}â‚¬</div>
+                  <div className="text-4xl font-bold text-ink">{total.toLocaleString('fr-FR')}€</div>
                   <div className="text-sm text-muted-foreground">par mois</div>
                 </div>
               </div>
               <Link to="/checkout/identification" className="btn btn-primary btn-lg btn-block">
-                Passer Ã  la caisse <ArrowRight className="w-5 h-5" />
+                Passer à la caisse <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link to="/catalogue" className="block text-center mt-4 text-muted-foreground hover:text-[#0098B7] transition-colors text-sm font-semibold">
-                â† Continuer mes achats
+              <Link to="/catalogue" className="block text-center mt-4 text-muted-foreground hover:text-primary transition-colors text-sm font-semibold">
+                ← Continuer mes achats
               </Link>
             </div>
           </>

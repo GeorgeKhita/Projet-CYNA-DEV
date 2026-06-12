@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, ShoppingCart, TrendingUp, MessageSquare, Package } from 'lucide-react';
 import { api } from '../../../api/client';
 import { Link } from 'react-router';
@@ -24,7 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
   paid: '#10B981', pending: '#F59E0B', failed: '#EF4444', refunded: '#7C5CFC',
 };
 const STATUS_LABELS: Record<string, string> = {
-  paid: 'PayÃ©e', pending: 'En attente', failed: 'Ã‰chouÃ©e', refunded: 'RemboursÃ©e',
+  paid: 'Payée', pending: 'En attente', failed: 'Échouée', refunded: 'Remboursée',
 };
 
 export function AdminDashboardPage() {
@@ -43,7 +43,7 @@ export function AdminDashboardPage() {
   }, []);
 
   const stats = kpis ? [
-    { label: 'Chiffre d\'affaires total', value: `${kpis.total_revenue.toLocaleString('fr-FR')}â‚¬`, icon: TrendingUp, color: '#00B4D8', trend: kpis.revenue_trend },
+    { label: 'Chiffre d\'affaires total', value: `${kpis.total_revenue.toLocaleString('fr-FR')}€`, icon: TrendingUp, color: '#00B4D8', trend: kpis.revenue_trend },
     { label: 'Clients actifs',            value: String(kpis.active_clients),                       icon: Users,       color: '#7C5CFC' },
     { label: 'Contrats actifs',           value: String(kpis.active_contracts),                     icon: Package,     color: '#10B981' },
     { label: 'Tickets ouverts',           value: String(kpis.open_tickets),                         icon: MessageSquare, color: '#F59E0B' },
@@ -75,7 +75,7 @@ export function AdminDashboardPage() {
                       <Icon className="w-5 h-5" style={{ color: stat.color }} />
                     </div>
                     {stat.trend !== undefined && (
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${stat.trend >= 0 ? 'bg-[#10B981]/12 text-[#059669]' : 'bg-[#FEF2F2] text-[#DC2626]'}`}>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${stat.trend >= 0 ? 'bg-[#10B981]/12 text-success' : 'bg-destructive/10 text-destructive'}`}>
                         {stat.trend >= 0 ? '+' : ''}{stat.trend}%
                       </span>
                     )}
@@ -87,19 +87,19 @@ export function AdminDashboardPage() {
             })}
           </div>
 
-          {/* Commandes rÃ©centes */}
+          {/* Commandes récentes */}
           <div className="cyna-card overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-lg font-bold text-ink flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-[#00B4D8]" /> Commandes rÃ©centes
+                <ShoppingCart className="w-5 h-5 text-[#00B4D8]" /> Commandes récentes
               </h2>
-              <Link to="/admin/commandes" className="text-[#0098B7] hover:underline text-sm font-semibold">Voir tout â†’</Link>
+              <Link to="/admin/commandes" className="text-primary hover:underline text-sm font-semibold">Voir tout →</Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-bg-subtle">
-                    {['RÃ©fÃ©rence', 'Client', 'Montant', 'Statut', 'Date'].map(h => (
+                    {['Référence', 'Client', 'Montant', 'Statut', 'Date'].map(h => (
                       <th key={h} className="text-left px-6 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -111,9 +111,9 @@ export function AdminDashboardPage() {
                     const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
                     return (
                       <tr key={order.id} className="border-b border-border last:border-0 hover:bg-bg-subtle transition-colors">
-                        <td className="px-6 py-4 text-[#0098B7] font-mono text-sm">{order.ref}</td>
+                        <td className="px-6 py-4 text-primary font-mono text-sm">{order.ref}</td>
                         <td className="px-6 py-4 text-ink text-sm">{order.client}</td>
-                        <td className="px-6 py-4 text-ink font-semibold text-sm">{order.amount?.toLocaleString('fr-FR')}â‚¬</td>
+                        <td className="px-6 py-4 text-ink font-semibold text-sm">{order.amount?.toLocaleString('fr-FR')}€</td>
                         <td className="px-6 py-4">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold"
                             style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>

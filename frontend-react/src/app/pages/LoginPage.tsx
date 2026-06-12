@@ -1,4 +1,4 @@
-﻿import { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
 import { api } from '../../api/client';
@@ -35,20 +35,20 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-b from-bg-subtle to-background flex items-center justify-center py-12 px-6">
       <div className="w-full max-w-md fade-up">
         <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">â¬¡</div>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
               <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
             <h1 className="text-3xl font-bold text-ink mb-2">Connexion</h1>
-            <p className="text-muted-foreground">AccÃ©dez Ã  votre espace client</p>
+            <p className="text-muted-foreground">Accédez à votre espace client</p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">
+            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
@@ -77,7 +77,7 @@ export function LoginPage() {
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   required
                   className="field field-icon"
                 />
@@ -89,8 +89,8 @@ export function LoginPage() {
                 <input type="checkbox" className="w-4 h-4 rounded border-border-strong text-[#00B4D8]" />
                 Se souvenir de moi
               </label>
-              <Link to="/mot-de-passe-oublie" className="text-[#0098B7] hover:underline font-semibold">
-                Mot de passe oubliÃ© ?
+              <Link to="/mot-de-passe-oublie" className="text-primary hover:underline font-semibold">
+                Mot de passe oublié ?
               </Link>
             </div>
 
@@ -104,12 +104,12 @@ export function LoginPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-background text-muted-foreground">ou</span>
+              <span className="px-4 bg-card text-muted-foreground">ou</span>
             </div>
           </div>
 
           <Link to="/inscription" className="btn btn-outline btn-block btn-lg">
-            CrÃ©er un compte
+            Créer un compte
           </Link>
         </div>
       </div>

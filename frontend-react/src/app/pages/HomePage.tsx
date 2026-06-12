@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
 import { Shield, Laptop, Globe, ArrowRight, Star, Zap, Clock, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../../api/client';
@@ -21,16 +21,16 @@ const CATEGORY_TITLES: Record<string, string> = {
 };
 
 const stats = [
-  { value: '500+',   label: 'Entreprises protÃ©gÃ©es', icon: Users },
+  { value: '500+',   label: 'Entreprises protégées', icon: Users },
   { value: '99.9%',  label: 'Uptime garanti',        icon: CheckCircle },
-  { value: '24/7',   label: 'Support SOC dÃ©diÃ©',     icon: Clock },
-  { value: '< 5min', label: 'Temps de rÃ©ponse',      icon: Zap },
+  { value: '24/7',   label: 'Support SOC dédié',     icon: Clock },
+  { value: '< 5min', label: 'Temps de réponse',      icon: Zap },
 ];
 
 const steps = [
-  { number: '01', title: 'Choisissez votre solution',    description: 'Parcourez notre catalogue et sÃ©lectionnez la solution adaptÃ©e Ã  vos besoins (SOC, EDR, XDR)' },
-  { number: '02', title: 'DÃ©ployez en quelques minutes', description: "Nos solutions SaaS s'intÃ¨grent facilement Ã  votre infrastructure existante sans configuration complexe" },
-  { number: '03', title: 'ProtÃ©gez-vous en temps rÃ©el',  description: "BÃ©nÃ©ficiez d'une surveillance continue et d'une rÃ©ponse automatisÃ©e aux incidents 24h/24" },
+  { number: '01', title: 'Choisissez votre solution',    description: 'Parcourez notre catalogue et sélectionnez la solution adaptée à vos besoins (SOC, EDR, XDR)' },
+  { number: '02', title: 'Déployez en quelques minutes', description: "Nos solutions SaaS s'intègrent facilement à votre infrastructure existante sans configuration complexe" },
+  { number: '03', title: 'Protégez-vous en temps réel',  description: "Bénéficiez d'une surveillance continue et d'une réponse automatisée aux incidents 24h/24" },
 ];
 
 export function HomePage() {
@@ -60,8 +60,8 @@ export function HomePage() {
   return (
     <div className="bg-background">
       {/* ===================== HERO ===================== */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#F6F8FB] to-white">
-        {/* dÃ©cor */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-bg-subtle to-background">
+        {/* décor */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-10%] right-[-5%] w-[36rem] h-[36rem] bg-[#00B4D8]/10 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] left-[-10%] w-[32rem] h-[32rem] bg-[#7C5CFC]/10 rounded-full blur-[120px]" />
@@ -80,19 +80,19 @@ export function HomePage() {
           <div className="max-w-3xl fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full mb-8 shadow-[var(--shadow-sm)]">
               <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse" />
-              <span className="text-ink-soft text-sm font-semibold">Nouveau : ConformitÃ© NIS2 &amp; ISO 27001 intÃ©grÃ©e</span>
+              <span className="text-ink-soft text-sm font-semibold">Nouveau : Conformité NIS2 &amp; ISO 27001 intégrée</span>
             </div>
             <h1 className="text-5xl lg:text-[4.25rem] font-bold text-ink mb-6 leading-[1.05]">
-              ProtÃ©gez votre entreprise avec les solutions{' '}
+              Protégez votre entreprise avec les solutions{' '}
               <span className="bg-gradient-to-r from-[#00B4D8] to-[#7C5CFC] bg-clip-text text-transparent">Cyna</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl">
-              DÃ©couvrez nos solutions SaaS de cybersÃ©curitÃ© de nouvelle gÃ©nÃ©ration : SOC, EDR et XDR.
-              DÃ©tection intelligente, rÃ©ponse automatisÃ©e, conformitÃ© garantie.
+              Découvrez nos solutions SaaS de cybersécurité de nouvelle génération : SOC, EDR et XDR.
+              Détection intelligente, réponse automatisée, conformité garantie.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/catalogue" className="btn btn-primary btn-lg">
-                DÃ©couvrir nos solutions <ArrowRight className="w-5 h-5" />
+                Découvrir nos solutions <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/catalogue" className="btn btn-ghost btn-lg">
                 Essai gratuit 14 jours
@@ -155,7 +155,7 @@ export function HomePage() {
       )}
 
       {/* ===================== STATS ===================== */}
-      <section className="border-b border-border bg-background">
+      <section className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-6 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map(stat => {
@@ -176,17 +176,17 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ===================== CATÃ‰GORIES ===================== */}
+      {/* ===================== CATÉGORIES ===================== */}
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-bold text-ink mb-4">Nos catÃ©gories de solutions</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Chaque solution est conÃ§ue pour rÃ©pondre Ã  des besoins spÃ©cifiques de cybersÃ©curitÃ© en entreprise</p>
+          <h2 className="text-4xl font-bold text-ink mb-4">Nos catégories de solutions</h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Chaque solution est conçue pour répondre à des besoins spécifiques de cybersécurité en entreprise</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(categories.length > 0 ? categories : [
-            { name: 'SOC', description: 'Surveillance et dÃ©tection des menaces en temps rÃ©el', color: '#00B4D8', products_count: 2 },
-            { name: 'EDR', description: 'Protection avancÃ©e des postes de travail',            color: '#7C5CFC', products_count: 2 },
-            { name: 'XDR', description: "Vision unifiÃ©e sur l'ensemble de votre SI",           color: '#10B981', products_count: 2 },
+            { name: 'SOC', description: 'Surveillance et détection des menaces en temps réel', color: '#00B4D8', products_count: 2 },
+            { name: 'EDR', description: 'Protection avancée des postes de travail',            color: '#7C5CFC', products_count: 2 },
+            { name: 'XDR', description: "Vision unifiée sur l'ensemble de votre SI",           color: '#10B981', products_count: 2 },
           ]).map(cat => {
             const Icon = CATEGORY_ICONS[cat.name] ?? Shield;
             const color = cat.color ?? CATEGORY_COLORS[cat.name] ?? '#00B4D8';
@@ -217,12 +217,12 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ===================== COMMENT Ã‡A MARCHE ===================== */}
+      {/* ===================== COMMENT ÇA MARCHE ===================== */}
       <section className="section-muted border-y border-border">
         <div className="max-w-7xl mx-auto px-6 py-24">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold text-ink mb-4">Comment Ã§a marche ?</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">DÃ©ployez votre protection cybersÃ©curitÃ© en 3 Ã©tapes simples</p>
+            <h2 className="text-4xl font-bold text-ink mb-4">Comment ça marche ?</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Déployez votre protection cybersécurité en 3 étapes simples</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
             {steps.map((step, index) => (
@@ -248,7 +248,7 @@ export function HomePage() {
             <Star className="w-6 h-6 text-[#F59E0B] fill-[#F59E0B]" />
             <h2 className="text-4xl font-bold text-ink">Top Produits du moment</h2>
           </div>
-          <Link to="/catalogue" className="text-[#0098B7] hover:text-[#00B4D8] text-sm font-semibold flex items-center gap-1">
+          <Link to="/catalogue" className="text-primary hover:text-[#00B4D8] text-sm font-semibold flex items-center gap-1">
             Voir tout <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -268,7 +268,7 @@ export function HomePage() {
                   <p className="text-muted-foreground mb-6 leading-relaxed">{product.description}</p>
                   <div className="flex items-end justify-between">
                     <div>
-                      <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}â‚¬</span>
+                      <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
                       <span className="text-muted-foreground">/mois</span>
                     </div>
                     <span className="text-xs text-muted-foreground">Facturation mensuelle</span>
@@ -291,22 +291,22 @@ export function HomePage() {
       {/* ===================== CTA FINAL ===================== */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 pb-24">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-background to-card px-8 py-16 lg:px-16 text-center">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0A1628] to-[#13243f] px-8 py-16 lg:px-16 text-center">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-1/4 w-80 h-80 bg-[#00B4D8]/20 rounded-full blur-[100px]" />
               <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#7C5CFC]/20 rounded-full blur-[100px]" />
             </div>
             <div className="relative">
-              <h2 className="text-4xl font-bold text-white mb-4">PrÃªt Ã  sÃ©curiser votre infrastructure ?</h2>
-              <p className="text-xl text-ink mb-10 max-w-2xl mx-auto">
-                Rejoignez plus de 500 entreprises qui font confiance Ã  CYNA. Essai gratuit 14 jours, sans engagement.
+              <h2 className="text-4xl font-bold text-white mb-4">Prêt à sécuriser votre infrastructure ?</h2>
+              <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+                Rejoignez plus de 500 entreprises qui font confiance à CYNA. Essai gratuit 14 jours, sans engagement.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/catalogue" className="btn btn-primary btn-lg">
                   Commencer maintenant <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link to="/contact" className="btn btn-lg bg-bg-subtle text-white border border-border-strong hover:bg-bg-subtle hover:-translate-y-0.5">
-                  Parler Ã  un expert
+                <Link to="/contact" className="btn btn-lg bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:-translate-y-0.5">
+                  Parler à un expert
                 </Link>
               </div>
             </div>
