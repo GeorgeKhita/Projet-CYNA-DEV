@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect } from 'react';
+﻿import { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Check, Mail, Lock } from 'lucide-react';
 import { api } from '../../api/client';
@@ -12,7 +12,6 @@ export function CheckoutIdentificationPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Si déjà connecté → passer directement au paiement
   useEffect(() => {
     if (isAuthenticated) navigate('/checkout/paiement', { replace: true });
   }, [isAuthenticated]);
@@ -39,7 +38,7 @@ export function CheckoutIdentificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-6">
         {/* Progress Bar */}
         <div className="mb-12">
@@ -48,58 +47,55 @@ export function CheckoutIdentificationPage() {
               <div key={step.id} className="flex items-center flex-1">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#0A1628]' : 'bg-white/5 border border-white/10 text-gray-400'
+                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle border border-border text-muted-foreground'
                   }`}>
                     {step.completed ? <Check className="w-5 h-5" /> : step.id}
                   </div>
-                  <span className={`font-medium hidden sm:block ${step.active || step.completed ? 'text-white' : 'text-gray-400'}`}>
+                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-ink' : 'text-muted-foreground'}`}>
                     {step.name}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-white/10'}`} />
+                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-[#E5E9F0]'}`} />
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Identification</h1>
-          <p className="text-gray-400 mb-8">Connectez-vous pour finaliser votre commande</p>
+        <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
+          <h1 className="text-3xl font-bold text-ink mb-2">Identification</h1>
+          <p className="text-muted-foreground mb-8">Connectez-vous pour finaliser votre commande</p>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
+            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-white font-medium mb-2">Email</label>
+              <label className="block text-ink mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                  placeholder="votre.email@entreprise.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                  placeholder="votre.email@entreprise.com" className="field field-icon" />
               </div>
             </div>
             <div>
-              <label className="block text-white font-medium mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">Mot de passe</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                  placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00B4D8]" />
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" className="field field-icon" />
               </div>
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-4 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60">
+            <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
               {loading ? 'Connexion...' : 'Continuer vers le paiement'}
             </button>
           </form>
 
           <div className="mt-6 flex items-center justify-between text-sm">
-            <Link to="/inscription" className="text-[#00B4D8] hover:underline">Pas de compte ? S'inscrire</Link>
-            <Link to="/mot-de-passe-oublie" className="text-gray-400 hover:text-[#00B4D8] transition-colors">Mot de passe oublié ?</Link>
+            <Link to="/inscription" className="text-[#0098B7] hover:underline font-semibold">Pas de compte ? S'inscrire</Link>
+            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-[#0098B7] transition-colors">Mot de passe oubliÃ© ?</Link>
           </div>
         </div>
       </div>

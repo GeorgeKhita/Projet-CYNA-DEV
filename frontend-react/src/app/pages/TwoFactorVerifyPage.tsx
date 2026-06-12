@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect, useRef } from 'react';
+﻿import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ShieldCheck } from 'lucide-react';
 import { api } from '../../api/client';
@@ -69,29 +69,28 @@ export function TwoFactorVerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex items-center justify-center py-12 px-6">
-      <div className="w-full max-w-md">
-        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl p-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FB] to-white flex items-center justify-center py-12 px-6">
+      <div className="w-full max-w-md fade-up">
+        <div className="cyna-card p-8 shadow-[var(--shadow-lg)]">
 
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#00B4D8]/10 border border-[#00B4D8]/30 rounded-2xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#00B4D8]" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Vérification en 2 étapes</h1>
-            <p className="text-gray-400 text-sm">
-              Ouvrez <strong className="text-white">Google Authenticator</strong> et entrez
-              le code à 6 chiffres affiché pour CYNA.
+            <h1 className="text-2xl font-bold text-ink mb-2">VÃ©rification en 2 Ã©tapes</h1>
+            <p className="text-muted-foreground text-sm">
+              Ouvrez <strong className="text-ink">Google Authenticator</strong> et entrez
+              le code Ã  6 chiffres affichÃ© pour CYNA.
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            <div className="mb-6 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-[#DC2626] text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Saisie des 6 chiffres */}
             <div className="flex justify-center gap-3 mb-8" onPaste={handlePaste}>
               {digits.map((d, i) => (
                 <input
@@ -103,7 +102,7 @@ export function TwoFactorVerifyPage() {
                   value={d}
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00B4D8] focus:border-[#00B4D8] transition-colors"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-bg-subtle border border-border rounded-xl text-ink focus:outline-none focus:bg-background focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
                 />
               ))}
             </div>
@@ -111,16 +110,16 @@ export function TwoFactorVerifyPage() {
             <button
               type="submit"
               disabled={loading || digits.join('').length !== 6}
-              className="w-full py-3 bg-[#00B4D8] text-[#0A1628] font-semibold rounded-lg hover:bg-[#0096B8] transition-colors disabled:opacity-60"
+              className="btn btn-primary btn-block btn-lg"
             >
-              {loading ? 'Vérification...' : 'Vérifier le code'}
+              {loading ? 'VÃ©rification...' : 'VÃ©rifier le code'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             Le code change toutes les 30 secondes.{' '}
-            <button onClick={() => navigate('/connexion')} className="text-[#00B4D8] hover:underline">
-              Retour à la connexion
+            <button onClick={() => navigate('/connexion')} className="text-[#0098B7] hover:underline font-semibold">
+              Retour Ã  la connexion
             </button>
           </p>
         </div>
