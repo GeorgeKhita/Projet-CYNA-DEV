@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { ShoppingCart, User, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut, Search } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut, Search, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useAuth } from '../../context/AuthContext';
 import { getCartCount } from '../../lib/cart';
 
@@ -8,6 +9,7 @@ export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -53,8 +55,8 @@ export function Navbar() {
 
   return (
     <nav
-      className={`bg-white/85 sticky top-0 z-50 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 border-b ${
-        scrolled ? 'border-[#E5E9F0] shadow-[0_4px_24px_rgba(10,22,40,0.06)]' : 'border-transparent'
+      className={`bg-background/90 sticky top-0 z-50 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 border-b ${
+        scrolled ? 'border-border shadow-[0_4px_24px_rgba(10,22,40,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)]' : 'border-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-3.5">
@@ -65,7 +67,7 @@ export function Navbar() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white text-lg shadow-[0_6px_16px_rgba(0,180,216,0.35)]">
               ⬡
             </div>
-            <span className="text-xl font-bold tracking-tight text-[#0A1628]">CYNA</span>
+            <span className="text-xl font-bold tracking-tight text-ink">CYNA</span>
           </Link>
 
           {/* Nav Links - Desktop */}
@@ -80,14 +82,14 @@ export function Navbar() {
               </button>
               {solutionsOpen && (
                 <div className="absolute top-full left-0 pt-3 w-80">
-                  <div className="bg-white border border-[#E5E9F0] rounded-2xl shadow-[0_20px_50px_rgba(10,22,40,0.14)] overflow-hidden">
+                  <div className="bg-card border border-border rounded-2xl shadow-[0_20px_50px_rgba(10,22,40,0.14)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.50)] overflow-hidden">
                     {solutions.map(sol => {
                       const Icon = sol.icon;
                       return (
                         <Link
                           key={sol.id}
                           to="/catalogue"
-                          className="flex items-center gap-3 px-4 py-3.5 hover:bg-[#F6F8FB] transition-colors"
+                          className="flex items-center gap-3 px-4 py-3.5 hover:bg-bg-subtle transition-colors"
                           onClick={() => setSolutionsOpen(false)}
                         >
                           <div
@@ -97,15 +99,15 @@ export function Navbar() {
                             <Icon className="w-5 h-5" style={{ color: sol.color }} />
                           </div>
                           <div>
-                            <div className="text-[#0A1628] font-semibold text-sm">{sol.name}</div>
-                            <div className="text-[#69727F] text-xs">{sol.description}</div>
+                            <div className="text-ink font-semibold text-sm">{sol.name}</div>
+                            <div className="text-muted-foreground text-xs">{sol.description}</div>
                           </div>
                         </Link>
                       );
                     })}
                     <Link
                       to="/catalogue"
-                      className="block border-t border-[#E5E9F0] px-4 py-3 text-[#0098B7] text-sm font-semibold hover:bg-[#F6F8FB] transition-colors"
+                      className="block border-t border-border px-4 py-3 text-primary text-sm font-semibold hover:bg-bg-subtle transition-colors"
                       onClick={() => setSolutionsOpen(false)}
                     >
                       Voir tout le catalogue →
@@ -121,24 +123,36 @@ export function Navbar() {
           {/* Barre de recherche */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xs">
             <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9AA3AF]" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
-                className="w-full bg-[#F6F8FB] border border-[#E5E9F0] rounded-full pl-10 pr-4 py-2.5 text-[#0A1628] placeholder-[#9AA3AF] focus:outline-none focus:bg-white focus:border-[#00B4D8] focus:ring-4 focus:ring-[#00B4D8]/15 text-sm transition-all"
+                className="w-full bg-bg-subtle border border-border rounded-full pl-10 pr-4 py-2.5 text-ink placeholder:text-muted-foreground focus:outline-none focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/15 text-sm transition-all"
               />
             </div>
           </form>
 
           {/* Actions droite */}
           <div className="flex items-center gap-2.5">
+            {/* Toggle dark/light */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2.5 hover:bg-bg-subtle rounded-xl transition-colors"
+              title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            >
+              {theme === 'dark'
+                ? <Sun className="w-5 h-5 text-[#F59E0B]" />
+                : <Moon className="w-5 h-5 text-ink-soft" />
+              }
+            </button>
+
             {/* Panier */}
-            <Link to="/panier" className="relative p-2.5 hover:bg-[#F6F8FB] rounded-xl transition-colors">
-              <ShoppingCart className="w-5 h-5 text-[#3A4453]" />
+            <Link to="/panier" className="relative p-2.5 hover:bg-bg-subtle rounded-xl transition-colors">
+              <ShoppingCart className="w-5 h-5 text-ink-soft" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#00B4D8] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,180,216,0.45)]">
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,180,216,0.45)]">
                   {cartCount}
                 </span>
               )}
@@ -149,19 +163,19 @@ export function Navbar() {
               <div className="hidden md:flex items-center gap-2">
                 <Link
                   to="/espace-client"
-                  className="flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 bg-[#F6F8FB] border border-[#E5E9F0] rounded-full hover:border-[#00B4D8]/40 hover:bg-white transition-all"
+                  className="flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 bg-bg-subtle border border-border rounded-full hover:border-primary/40 hover:bg-background transition-all"
                 >
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-xs font-bold text-white">
                     {(user.first_name?.[0] ?? '') + (user.last_name?.[0] ?? '')}
                   </div>
-                  <span className="text-[#0A1628] text-sm font-semibold">{user.first_name}</span>
+                  <span className="text-ink text-sm font-semibold">{user.first_name}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="p-2.5 hover:bg-[#FEF2F2] rounded-xl transition-colors group"
+                  className="p-2.5 hover:bg-destructive/10 rounded-xl transition-colors group"
                   title="Se déconnecter"
                 >
-                  <LogOut className="w-5 h-5 text-[#69727F] group-hover:text-[#EF4444] transition-colors" />
+                  <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
                 </button>
               </div>
             ) : (
@@ -174,26 +188,26 @@ export function Navbar() {
 
             {/* Burger mobile */}
             <button
-              className="lg:hidden p-2.5 hover:bg-[#F6F8FB] rounded-xl transition-colors"
+              className="lg:hidden p-2.5 hover:bg-bg-subtle rounded-xl transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X className="w-6 h-6 text-[#0A1628]" /> : <Menu className="w-6 h-6 text-[#0A1628]" />}
+              {mobileOpen ? <X className="w-6 h-6 text-ink" /> : <Menu className="w-6 h-6 text-ink" />}
             </button>
           </div>
         </div>
 
         {/* Menu mobile */}
         {mobileOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-[#E5E9F0] pt-4 space-y-1">
+          <div className="lg:hidden mt-4 pb-4 border-t border-border pt-4 space-y-1">
             <form onSubmit={handleSearch} className="md:hidden mb-3">
               <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9AA3AF]" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Rechercher..."
-                  className="w-full bg-[#F6F8FB] border border-[#E5E9F0] rounded-full pl-10 pr-4 py-2.5 text-[#0A1628] placeholder-[#9AA3AF] focus:outline-none focus:border-[#00B4D8] text-sm"
+                  className="w-full bg-bg-subtle border border-border rounded-full pl-10 pr-4 py-2.5 text-ink placeholder:text-muted-foreground focus:outline-none focus:border-primary text-sm"
                 />
               </div>
             </form>
@@ -203,16 +217,16 @@ export function Navbar() {
                 <Link
                   key={sol.id}
                   to="/catalogue"
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F6F8FB] transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-bg-subtle transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   <Icon className="w-5 h-5" style={{ color: sol.color }} />
-                  <span className="text-[#0A1628] font-semibold">{sol.name}</span>
+                  <span className="text-ink font-semibold">{sol.name}</span>
                 </Link>
               );
             })}
-            <Link to="/catalogue" className="block px-3 py-2.5 text-[#3A4453] hover:text-[#0A1628] font-semibold" onClick={() => setMobileOpen(false)}>Tarifs</Link>
-            <Link to="/contact" className="block px-3 py-2.5 text-[#3A4453] hover:text-[#0A1628] font-semibold" onClick={() => setMobileOpen(false)}>Contact</Link>
+            <Link to="/catalogue" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>Tarifs</Link>
+            <Link to="/contact" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>Contact</Link>
             <div className="pt-3 flex gap-3">
               {isAuthenticated ? (
                 <>

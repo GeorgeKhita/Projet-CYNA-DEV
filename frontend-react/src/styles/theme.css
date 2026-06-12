@@ -85,6 +85,72 @@
   --sidebar-ring: rgba(0, 180, 216, 0.45);
 }
 
+/* ============================================================
+   Thème sombre — cybersécurité (fond bleu nuit identité CYNA)
+   ============================================================ */
+.dark {
+  /* Surfaces */
+  --background: #0A1628;
+  --bg-subtle: #0D1E35;
+  --bg-muted: #111D30;
+  --surface: #0F2440;
+  --foreground: #E5E7EB;
+
+  /* Texte */
+  --ink: #E5E7EB;
+  --ink-soft: #94A3B8;
+  --muted-foreground: #64748B;
+
+  /* Lignes / bordures */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.05);
+  --input-background: rgba(255, 255, 255, 0.05);
+
+  /* Couleurs de marque — inchangées */
+  --primary: #00B4D8;
+  --primary-ink: #0A1628;
+  --primary-hover: #0DCFEF;
+  --primary-foreground: #0A1628;
+  --secondary: #7C5CFC;
+  --secondary-foreground: #FFFFFF;
+  --accent: #00B4D8;
+  --accent-foreground: #0A1628;
+  --success: #10B981;
+  --success-foreground: #FFFFFF;
+  --warning: #F59E0B;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  /* Cartes / popover */
+  --card: #0F2440;
+  --card-foreground: #E5E7EB;
+  --popover: #0F2440;
+  --popover-foreground: #E5E7EB;
+  --muted: #1E293B;
+
+  --switch-background: #334155;
+  --ring: rgba(0, 180, 216, 0.50);
+
+  /* Ombres adaptées dark */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.50), 0 4px 10px rgba(0, 0, 0, 0.30);
+  --shadow-cyan: 0 12px 30px rgba(0, 180, 216, 0.30);
+  --shadow-violet: 0 12px 30px rgba(124, 92, 252, 0.28);
+
+  /* Sidebar */
+  --sidebar: #0A1628;
+  --sidebar-foreground: #E5E7EB;
+  --sidebar-primary: #00B4D8;
+  --sidebar-primary-foreground: #0A1628;
+  --sidebar-accent: #0D1E35;
+  --sidebar-accent-foreground: #E5E7EB;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: rgba(0, 180, 216, 0.50);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -250,6 +316,32 @@
   .btn-lg { padding: 0.95rem 1.9rem; font-size: 1.02rem; border-radius: 0.8rem; }
   .btn-block { width: 100%; }
 
+  /* Overrides dark mode pour les boutons */
+  .dark .btn-dark {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow: var(--shadow-sm);
+  }
+  .dark .btn-dark:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--primary-ink);
+    border-color: transparent;
+    box-shadow: var(--shadow-cyan);
+    transform: translateY(-2px);
+  }
+
+  .dark .btn-ghost {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--ink);
+    border-color: var(--border);
+  }
+  .dark .btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+
   /* ---- Cartes ---- */
   .cyna-card {
     background: var(--surface);
@@ -283,6 +375,18 @@
     box-shadow: 0 0 0 4px var(--ring);
   }
   .field-icon { padding-left: 2.75rem; }
+
+  .dark .field {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border);
+    color: var(--ink);
+  }
+  .dark .field::placeholder { color: var(--muted-foreground); }
+  .dark .field:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
 
   /* ---- Badge / chip ---- */
   .chip {
