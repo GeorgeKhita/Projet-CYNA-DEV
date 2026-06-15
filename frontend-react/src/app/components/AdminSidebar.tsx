@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
@@ -15,6 +16,7 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   function handleLogout() {
     logout();
@@ -54,6 +56,13 @@ export function AdminSidebar() {
       </nav>
 
       <div className="p-4 border-t border-white/10 space-y-1">
+        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm">
+          {theme === 'dark'
+            ? <Sun className="w-4 h-4 text-[#F59E0B]" />
+            : <Moon className="w-4 h-4" />}
+          {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+        </button>
         <Link to="/" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-colors text-sm">
           <ExternalLink className="w-4 h-4" />
           Voir le site
