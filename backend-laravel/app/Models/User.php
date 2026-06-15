@@ -76,6 +76,11 @@ class User extends Authenticatable
         return $this->hasMany(SecurityLog::class);
     }
 
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
     /**
      * Nom complet
      */
