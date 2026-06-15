@@ -20,6 +20,7 @@ class Product extends Model
         'price_annual',
         'status',
         'priority',
+        'max_capacity',
     ];
 
     protected $casts = [

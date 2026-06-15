@@ -19,6 +19,7 @@ class CarouselSlide extends Model
         'cta_text',
         'link',
         'display_order',
+        'active',
     ];
 
     public function product()

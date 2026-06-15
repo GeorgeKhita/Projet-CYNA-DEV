@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\StripeWebhookController;
+use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\Admin\AdminTicketController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
 /*
@@ -109,6 +111,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invoices',           [InvoiceController::class, 'index']);
     Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download']);
 
+    // Tickets support
+    Route::get('/tickets',                        [TicketController::class, 'index']);
+    Route::post('/tickets',                       [TicketController::class, 'store']);
+    Route::get('/tickets/{id}',                   [TicketController::class, 'show']);
+    Route::post('/tickets/{id}/messages',         [TicketController::class, 'addMessage']);
+
     // ── Panel Admin ───────────────────────────────────────────────────────
     Route::prefix('admin')->middleware('admin')->group(function () {
 
@@ -154,6 +162,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Paramètres
         Route::get('/settings',  [AdminSettingsController::class, 'index']);
         Route::put('/settings',  [AdminSettingsController::class, 'update']);
+
+        // Tickets support (admin)
+        Route::get('/tickets',                    [AdminTicketController::class, 'index']);
+        Route::get('/tickets/{id}',               [AdminTicketController::class, 'show']);
+        Route::patch('/tickets/{id}/status',      [AdminTicketController::class, 'updateStatus']);
+        Route::post('/tickets/{id}/reply',        [AdminTicketController::class, 'reply']);
 
         // Messages support
         Route::get('/contact-messages',                            [AdminContactController::class, 'index']);

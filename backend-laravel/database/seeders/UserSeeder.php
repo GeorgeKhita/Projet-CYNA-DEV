@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
                 'company'           => 'CYNA IT',
                 'role'              => 'admin',
                 'is_active'         => true,
-                'email_verified_at' => now(),
+                'is_email_verified' => true,
             ]
         );
 
@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
                 'company'           => 'Dupont & Associés SAS',
                 'role'              => 'user',
                 'is_active'         => true,
-                'email_verified_at' => now(),
+                'is_email_verified' => true,
             ],
             [
                 'first_name'        => 'Marie',
@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
                 'company'           => 'TechCorp SARL',
                 'role'              => 'user',
                 'is_active'         => true,
-                'email_verified_at' => now(),
+                'is_email_verified' => true,
             ],
             [
                 'first_name'        => 'Pierre',
@@ -55,7 +55,7 @@ class UserSeeder extends Seeder
                 'company'           => 'Bernard Consulting',
                 'role'              => 'user',
                 'is_active'         => true,
-                'email_verified_at' => now(),
+                'is_email_verified' => true,
             ],
         ];
 

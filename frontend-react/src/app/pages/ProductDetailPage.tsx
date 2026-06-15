@@ -126,9 +126,9 @@ export function ProductDetailPage() {
                 </button>
                 <button onClick={() => setSelectedPlan('annual')}
                   className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-[#CBD3DF]'}`}>
-                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-17%</div>
+                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-{Math.round((1 - product.price_annual / product.price_monthly) * 100)}%</div>
                   <div className="text-ink font-semibold">Annuel</div>
-                  <div className="text-sm text-muted-foreground">Économisez 17%</div>
+                  <div className="text-sm text-muted-foreground">Économisez {Math.round((1 - product.price_annual / product.price_monthly) * 100)}%</div>
                 </button>
               </div>
             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Models\License;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Subscription;
@@ -81,6 +82,24 @@ class OrderController extends Controller
                 'status'         => 'paid',
             ]);
 
+            // Générer une licence par produit commandé
+            $licenses = [];
+            foreach ($data['items'] as $item) {
+                $key = 'CYNA-' . strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 3))
+                     . '-' . strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 4))
+                     . '-' . strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 4));
+
+                $license = License::create([
+                    'user_id'     => $request->user()->id,
+                    'order_id'    => $order->id,
+                    'product_id'  => $item['product_id'],
+                    'license_key' => $key,
+                ]);
+                $licenses[] = array_merge($license->toArray(), [
+                    'product_name' => \App\Models\Product::find($item['product_id'])?->name,
+                ]);
+            }
+
             DB::commit();
 
             // Charger les relations pour le PDF
@@ -88,8 +107,22 @@ class OrderController extends Controller
 
             $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
 
+            // Alerte admin si commande > 5000€
+            if ($data['total'] > 5000) {
+                $adminEmail = config('mail.admin_address', 'admin@cyna-it.fr');
+                Mail::send([], [], function ($m) use ($adminEmail, $user, $invoiceNumber, $data) {
+                    $m->to($adminEmail)
+                      ->subject("⚠️ Commande importante #{$invoiceNumber} — " . number_format($data['total'], 2, ',', ' ') . ' €')
+                      ->html("<p>Une commande supérieure à 5 000 € vient d'être passée.</p>
+                              <p><strong>Client :</strong> {$user->full_name} ({$user->email})</p>
+                              <p><strong>Montant :</strong> " . number_format($data['total'], 2, ',', ' ') . " €</p>
+                              <p><strong>Référence :</strong> {$invoiceNumber}</p>
+                              <p>Pensez à contacter le client.</p>");
+                });
+            }
+
             $user = $request->user();
-            Mail::send([], [], function ($m) use ($user, $invoiceNumber, $data, $pdfContent) {
+            Mail::send([], [], function ($m) use ($user, $invoiceNumber, $data, $pdfContent, $licenses) {
                 $itemsHtml = collect($data['items'])->map(function ($item) {
                     $product = \App\Models\Product::find($item['product_id']);
                     $plan    = $item['duration'] === 'annual' ? 'Annuel' : 'Mensuel';
@@ -99,6 +132,13 @@ class OrderController extends Controller
                         <td style='padding:8px 0;border-bottom:1px solid #1e3a5f;color:#00B4D8;text-align:right;font-weight:bold;'>" . number_format($item['total_price'], 2, ',', ' ') . " €</td>
                     </tr>";
                 })->implode('');
+
+                $licensesHtml = collect($licenses)->map(fn($l) =>
+                    "<tr>
+                        <td style='padding:8px 0;border-bottom:1px solid #1e3a5f;color:#e2e8f0;'>{$l['product_name']}</td>
+                        <td style='padding:8px 0;border-bottom:1px solid #1e3a5f;color:#00B4D8;font-family:monospace;font-weight:bold;'>{$l['license_key']}</td>
+                    </tr>"
+                )->implode('');
 
                 $m->to($user->email, $user->first_name . ' ' . $user->last_name)
                   ->subject("Confirmation de commande {$invoiceNumber} — CYNA")
@@ -133,6 +173,17 @@ class OrderController extends Controller
         <span style='color:#e2e8f0;font-size:18px;font-weight:bold;'>Total : </span>
         <span style='color:#00B4D8;font-size:22px;font-weight:800;'>" . number_format($data['total'], 2, ',', ' ') . " €</span>
       </div>
+    </div>
+    <div style='background:#0f2040;border:1px solid #1e3a5f;border-radius:12px;padding:24px;margin-top:24px;'>
+      <h3 style='color:#00B4D8;margin:0 0 16px;font-size:16px;'>🔑 Vos clés de licence</h3>
+      <table style='width:100%;border-collapse:collapse;'>
+        <thead><tr>
+          <th style='text-align:left;color:#64748b;font-size:12px;padding-bottom:8px;'>PRODUIT</th>
+          <th style='text-align:left;color:#64748b;font-size:12px;padding-bottom:8px;'>CLÉ DE LICENCE</th>
+        </tr></thead>
+        <tbody>{$licensesHtml}</tbody>
+      </table>
+      <p style='color:#94a3b8;font-size:12px;margin:16px 0 0;'>Conservez précieusement ces clés. Elles vous permettront d'activer vos logiciels.</p>
     </div>
     <p style='color:#475569;font-size:12px;text-align:center;margin-top:24px;'>
       Votre facture PDF est jointe à cet email.<br>
