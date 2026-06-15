@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
@@ -79,6 +80,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/addresses',         [AddressController::class, 'store']);
     Route::put('/user/addresses/{id}',     [AddressController::class, 'update']);
     Route::delete('/user/addresses/{id}',  [AddressController::class, 'destroy']);
+
+    // Méthodes de paiement
+    Route::get('/user/payment-methods',         [PaymentMethodController::class, 'index']);
+    Route::post('/user/payment-methods',        [PaymentMethodController::class, 'store']);
+    Route::put('/user/payment-methods/{id}',    [PaymentMethodController::class, 'update']);
+    Route::delete('/user/payment-methods/{id}', [PaymentMethodController::class, 'destroy']);
 
     // Paiement Stripe
     Route::post('/payments/intent', [PaymentController::class, 'createIntent']);
