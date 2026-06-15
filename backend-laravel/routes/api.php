@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
@@ -72,6 +73,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/admin/setup-2fa',   [AuthController::class, 'sendAdmin2FA']);
     Route::post('/auth/admin/confirm-2fa', [AuthController::class, 'confirmAdmin2FA']);
     Route::delete('/auth/admin/disable-2fa', [AuthController::class, 'disableAdmin2FA']);
+
+    // Adresses
+    Route::get('/user/addresses',          [AddressController::class, 'index']);
+    Route::post('/user/addresses',         [AddressController::class, 'store']);
+    Route::put('/user/addresses/{id}',     [AddressController::class, 'update']);
+    Route::delete('/user/addresses/{id}',  [AddressController::class, 'destroy']);
 
     // Paiement Stripe
     Route::post('/payments/intent', [PaymentController::class, 'createIntent']);
