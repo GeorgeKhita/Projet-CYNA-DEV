@@ -1,11 +1,11 @@
 import { Link } from 'react-router';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Github } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer() {
   return (
     <footer className="bg-bg-subtle border-t border-border mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Company Info */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
@@ -56,17 +56,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Social */}
-          <div>
-            <h3 className="text-ink font-semibold mb-4">Suivez-nous</h3>
-            <div className="flex gap-3 flex-wrap">
-              {[Facebook, Twitter, Linkedin, Github].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 bg-card border border-border rounded-xl flex items-center justify-center hover:border-[#00B4D8] hover:bg-[#00B4D8]/5 transition-all hover:-translate-y-0.5">
-                  <Icon className="w-5 h-5 text-muted-foreground" />
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="mt-10 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
