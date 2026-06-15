@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router';
-import { ShoppingBag, Calendar, AlertCircle } from 'lucide-react';
+import { ShoppingBag, Calendar, AlertCircle, RefreshCw, Settings } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -15,11 +15,21 @@ interface Subscription {
   product?: { id: number; name: string; category: string; category_color: string };
 }
 
+const STATUS_CONFIG: Record<string, { label: string; badgeClass: string }> = {
+  active:    { label: 'Actif',     badgeClass: 'bg-[#10B981]/12 text-success border-[#10B981]/30' },
+  cancelled: { label: 'Annulé',   badgeClass: 'bg-bg-muted text-muted-foreground border-border' },
+  expired:   { label: 'Expiré',   badgeClass: 'bg-[#F59E0B]/12 text-[#B45309] border-[#F59E0B]/30' },
+  past_due:  { label: 'Impayé',   badgeClass: 'bg-destructive/10 text-destructive border-destructive/30' },
+};
+
+const RENEWABLE_STATUSES = ['cancelled', 'expired', 'past_due'];
+
 export function AbonnementsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [subs, setSubs] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
   const [cancelling, setCancelling] = useState<number | null>(null);
+  const [renewing, setRenewing]     = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -42,11 +52,24 @@ export function AbonnementsPage() {
     }
   }
 
+  async function handleRenew(id: number) {
+    if (!confirm('Confirmer le renouvellement de cet abonnement ?')) return;
+    setRenewing(id);
+    try {
+      const updated = await api.patch<Subscription>(`/subscriptions/${id}/renew`);
+      setSubs(s => s.map(sub => sub.id === id ? { ...sub, ...updated } : sub));
+    } catch {
+      alert('Erreur lors du renouvellement.');
+    } finally {
+      setRenewing(null);
+    }
+  }
+
   if (authLoading) return <div className="min-h-screen bg-card flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/connexion" replace />;
 
-  const active = subs.filter(s => s.status === 'active');
-  const cancelled = subs.filter(s => s.status !== 'active');
+  const active    = subs.filter(s => s.status === 'active');
+  const inactive  = subs.filter(s => s.status !== 'active');
 
   return (
     <div className="min-h-screen bg-card py-12">
@@ -65,7 +88,7 @@ export function AbonnementsPage() {
                 <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
                 Chargement...
               </div>
-            ) : active.length === 0 && cancelled.length === 0 ? (
+            ) : active.length === 0 && inactive.length === 0 ? (
               <div className="text-center py-16 cyna-card">
                 <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground mb-6">Aucun abonnement pour le moment.</p>
@@ -85,9 +108,9 @@ export function AbonnementsPage() {
                                 <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                                   {sub.product?.category}
                                 </span>
-                                <span className="px-3 py-1 bg-[#10B981]/12 text-success border border-[#10B981]/30 rounded-full text-xs font-semibold">Actif</span>
+                                <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-[#10B981]/12 text-success border-[#10B981]/30">Actif</span>
                               </div>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                                 <span>Facturation {sub.billing_cycle === 'annual' ? 'annuelle' : 'mensuelle'}</span>
                                 {sub.current_period_end && (
                                   <span className="flex items-center gap-1">
@@ -97,12 +120,18 @@ export function AbonnementsPage() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 flex-wrap">
                               <div className="text-right">
                                 <div className="text-2xl font-bold text-ink">{sub.price?.toLocaleString('fr-FR')}€</div>
-                                <div className="text-sm text-muted-foreground">/mois</div>
+                                <div className="text-sm text-muted-foreground">/mois HT</div>
                               </div>
-                              <button onClick={() => handleCancel(sub.id)} disabled={cancelling === sub.id} className="btn btn-danger">
+                              <button
+                                onClick={() => alert('Pour modifier votre abonnement, contactez notre équipe commerciale.')}
+                                className="btn btn-outline btn-sm flex items-center gap-1.5"
+                                title="Modifier l'abonnement">
+                                <Settings className="w-4 h-4" /> Modifier
+                              </button>
+                              <button onClick={() => handleCancel(sub.id)} disabled={cancelling === sub.id} className="btn btn-danger btn-sm">
                                 {cancelling === sub.id ? 'Annulation...' : 'Annuler'}
                               </button>
                             </div>
@@ -113,20 +142,40 @@ export function AbonnementsPage() {
                   </div>
                 )}
 
-                {cancelled.length > 0 && (
+                {inactive.length > 0 && (
                   <div>
                     <h2 className="text-lg font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" /> Abonnements annulés
+                      <AlertCircle className="w-5 h-5" /> Abonnements inactifs
                     </h2>
                     <div className="space-y-3">
-                      {cancelled.map(sub => (
-                        <div key={sub.id} className="bg-bg-subtle border border-border rounded-2xl p-4 opacity-75">
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">{sub.product?.name ?? `Abonnement #${sub.id}`}</span>
-                            <span className="px-3 py-1 bg-bg-muted text-muted-foreground border border-border rounded-full text-xs font-semibold">Annulé</span>
+                      {inactive.map(sub => {
+                        const cfg = STATUS_CONFIG[sub.status] ?? STATUS_CONFIG.cancelled;
+                        const canRenew = RENEWABLE_STATUSES.includes(sub.status);
+                        return (
+                          <div key={sub.id} className="bg-bg-subtle border border-border rounded-2xl p-4">
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                              <div>
+                                <span className="text-ink font-semibold">{sub.product?.name ?? `Abonnement #${sub.id}`}</span>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  Facturation {sub.billing_cycle === 'annual' ? 'annuelle' : 'mensuelle'} — {sub.price?.toLocaleString('fr-FR')}€ HT/mois
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badgeClass}`}>{cfg.label}</span>
+                                {canRenew && (
+                                  <button
+                                    onClick={() => handleRenew(sub.id)}
+                                    disabled={renewing === sub.id}
+                                    className="btn btn-primary btn-sm flex items-center gap-1.5">
+                                    <RefreshCw className={`w-3.5 h-3.5 ${renewing === sub.id ? 'animate-spin' : ''}`} />
+                                    {renewing === sub.id ? 'Renouvellement...' : 'Renouveler'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

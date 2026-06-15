@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { ShoppingCart, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Trash2, ArrowRight, Phone, AlertTriangle } from 'lucide-react';
 import { getCart, updateQuantity, removeFromCart, CartItem } from '../../lib/cart';
+
+const TVA = 0.20;
 
 export function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -18,7 +20,10 @@ export function CartPage() {
     setCartItems(getCart());
   }
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalHT  = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalTVA = totalHT * TVA;
+  const totalTTC = totalHT + totalTVA;
+  const isLargeOrder = totalHT > 5000;
 
   return (
     <div className="min-h-screen bg-card py-12">
@@ -50,7 +55,9 @@ export function CartPage() {
                           {item.category}
                         </span>
                       </div>
-                      <p className="text-muted-foreground text-sm">Abonnement {item.duration === 'monthly' ? 'Mensuel' : 'Annuel'}</p>
+                      <p className="text-muted-foreground text-sm">
+                        Abonnement {item.duration === 'monthly' ? 'Mensuel' : 'Annuel'} — Prix HT
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -65,9 +72,9 @@ export function CartPage() {
                       </button>
                     </div>
 
-                    <div className="text-right min-w-[130px]">
-                      <div className="text-2xl font-bold text-ink">{(item.price * item.quantity).toLocaleString('fr-FR')}€</div>
-                      <div className="text-sm text-muted-foreground">{item.price.toLocaleString('fr-FR')}€ × {item.quantity}</div>
+                    <div className="text-right min-w-[150px]">
+                      <div className="text-2xl font-bold text-ink">{(item.price * item.quantity).toLocaleString('fr-FR')}€ HT</div>
+                      <div className="text-sm text-muted-foreground">{item.price.toLocaleString('fr-FR')}€ HT × {item.quantity}</div>
                     </div>
 
                     <button onClick={() => handleRemove(item.id, item.duration)}
@@ -79,25 +86,70 @@ export function CartPage() {
               ))}
             </div>
 
+            {isLargeOrder && (
+              <div className="mb-6 p-6 bg-[#00B4D8]/8 border border-[#00B4D8]/30 rounded-2xl flex items-start gap-4">
+                <Phone className="w-6 h-6 text-[#00B4D8] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-ink mb-1">Commande importante détectée</p>
+                  <p className="text-muted-foreground text-sm">
+                    Pour toute commande supérieure à 5 000€ HT, notre équipe commerciale vous accompagne personnellement.
+                    Contactez-nous pour obtenir un devis sur-mesure et des conditions préférentielles.
+                  </p>
+                  <Link to="/contact" className="inline-flex items-center gap-2 mt-3 text-[#00B4D8] font-semibold text-sm hover:underline">
+                    Contactez-nous <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            )}
+
             <div className="cyna-card p-8">
               <div className="space-y-2 mb-6 pb-6 border-b border-border">
                 {cartItems.map(item => (
                   <div key={`${item.id}-${item.duration}`} className="flex justify-between text-sm text-muted-foreground">
-                    <span>{item.name} × {item.quantity}</span>
-                    <span>{(item.price * item.quantity).toLocaleString('fr-FR')}€</span>
+                    <span>{item.name} ({item.duration === 'monthly' ? 'Mensuel' : 'Annuel'}) × {item.quantity}</span>
+                    <span>{(item.price * item.quantity).toLocaleString('fr-FR')}€ HT</span>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xl text-ink-soft">Total mensuel</span>
-                <div className="text-right">
-                  <div className="text-4xl font-bold text-ink">{total.toLocaleString('fr-FR')}€</div>
-                  <div className="text-sm text-muted-foreground">par mois</div>
+
+              <div className="space-y-3 mb-6 pb-6 border-b border-border">
+                <div className="flex justify-between text-ink-soft">
+                  <span>Sous-total HT</span>
+                  <span>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
+                </div>
+                <div className="flex justify-between text-ink-soft">
+                  <span>TVA (20%)</span>
+                  <span>{totalTVA.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
                 </div>
               </div>
-              <Link to="/checkout/identification" className="btn btn-primary btn-lg btn-block">
-                Passer à la caisse <ArrowRight className="w-5 h-5" />
-              </Link>
+
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <span className="text-xl font-bold text-ink">Total TTC</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">TVA 20% incluse</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-ink">{totalTTC.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</div>
+                  <div className="text-sm text-muted-foreground">{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€ HT</div>
+                </div>
+              </div>
+
+              {isLargeOrder ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 justify-center text-[#00B4D8] mb-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Commande 5 000€ HT — Validation commerciale requise</span>
+                  </div>
+                  <Link to="/contact" className="btn btn-primary btn-lg btn-block">
+                    Nous contacter pour finaliser <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </div>
+              ) : (
+                <Link to="/checkout/identification" className="btn btn-primary btn-lg btn-block">
+                  Passer à la caisse <ArrowRight className="w-5 h-5" />
+                </Link>
+              )}
+
               <Link to="/catalogue" className="block text-center mt-4 text-muted-foreground hover:text-primary transition-colors text-sm font-semibold">
                 ← Continuer mes achats
               </Link>

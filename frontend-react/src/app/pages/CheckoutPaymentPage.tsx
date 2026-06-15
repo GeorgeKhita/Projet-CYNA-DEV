@@ -11,12 +11,12 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
-      color: '#0A1628',
+      color: '#FFFFFF',
       fontFamily: 'inherit',
       fontSize: '16px',
-      '::placeholder': { color: '#9AA3AF' },
+      '::placeholder': { color: '#8A9BB0' },
     },
-    invalid: { color: '#EF4444' },
+    invalid: { color: '#F87171' },
   },
 };
 

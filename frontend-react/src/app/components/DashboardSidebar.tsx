@@ -1,11 +1,13 @@
 import { Link, useLocation } from 'react-router';
-import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut, LifeBuoy, Key } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client' },
   { icon: ShoppingBag,     label: 'Abonnements',    href: '/espace-client/abonnements' },
   { icon: CreditCard,      label: 'Commandes',       href: '/espace-client/commandes' },
+  { icon: Key,             label: 'Licences',        href: '/espace-client/licences' },
+  { icon: LifeBuoy,        label: 'Support',         href: '/espace-client/tickets' },
   { icon: Settings,        label: 'Paramètres',      href: '/espace-client/parametres' },
 ];
 

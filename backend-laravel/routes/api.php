@@ -111,6 +111,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invoices',           [InvoiceController::class, 'index']);
     Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download']);
 
+    // Licences
+    Route::get('/licenses', function (\Illuminate\Http\Request $request) {
+        return response()->json(
+            \App\Models\License::where('user_id', $request->user()->id)
+                ->with('product:id,name')
+                ->latest()
+                ->get()
+                ->map(fn($l) => [
+                    'id'          => $l->id,
+                    'license_key' => $l->license_key,
+                    'product'     => $l->product?->name,
+                    'order_id'    => $l->order_id,
+                    'activated_at'=> $l->activated_at,
+                    'created_at'  => $l->created_at,
+                ])
+        );
+    });
+
     // Tickets support
     Route::get('/tickets',                        [TicketController::class, 'index']);
     Route::post('/tickets',                       [TicketController::class, 'store']);
