@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\Admin\AdminContactController;
 
 /*
@@ -40,6 +41,7 @@ Route::prefix('auth')->group(function () {
 
 // Produits + catégories publics
 Route::get('/products',          [ProductController::class, 'index']);
+Route::get('/products/search',   [ProductController::class, 'search']);
 Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/categories',        [CategoryController::class, 'index']);
 
@@ -58,6 +60,9 @@ Route::post('/chatbot/message', [ChatbotController::class, 'message']);
 
 // 2FA — Vérification au login (public car pas encore de token Sanctum)
 Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
+
+// Webhook Stripe (public, signature vérifiée dans le controller)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 // ── Routes authentifiées (Sanctum) ───────────────────────────────────────
 
@@ -96,8 +101,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show']);
 
     // Abonnements
-    Route::get('/subscriptions',           [SubscriptionController::class, 'index']);
-    Route::patch('/subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel']);
+    Route::get('/subscriptions',                              [SubscriptionController::class, 'index']);
+    Route::patch('/subscriptions/{subscription}/cancel',      [SubscriptionController::class, 'cancel']);
+    Route::patch('/subscriptions/{id}/renew',                 [SubscriptionController::class, 'renew']);
 
     // Factures
     Route::get('/invoices',           [InvoiceController::class, 'index']);

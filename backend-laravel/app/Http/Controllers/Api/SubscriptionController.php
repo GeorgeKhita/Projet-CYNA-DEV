@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionController extends Controller
 {
@@ -49,5 +50,32 @@ class SubscriptionController extends Controller
         ]);
 
         return response()->json(['message' => 'Abonnement annulé.']);
+    }
+
+    public function renew(Request $request, int $id): JsonResponse
+    {
+        $subscription = Subscription::where('user_id', $request->user()->id)
+            ->with('product')
+            ->findOrFail($id);
+
+        if (!in_array($subscription->status, ['cancelled', 'expired', 'past_due'])) {
+            return response()->json(['message' => 'Seuls les abonnements annulés, expirés ou en retard peuvent être renouvelés.'], 422);
+        }
+
+        $end = $subscription->billing_cycle === 'annual'
+            ? now()->addYear()
+            : now()->addMonth();
+
+        $subscription->update([
+            'status'               => 'active',
+            'current_period_start' => now()->toDateString(),
+            'current_period_end'   => $end->toDateString(),
+            'cancelled_at'         => null,
+        ]);
+
+        return response()->json([
+            'message'            => 'Abonnement renouvelé avec succès.',
+            'current_period_end' => $end->toDateString(),
+        ]);
     }
 }
