@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { FileText, CheckCircle, ArrowLeft, Send, Building2, User, Mail, Phone, MessageSquare } from 'lucide-react';
 import { getCart, clearCart, CartItem } from '../../lib/cart';
+import { useAuth } from '../../context/AuthContext';
 
 const TVA = 0.20;
 const SEUIL_HT = 5000;
 
 export function DevisPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,14 +25,25 @@ export function DevisPage() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      navigate('/connexion?redirect=/devis', { replace: true });
+      return;
+    }
     const items = getCart();
     const ht = items.reduce((s, i) => s + i.price * i.quantity, 0);
     if (items.length === 0 || ht <= SEUIL_HT) {
       navigate('/panier', { replace: true });
     } else {
       setCartItems(items);
+      setForm(f => ({
+        ...f,
+        prenom: user?.first_name ?? '',
+        nom:    user?.last_name  ?? '',
+        email:  user?.email      ?? '',
+      }));
     }
-  }, [navigate]);
+  }, [authLoading, isAuthenticated, navigate, user]);
 
   const totalHT  = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
   const totalTVA = Math.round(totalHT * TVA * 100) / 100;
