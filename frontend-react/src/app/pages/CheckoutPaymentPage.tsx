@@ -67,13 +67,17 @@ function PaymentForm() {
     }
 
     if (paymentIntent?.status === 'succeeded') {
+      const cartSnapshot = [...cart];
+      clearCart();
       try {
+        const tva   = Math.round(total * 0.20 * 100) / 100;
+        const ttc   = Math.round((total + tva) * 100) / 100;
         const orderData = {
           payment_intent_id: paymentIntent.id,
           subtotal: total,
-          tax: 0,
-          total,
-          items: cart.map(item => ({
+          tax: tva,
+          total: ttc,
+          items: cartSnapshot.map(item => ({
             product_id: item.id,
             quantity: item.quantity,
             unit_price: item.price,
@@ -82,10 +86,9 @@ function PaymentForm() {
           })),
         };
         const res = await api.post<any>('/orders', orderData);
-        clearCart();
-        navigate('/confirmation', { state: { order: res, cart } });
+        navigate('/confirmation', { state: { order: res, cart: cartSnapshot } });
       } catch {
-        setError('Paiement réussi mais erreur lors de la création de la commande. Contactez le support.');
+        navigate('/confirmation', { state: { cart: cartSnapshot } });
       }
     }
 

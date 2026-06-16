@@ -27,6 +27,10 @@ import { AdminTwoFactorPage } from './pages/admin/AdminTwoFactorPage';
 import { TwoFactorVerifyPage } from './pages/TwoFactorVerifyPage';
 import { TicketsPage } from './pages/TicketsPage';
 import { LicencesPage } from './pages/LicencesPage';
+import { CGUPage } from './pages/CGUPage';
+import { MentionsLegalesPage } from './pages/MentionsLegalesPage';
+import { ConfidentialitePage } from './pages/ConfidentialitePage';
+import { DevisPage } from './pages/DevisPage';
 
 export const router = createBrowserRouter([
   // ── Site public ─────────────────────────────────────────────────────────
@@ -54,6 +58,10 @@ export const router = createBrowserRouter([
       { path: 'mot-de-passe-oublie',         Component: ForgotPasswordPage },
       { path: 'reinitialiser-mot-de-passe',  Component: ResetPasswordPage },
       { path: 'contact',                     Component: ContactPage },
+      { path: 'devis',                        Component: DevisPage },
+      { path: 'cgu',                         Component: CGUPage },
+      { path: 'mentions-legales',            Component: MentionsLegalesPage },
+      { path: 'confidentialite',             Component: ConfidentialitePage },
       { path: '*',                           element: <Navigate to="/" replace /> },
     ],
   },

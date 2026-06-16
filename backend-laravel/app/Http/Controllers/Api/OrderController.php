@@ -119,27 +119,28 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Charger les relations pour le PDF
-            $invoice->load(['order.items.product', 'user']);
-
-            $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
-
-            // Alerte admin si commande > 5000€
-            if ($data['total'] > 5000) {
-                $adminEmail = config('mail.admin_address', 'admin@cyna-it.fr');
-                Mail::send([], [], function ($m) use ($adminEmail, $user, $invoiceNumber, $data) {
-                    $m->to($adminEmail)
-                      ->subject("⚠️ Commande importante #{$invoiceNumber} — " . number_format($data['total'], 2, ',', ' ') . ' €')
-                      ->html("<p>Une commande supérieure à 5 000 € vient d'être passée.</p>
-                              <p><strong>Client :</strong> {$user->full_name} ({$user->email})</p>
-                              <p><strong>Montant :</strong> " . number_format($data['total'], 2, ',', ' ') . " €</p>
-                              <p><strong>Référence :</strong> {$invoiceNumber}</p>
-                              <p>Pensez à contacter le client.</p>");
-                });
-            }
-
+            // ── Envoi email (hors transaction — un échec mail ne doit pas annuler la commande) ──
             $user = $request->user();
-            Mail::send([], [], function ($m) use ($user, $invoiceNumber, $data, $pdfContent, $licenses) {
+            try {
+                \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
+                $invoice->load(['order.items.product', 'user']);
+                $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
+
+                // Alerte admin si commande > 5000€
+                if ($data['total'] > 5000) {
+                    $adminEmail = config('mail.admin_address', 'admin@cyna-it.fr');
+                    $adminHtml  = "<p>Une commande supérieure à 5 000 € vient d'être passée.</p>
+                                   <p><strong>Client :</strong> {$user->full_name} ({$user->email})</p>
+                                   <p><strong>Montant :</strong> " . number_format($data['total'], 2, ',', ' ') . " €</p>
+                                   <p><strong>Référence :</strong> {$invoiceNumber}</p>
+                                   <p>Pensez à contacter le client.</p>";
+                    Mail::html($adminHtml, function ($m) use ($adminEmail, $invoiceNumber, $data) {
+                        $m->to($adminEmail)
+                          ->subject("⚠️ Commande importante #{$invoiceNumber} — " . number_format($data['total'], 2, ',', ' ') . ' €');
+                    });
+                }
+
+                // Mail de confirmation client avec PDF en pièce jointe
                 $itemsHtml = collect($data['items'])->map(function ($item) {
                     $product = \App\Models\Product::find($item['product_id']);
                     $plan    = $item['duration'] === 'annual' ? 'Annuel' : 'Mensuel';
@@ -157,11 +158,7 @@ class OrderController extends Controller
                     </tr>"
                 )->implode('');
 
-                $m->to($user->email, $user->first_name . ' ' . $user->last_name)
-                  ->subject("Confirmation de commande {$invoiceNumber} — CYNA")
-                  ->attachData($pdfContent, "facture-{$invoiceNumber}.pdf", ['mime' => 'application/pdf'])
-                  ->html("
-<!DOCTYPE html><html lang='fr'><head><meta charset='UTF-8'></head>
+                $confirmHtml = "<!DOCTYPE html><html lang='fr'><head><meta charset='UTF-8'></head>
 <body style='background:#0A1628;font-family:Arial,sans-serif;margin:0;padding:0;'>
   <div style='max-width:600px;margin:0 auto;padding:40px 20px;'>
     <div style='text-align:center;margin-bottom:32px;'>
@@ -207,8 +204,20 @@ class OrderController extends Controller
       CYNA SAS — contact@cyna-it.fr
     </p>
   </div>
-</body></html>");
-            });
+</body></html>";
+
+                Mail::html($confirmHtml, function ($m) use ($user, $invoiceNumber, $pdfContent) {
+                    $m->to($user->email, $user->first_name . ' ' . $user->last_name)
+                      ->subject("Confirmation de commande {$invoiceNumber} — CYNA")
+                      ->attachData($pdfContent, "facture-{$invoiceNumber}.pdf", ['mime' => 'application/pdf']);
+                });
+
+            } catch (\Throwable $mailError) {
+                \Illuminate\Support\Facades\Log::error('OrderController: échec envoi email', [
+                    'order_id' => $order->id,
+                    'error'    => $mailError->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'id'         => $order->id,
