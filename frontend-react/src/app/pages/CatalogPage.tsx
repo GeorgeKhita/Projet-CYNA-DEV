@@ -413,7 +413,7 @@ function ProductRow({ product }: { product: Product }) {
               )}
               {product.max_capacity != null && available && product.stock_remaining != null && (
                 <p className="text-xs font-semibold mt-0.5" style={{ color: (product.stock_remaining / product.max_capacity!) > 0.2 ? '#10B981' : '#EF4444' }}>
-                  {product.stock_remaining === 1 ? '1 place restante' : `${product.stock_remaining} places`}
+                  {product.stock_remaining === 1 ? '1 produit restant' : `${product.stock_remaining} produits restants`}
                 </p>
               )}
             </div>

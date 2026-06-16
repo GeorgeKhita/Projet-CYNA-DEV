@@ -50,7 +50,7 @@ class OrderController extends Controller
                 if ($activeCount + $item['quantity'] > $product->max_capacity) {
                     $remaining = max(0, $product->max_capacity - $activeCount);
                     return response()->json([
-                        'message' => "Stock insuffisant pour « {$product->name} ». Places restantes : {$remaining}.",
+                        'message' => "Stock insuffisant pour « {$product->name} ». Produits restants : {$remaining}.",
                     ], 422);
                 }
             }
