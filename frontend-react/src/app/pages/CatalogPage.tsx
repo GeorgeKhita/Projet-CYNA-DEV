@@ -283,7 +283,7 @@ function StockIndicator({ product }: { product: Product }) {
 
   const pct = stock_remaining! / max_capacity;
   const color = pct > 0.5 ? '#10B981' : pct > 0.2 ? '#F59E0B' : '#EF4444';
-  const label = stock_remaining === 1 ? '1 place restante' : `${stock_remaining} places restantes`;
+  const label = stock_remaining === 1 ? '1 produit restant' : `${stock_remaining} produits restants`;
 
   return (
     <div className="mt-3">
