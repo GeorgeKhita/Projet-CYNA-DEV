@@ -68,27 +68,34 @@ function PaymentForm() {
 
     if (paymentIntent?.status === 'succeeded') {
       const cartSnapshot = [...cart];
-      clearCart();
+      const tva   = Math.round(total * 0.20 * 100) / 100;
+      const ttc   = Math.round((total + tva) * 100) / 100;
+      const orderData = {
+        payment_intent_id: paymentIntent.id,
+        subtotal: total,
+        tax: tva,
+        total: ttc,
+        items: cartSnapshot.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+          duration: item.duration,
+        })),
+      };
+
       try {
-        const tva   = Math.round(total * 0.20 * 100) / 100;
-        const ttc   = Math.round((total + tva) * 100) / 100;
-        const orderData = {
-          payment_intent_id: paymentIntent.id,
-          subtotal: total,
-          tax: tva,
-          total: ttc,
-          items: cartSnapshot.map(item => ({
-            product_id: item.id,
-            quantity: item.quantity,
-            unit_price: item.price,
-            total_price: item.price * item.quantity,
-            duration: item.duration,
-          })),
-        };
         const res = await api.post<any>('/orders', orderData);
+        clearCart();
         navigate('/confirmation', { state: { order: res, cart: cartSnapshot } });
-      } catch {
-        navigate('/confirmation', { state: { cart: cartSnapshot } });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+        setError(
+          `Votre paiement Stripe a été accepté mais la création de commande a échoué : ${msg}. ` +
+          `Conservez votre référence Stripe : ${paymentIntent.id} et contactez le support.`
+        );
+        setLoading(false);
+        return;
       }
     }
 
