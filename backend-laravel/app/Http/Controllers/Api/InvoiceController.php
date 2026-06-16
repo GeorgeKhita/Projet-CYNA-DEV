@@ -37,6 +37,7 @@ class InvoiceController extends Controller
         $invoice->load(['order.items.product', 'user']);
 
         try {
+            \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
             $pdf = Pdf::loadHtml(self::buildHtml($invoice));
 
             return response($pdf->output(), 200, [

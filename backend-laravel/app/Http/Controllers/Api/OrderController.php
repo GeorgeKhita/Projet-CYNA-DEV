@@ -105,6 +105,7 @@ class OrderController extends Controller
             // ── Envoi email (hors transaction — un échec mail ne doit pas annuler la commande) ──
             $user = $request->user();
             try {
+                \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
                 $invoice->load(['order.items.product', 'user']);
                 $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
 
