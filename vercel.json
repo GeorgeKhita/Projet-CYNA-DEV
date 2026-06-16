@@ -1,6 +1,9 @@
 {
   "buildCommand": "cd frontend-react && npm install && npm run build",
   "outputDirectory": "frontend-react/dist",
+  "env": {
+    "VITE_STRIPE_PUBLIC_KEY": "pk_test_51TidwFG3fQKpP1LvpbDDWgIAJER4wH6gecTn8mg35Yd7iQ05EGNFOa7Bf4dtFd8CKjYFTNCSB2C8VbVIfXGhm0rl00wYoYMwxa"
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
