@@ -35,14 +35,16 @@ async function downloadInvoice(invoiceId: number, ref: string) {
   const res = await fetch(`/api/invoices/${invoiceId}/download`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
   });
-  if (!res.ok) return;
+  if (!res.ok) throw new Error(`Erreur ${res.status}`);
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `facture-${ref}.pdf`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 export function CommandesPage() {
@@ -51,6 +53,7 @@ export function CommandesPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -62,8 +65,11 @@ export function CommandesPage() {
 
   async function handleDownload(invoiceId: number, ref: string) {
     setDownloading(invoiceId);
+    setDownloadError(null);
     try {
       await downloadInvoice(invoiceId, ref);
+    } catch {
+      setDownloadError('Impossible de télécharger la facture. Réessayez.');
     } finally {
       setDownloading(null);
     }
@@ -155,7 +161,7 @@ export function CommandesPage() {
                           )}
 
                           {order.invoice_id && (
-                            <div className="pt-2">
+                            <div className="pt-2 space-y-2">
                               <button
                                 onClick={() => handleDownload(order.invoice_id!, order.ref)}
                                 disabled={downloading === order.invoice_id}
@@ -164,6 +170,9 @@ export function CommandesPage() {
                                 <FileDown className="w-4 h-4 text-[#00B4D8]" />
                                 {downloading === order.invoice_id ? 'Génération...' : 'Télécharger la facture PDF'}
                               </button>
+                              {downloadError && downloading === null && (
+                                <p className="text-sm text-destructive">{downloadError}</p>
+                              )}
                             </div>
                           )}
                         </div>
