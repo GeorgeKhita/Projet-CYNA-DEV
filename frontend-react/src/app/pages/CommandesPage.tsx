@@ -35,7 +35,10 @@ async function downloadInvoice(invoiceId: number, ref: string) {
   const res = await fetch(`/api/invoices/${invoiceId}/download`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
   });
-  if (!res.ok) throw new Error(`Erreur ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} — ${body.slice(0, 120)}`);
+  }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -68,8 +71,8 @@ export function CommandesPage() {
     setDownloadError(null);
     try {
       await downloadInvoice(invoiceId, ref);
-    } catch {
-      setDownloadError('Impossible de télécharger la facture. Réessayez.');
+    } catch (err: any) {
+      setDownloadError(err?.message ?? 'Erreur inconnue');
     } finally {
       setDownloading(null);
     }
