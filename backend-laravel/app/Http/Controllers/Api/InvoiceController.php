@@ -36,12 +36,22 @@ class InvoiceController extends Controller
 
         $invoice->load(['order.items.product', 'user']);
 
-        $pdf = Pdf::loadHtml(self::buildHtml($invoice));
+        try {
+            $pdf = Pdf::loadHtml(self::buildHtml($invoice));
 
-        return response($pdf->output(), 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="facture-' . $invoice->invoice_number . '.pdf"',
-        ]);
+            return response($pdf->output(), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="facture-' . $invoice->invoice_number . '.pdf"',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Génération PDF facture échouée', [
+                'invoice_id' => $invoice->id,
+                'error'      => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Erreur lors de la génération du PDF. Réessayez ou contactez le support.',
+            ], 500);
+        }
     }
 
     public static function buildHtml(Invoice $invoice): string
