@@ -67,7 +67,8 @@ export function CartPage() {
                       </button>
                       <span className="w-8 text-center font-bold text-ink">{item.quantity}</span>
                       <button onClick={() => handleUpdateQuantity(item.id, item.duration, 1)}
-                        className="w-8 h-8 bg-bg-subtle border border-border rounded-lg flex items-center justify-center hover:bg-bg-muted transition-colors">
+                        disabled={item.maxStock !== undefined && item.quantity >= item.maxStock}
+                        className="w-8 h-8 bg-bg-subtle border border-border rounded-lg flex items-center justify-center hover:bg-bg-muted transition-colors disabled:opacity-40">
                         <Plus className="w-4 h-4 text-ink-soft" />
                       </button>
                     </div>
@@ -75,6 +76,9 @@ export function CartPage() {
                     <div className="text-right min-w-[150px]">
                       <div className="text-2xl font-bold text-ink">{(item.price * item.quantity).toLocaleString('fr-FR')}€ HT</div>
                       <div className="text-sm text-muted-foreground">{item.price.toLocaleString('fr-FR')}€ HT × {item.quantity}</div>
+                      {item.maxStock !== undefined && item.quantity >= item.maxStock && (
+                        <div className="text-xs text-red-500 font-semibold mt-1">Stock max atteint</div>
+                      )}
                     </div>
 
                     <button onClick={() => handleRemove(item.id, item.duration)}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
-import { Shield, Laptop, Globe, Check, Star } from 'lucide-react';
+import { Shield, Laptop, Globe, Check, Star, PackageX } from 'lucide-react';
 import { api } from '../../api/client';
 import { addToCart, CATEGORY_COLORS } from '../../lib/cart';
 
@@ -16,6 +16,9 @@ interface Product {
   available?: boolean;
   popular?: boolean;
   slug?: string;
+  in_stock?: boolean;
+  stock_remaining?: number | null;
+  max_capacity?: number | null;
 }
 
 const CATEGORY_ICONS: Record<string, any> = { SOC: Shield, EDR: Laptop, XDR: Globe };
@@ -50,9 +53,14 @@ export function ProductDetailPage() {
     if (!product) return;
     const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
     const price = selectedPlan === 'monthly' ? product.price_monthly : product.price_annual;
-    addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan });
-    setAddedMsg('Ajouté au panier !');
-    setTimeout(() => setAddedMsg(''), 2000);
+    const maxStock = product.stock_remaining ?? product.max_capacity ?? undefined;
+    const added = addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan, maxStock });
+    if (added) {
+      setAddedMsg('Ajouté au panier !');
+    } else {
+      setAddedMsg('Stock maximum atteint pour ce produit.');
+    }
+    setTimeout(() => setAddedMsg(''), 3000);
   }
 
   if (loading) {
@@ -143,14 +151,41 @@ export function ProductDetailPage() {
               )}
             </div>
 
+            {/* Stock info */}
+            {product.max_capacity != null && (
+              <div className="mb-4">
+                {product.in_stock === false || product.stock_remaining === 0 ? (
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/25 rounded-xl text-red-500 text-sm font-semibold">
+                    <PackageX className="w-4 h-4" />
+                    Stock épuisé — ce produit n'est plus disponible
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Disponibilité</span>
+                    <span className="font-semibold" style={{ color: (product.stock_remaining! / product.max_capacity!) > 0.2 ? '#10B981' : '#EF4444' }}>
+                      {product.stock_remaining === 1 ? '1 produit restant' : `${product.stock_remaining} produits restants`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {addedMsg && (
-              <div className="mb-4 px-4 py-2 bg-[#10B981]/12 border border-[#10B981]/35 rounded-xl text-success text-sm font-semibold">{addedMsg}</div>
+              <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-semibold border ${addedMsg.includes('maximum') ? 'bg-red-500/10 border-red-500/25 text-red-500' : 'bg-[#10B981]/12 border-[#10B981]/35 text-[#10B981]'}`}>
+                {addedMsg}
+              </div>
             )}
 
             <div className="flex gap-3">
-              <button onClick={handleAddToCart} className="btn btn-primary btn-lg flex-1">
-                Ajouter au panier
-              </button>
+              {product.in_stock === false || product.stock_remaining === 0 ? (
+                <button disabled className="btn btn-ghost btn-lg flex-1" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+                  Indisponible
+                </button>
+              ) : (
+                <button onClick={handleAddToCart} className="btn btn-primary btn-lg flex-1">
+                  Ajouter au panier
+                </button>
+              )}
               <Link to="/panier" className="btn btn-outline btn-lg flex-1">
                 Voir le panier
               </Link>
