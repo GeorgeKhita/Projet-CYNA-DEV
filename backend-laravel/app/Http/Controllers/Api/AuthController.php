@@ -203,7 +203,7 @@ class AuthController extends Controller
                     "<p>Bonjour {$user->first_name},</p>"
                     . "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>"
                     . "<p><a href=\"{$resetUrl}\">Réinitialiser mon mot de passe</a></p>"
-                    . "<p>Ce lien expire dans 60 minutes.</p>"
+                    . "<p>Ce lien expire dans 24 heures.</p>"
                 );
         });
 
@@ -220,7 +220,7 @@ class AuthController extends Controller
 
         $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
 
-        if (!$record || now()->diffInMinutes($record->created_at) > 60 || !Hash::check($request->token, $record->token)) {
+        if (!$record || now()->diffInHours($record->created_at) > 24 || !Hash::check($request->token, $record->token)) {
             return response()->json(['message' => 'Token invalide ou expiré.'], 422);
         }
 

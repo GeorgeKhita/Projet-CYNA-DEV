@@ -18,7 +18,7 @@ import { CommandesPage }   from '../../app/pages/CommandesPage';
 import { ParametresPage }  from '../../app/pages/ParametresPage';
 import * as clientModule from '../../api/client';
 
-const mockUser = { id: 1, first_name: 'Nouh', last_name: 'Martin', email: 'nouh@cyna.fr', role: 'user' };
+const mockUser = { id: 1, first_name: 'Nouh', last_name: 'Martin', email: 'nouh@cyna.fr', role: 'user' as const };
 
 const mockActiveSubs = [
   { id: 1, product: { name: 'CYNA SOC', category: 'SOC', category_color: '#00B4D8' }, status: 'active', price: 299, billing_cycle: 'monthly', current_period_end: '2026-07-09' },

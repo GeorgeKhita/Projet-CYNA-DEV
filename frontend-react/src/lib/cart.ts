@@ -4,11 +4,17 @@ export interface CartItem {
   id: number;
   name: string;
   category: string;
-  categoryColor: string;
+  categoryColor?: string;
   price: number;
   duration: 'monthly' | 'annual';
   quantity: number;
 }
+
+export const CATEGORY_COLORS: Record<string, string> = {
+  SOC: '#00B4D8',
+  EDR: '#8B5CF6',
+  XDR: '#10B981',
+};
 
 export function getCart(): CartItem[] {
   try {
@@ -25,10 +31,14 @@ function saveCart(items: CartItem[]): void {
 export function addToCart(item: Omit<CartItem, 'quantity'>): void {
   const cart = getCart();
   const existing = cart.find(i => i.id === item.id && i.duration === item.duration);
+  const withColor = {
+    ...item,
+    categoryColor: item.categoryColor ?? CATEGORY_COLORS[item.category] ?? '#00B4D8',
+  };
   if (existing) {
     existing.quantity += 1;
   } else {
-    cart.push({ ...item, quantity: 1 });
+    cart.push({ ...withColor, quantity: 1 });
   }
   saveCart(cart);
 }
@@ -53,9 +63,3 @@ export function clearCart(): void {
 export function getCartCount(): number {
   return getCart().reduce((sum, i) => sum + i.quantity, 0);
 }
-
-export const CATEGORY_COLORS: Record<string, string> = {
-  SOC: '#00B4D8',
-  EDR: '#8B5CF6',
-  XDR: '#10B981',
-};

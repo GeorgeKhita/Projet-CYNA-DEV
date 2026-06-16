@@ -1,185 +1,433 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, LayoutGrid, List, PackageX } from 'lucide-react';
 import { api } from '../../api/client';
-import { CATEGORY_COLORS } from '../../lib/cart';
 import { ProductVisual } from '../components/ProductVisual';
+
+interface Category {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+  display_order: number;
+}
 
 interface Product {
   id: number;
   name: string;
   description: string;
   category: string;
+  category_color?: string;
+  category_id: number;
   price_monthly: number;
   price_annual: number;
   status: string;
-  available?: boolean;
-  popular?: boolean;
   priority?: number;
+  max_capacity?: number | null;
+  subscriptions_count?: number;
+  stock_remaining?: number | null;
+  in_stock?: boolean;
+}
+
+function isAvailable(p: Product): boolean {
+  if (p.in_stock !== undefined) return p.in_stock;
+  return p.status === 'available';
 }
 
 export function CatalogPage() {
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [products, setProducts]   = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') ?? '');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('popular');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') ?? 'all');
+  const [sortBy, setSortBy]       = useState<'default' | 'price-asc' | 'price-desc' | 'name'>('default');
+  const [viewMode, setViewMode]   = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
-    api.get<{ data: Product[] } | Product[]>('/products')
-      .then(res => {
-        const list = Array.isArray(res) ? res : (res as any).data ?? [];
+    Promise.all([
+      api.get<Category[]>('/categories'),
+      api.get<Product[]>('/products'),
+    ])
+      .then(([cats, prods]) => {
+        setCategories(Array.isArray(cats) ? cats : []);
+        const list = Array.isArray(prods) ? prods : (prods as any).data ?? [];
         setProducts(list);
       })
-      .catch(() => setError('Impossible de charger les produits.'))
+      .catch(() => setError('Impossible de charger le catalogue.'))
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = [
-    { id: 'all', label: 'Tous' },
-    { id: 'SOC', label: 'SOC' },
-    { id: 'EDR', label: 'EDR' },
-    { id: 'XDR', label: 'XDR' },
-  ];
+  const activeCategoryData = useMemo(
+    () => categories.find(c => c.name === selectedCategory) ?? null,
+    [categories, selectedCategory],
+  );
 
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = products.filter(p => {
-      const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
-      const matchSearch = searchQuery === '' ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredAndSorted = useMemo(() => {
+    const filtered = products.filter(p => {
+      const matchCat    = selectedCategory === 'all' || p.category === selectedCategory;
+      const q           = searchQuery.toLowerCase();
+      const matchSearch = q === '' ||
+        p.name.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
 
-    switch (sortBy) {
-      case 'price-asc':  return [...result].sort((a, b) => a.price_monthly - b.price_monthly);
-      case 'price-desc': return [...result].sort((a, b) => b.price_monthly - a.price_monthly);
-      case 'name':       return [...result].sort((a, b) => a.name.localeCompare(b.name));
-      default:           return [...result].sort((a, b) => (b.popular || b.priority ? 1 : 0) - (a.popular || a.priority ? 1 : 0));
-    }
+    // Always apply spec ordering first, then user's secondary sort
+    const available   = filtered.filter(isAvailable);
+    const unavailable = filtered.filter(p => !isAvailable(p));
+
+    const prioritized   = available.filter(p => p.priority && p.priority > 0)
+      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+    const unprioritized = available.filter(p => !p.priority || p.priority === 0);
+
+    let sorted = [...prioritized, ...unprioritized];
+
+    if (sortBy === 'price-asc')  sorted = [...sorted].sort((a, b) => a.price_monthly - b.price_monthly);
+    if (sortBy === 'price-desc') sorted = [...sorted].sort((a, b) => b.price_monthly - a.price_monthly);
+    if (sortBy === 'name')       sorted = [...sorted].sort((a, b) => a.name.localeCompare(b.name));
+
+    return [...sorted, ...unavailable];
   }, [products, searchQuery, selectedCategory, sortBy]);
 
-  return (
-    <div className="min-h-screen bg-card py-12">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="mb-10">
-          <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-3">Catalogue des solutions</h1>
-          <p className="text-muted-foreground text-lg">
-            {filteredAndSortedProducts.length} solution{filteredAndSortedProducts.length !== 1 ? 's' : ''} disponible{filteredAndSortedProducts.length !== 1 ? 's' : ''}
-          </p>
-        </div>
+  const categoryColor = activeCategoryData?.color ?? '#00B4D8';
 
-        <div className="cyna-card p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher un produit..." className="field field-icon" />
-              </div>
+  return (
+    <div className="min-h-screen bg-card">
+
+      {/* ── Category banner ───────────────────────────────────────── */}
+      {selectedCategory !== 'all' && activeCategoryData && (
+        <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, #06222C 0%, ${categoryColor}22 100%)` }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 80% 50%, ${categoryColor}18 0%, transparent 60%)` }} />
+          <div className="max-w-7xl mx-auto px-6 py-12 flex items-center gap-8 relative">
+            <div className="w-32 h-32 flex-shrink-0 hidden sm:block">
+              <ProductVisual category={selectedCategory} color={categoryColor} size="md" />
             </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                  style={{ background: `${categoryColor}25`, color: categoryColor, border: `1px solid ${categoryColor}40` }}>
+                  Catégorie
+                </span>
+              </div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">{activeCategoryData.name}</h1>
+              <p className="text-white/70 text-lg max-w-2xl">{activeCategoryData.description}</p>
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${categoryColor}40, transparent)` }} />
+        </div>
+      )}
+
+      {/* ── Header when "all" ─────────────────────────────────────── */}
+      {selectedCategory === 'all' && (
+        <div className="bg-bg-subtle border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 py-10">
+            <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-2">Catalogue des solutions</h1>
+            <p className="text-muted-foreground text-lg">Découvrez nos solutions de cybersécurité adaptées à votre entreprise</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Filters bar ───────────────────────────────────────────── */}
+      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex flex-col lg:flex-row gap-3">
+
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Rechercher une solution..."
+                className="w-full bg-bg-subtle border border-border rounded-xl pl-10 pr-4 py-2.5 text-ink text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
+              />
+            </div>
+
+            {/* Category pills */}
             <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedCategory === 'all' ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted border border-border'}`}>
+                Tous
+              </button>
               {categories.map(cat => (
-                <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all ${selectedCategory === cat.id ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted'}`}>
-                  {cat.label}
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all border ${selectedCategory === cat.name
+                    ? 'shadow-sm'
+                    : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted'}`}
+                  style={selectedCategory === cat.name
+                    ? { background: cat.color, color: '#fff', borderColor: cat.color }
+                    : { borderColor: 'var(--color-border)' }}>
+                  {cat.name}
                 </button>
               ))}
             </div>
+
+            {/* Sort + view toggle */}
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="bg-card border border-border rounded-xl px-4 py-2.5 text-ink focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
-                <option value="popular">Popularité</option>
+              <SlidersHorizontal className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as typeof sortBy)}
+                className="bg-card border border-border rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
+                <option value="default">Priorité</option>
                 <option value="price-asc">Prix croissant</option>
                 <option value="price-desc">Prix décroissant</option>
-                <option value="name">Nom A-Z</option>
+                <option value="name">Nom A–Z</option>
               </select>
+              <div className="flex border border-border rounded-xl overflow-hidden">
+                <button onClick={() => setViewMode('grid')}
+                  className={`p-2.5 transition-colors ${viewMode === 'grid' ? 'bg-[#00B4D8] text-[#06222C]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted'}`}
+                  title="Grille">
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button onClick={() => setViewMode('list')}
+                  className={`p-2.5 transition-colors ${viewMode === 'list' ? 'bg-[#00B4D8] text-[#06222C]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted'}`}
+                  title="Liste">
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Result count */}
+          {!loading && !error && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {filteredAndSorted.length} solution{filteredAndSorted.length !== 1 ? 's' : ''}
+              {selectedCategory !== 'all' && ` dans ${selectedCategory}`}
+            </p>
+          )}
         </div>
+      </div>
+
+      {/* ── Main content ──────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
         {loading && (
-          <div className="text-center py-20">
+          <div className="text-center py-24">
             <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Chargement des produits...</p>
+            <p className="text-muted-foreground">Chargement du catalogue...</p>
           </div>
         )}
 
         {error && (
-          <div className="text-center py-20">
+          <div className="text-center py-24">
             <p className="text-destructive mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="btn btn-primary">
-              Réessayer
-            </button>
+            <button onClick={() => window.location.reload()} className="btn btn-primary">Réessayer</button>
           </div>
         )}
 
-        {!loading && !error && filteredAndSortedProducts.length === 0 && (
-          <div className="text-center py-20">
+        {!loading && !error && filteredAndSorted.length === 0 && (
+          <div className="text-center py-24">
             <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-xl text-muted-foreground mb-2">Aucun produit trouvé</p>
-            <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary mt-4">
+            <p className="text-xl text-ink font-semibold mb-2">Aucun résultat</p>
+            <p className="text-muted-foreground mb-6">Essayez un autre terme ou une autre catégorie</p>
+            <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary">
               Réinitialiser les filtres
             </button>
           </div>
         )}
 
-        {!loading && !error && filteredAndSortedProducts.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedProducts.map(product => {
-              const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
-              const available = product.status === 'available' || product.available !== false;
-              return (
-                <div key={product.id}
-                  className={`cyna-card overflow-hidden flex flex-col ${available ? 'cyna-card-hover' : 'opacity-60'}`}>
-                  <div className="h-36 border-b border-border bg-bg-subtle">
-                    <ProductVisual category={product.category} color={color} size="sm" />
-                  </div>
-                  <div className="p-6 border-b border-border">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-xl font-bold text-ink">{product.name}</h3>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {product.popular && (
-                          <span className="px-2 py-0.5 bg-[#F59E0B]/15 text-[#B45309] border border-[#F59E0B]/30 rounded text-xs font-semibold">Populaire</span>
-                        )}
-                        <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
-                          {product.category}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-6 flex-1 flex flex-col">
-                    <p className="text-muted-foreground mb-4 leading-relaxed min-h-[48px] text-sm">{product.description}</p>
-                    <div className="flex items-end justify-between mb-4 mt-auto">
-                      <div>
-                        <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-                        <span className="text-muted-foreground">/mois</span>
-                      </div>
-                    </div>
-                    {available ? (
-                      <div className="flex gap-2">
-                        <Link to={`/produit/${product.id}`} className="btn btn-primary flex-1">
-                          Voir le produit
-                        </Link>
-                        <Link to={`/produit/${product.id}`} className="btn btn-ghost">
-                          Essai
-                        </Link>
-                      </div>
-                    ) : (
-                      <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed' }}>
-                        Bientôt disponible
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        {!loading && !error && filteredAndSorted.length > 0 && (
+          viewMode === 'grid'
+            ? <GridView products={filteredAndSorted} />
+            : <ListView products={filteredAndSorted} />
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Grid view ─────────────────────────────────────────────────────────────────
+
+function GridView({ products }: { products: Product[] }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.map(p => <ProductCard key={p.id} product={p} />)}
+    </div>
+  );
+}
+
+// ── List view ─────────────────────────────────────────────────────────────────
+
+function ListView({ products }: { products: Product[] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {products.map(p => <ProductRow key={p.id} product={p} />)}
+    </div>
+  );
+}
+
+// ── Shared helpers ────────────────────────────────────────────────────────────
+
+function StockBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/25 text-xs font-semibold">
+      <PackageX className="w-3 h-3" />
+      Stock épuisé
+    </span>
+  );
+}
+
+function StockIndicator({ product }: { product: Product }) {
+  const { max_capacity, stock_remaining, in_stock } = product;
+  if (max_capacity == null) return null;
+
+  if (!in_stock || stock_remaining === 0) return null;
+
+  const pct = stock_remaining! / max_capacity;
+  const color = pct > 0.5 ? '#10B981' : pct > 0.2 ? '#F59E0B' : '#EF4444';
+  const label = stock_remaining === 1 ? '1 place restante' : `${stock_remaining} places restantes`;
+
+  return (
+    <div className="mt-3">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs text-muted-foreground">Disponibilité</span>
+        <span className="text-xs font-semibold" style={{ color }}>{label}</span>
+      </div>
+      <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct * 100}%`, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+function PriorityBadge({ priority }: { priority: number }) {
+  if (priority <= 0) return null;
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-[#F59E0B]/10 text-[#B45309] border border-[#F59E0B]/25">
+      Recommandé
+    </span>
+  );
+}
+
+// ── Product card (grid) ───────────────────────────────────────────────────────
+
+function ProductCard({ product }: { product: Product }) {
+  const color     = product.category_color ?? '#00B4D8';
+  const available = isAvailable(product);
+
+  return (
+    <div className={`cyna-card overflow-hidden flex flex-col transition-all duration-200 ${available ? 'cyna-card-hover' : 'opacity-60 grayscale-[30%]'}`}>
+
+      {/* Visual */}
+      <div className="h-36 border-b border-border bg-bg-subtle flex-shrink-0">
+        <ProductVisual category={product.category} color={color} size="sm" />
+      </div>
+
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3 border-b border-border">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-lg font-bold text-ink leading-tight">{product.name}</h3>
+          <span className="chip flex-shrink-0 text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
+            {product.category}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {!available && <StockBadge />}
+          {available && product.priority && product.priority > 0 && <PriorityBadge priority={product.priority} />}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="p-5 flex-1 flex flex-col">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{product.description}</p>
+
+        {/* Price */}
+        <div className="mb-3">
+          <div className="flex items-end gap-1">
+            <span className="text-2xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
+            <span className="text-muted-foreground text-sm mb-0.5">/mois HT</span>
+          </div>
+          {product.price_annual && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              ou {product.price_annual.toLocaleString('fr-FR')}€/mois en annuel
+            </p>
+          )}
+        </div>
+
+        {/* Stock indicator */}
+        <StockIndicator product={product} />
+
+        {/* CTA */}
+        <div className="mt-4">
+          {available ? (
+            <Link to={`/produit/${product.id}`} className="btn btn-primary btn-block text-center">
+              Voir le produit
+            </Link>
+          ) : (
+            <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+              Indisponible
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Product row (list) ────────────────────────────────────────────────────────
+
+function ProductRow({ product }: { product: Product }) {
+  const color     = product.category_color ?? '#00B4D8';
+  const available = isAvailable(product);
+
+  return (
+    <div className={`cyna-card overflow-hidden transition-all duration-200 ${available ? 'cyna-card-hover' : 'opacity-60 grayscale-[30%]'}`}>
+      <div className="flex items-stretch">
+
+        {/* Side visual */}
+        <div className="w-24 sm:w-32 flex-shrink-0 border-r border-border bg-bg-subtle">
+          <ProductVisual category={product.category} color={color} size="sm" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className="text-base font-bold text-ink">{product.name}</h3>
+              <span className="chip text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
+                {product.category}
+              </span>
+              {!available && <StockBadge />}
+              {available && product.priority && product.priority > 0 && <PriorityBadge priority={product.priority} />}
+            </div>
+            <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+          </div>
+
+          {/* Price + CTA */}
+          <div className="flex items-center gap-6 flex-shrink-0">
+            <div className="text-right min-w-[120px]">
+              <div className="flex items-end gap-1 justify-end">
+                <span className="text-xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
+                <span className="text-muted-foreground text-xs mb-0.5">/mois HT</span>
+              </div>
+              {product.price_annual && (
+                <p className="text-xs text-muted-foreground">{product.price_annual.toLocaleString('fr-FR')}€/mois annuel</p>
+              )}
+              {product.max_capacity != null && available && product.stock_remaining != null && (
+                <p className="text-xs font-semibold mt-0.5" style={{ color: (product.stock_remaining / product.max_capacity!) > 0.2 ? '#10B981' : '#EF4444' }}>
+                  {product.stock_remaining === 1 ? '1 place restante' : `${product.stock_remaining} places`}
+                </p>
+              )}
+            </div>
+            {available ? (
+              <Link to={`/produit/${product.id}`} className="btn btn-primary whitespace-nowrap">
+                Voir le produit
+              </Link>
+            ) : (
+              <button disabled className="btn btn-ghost" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+                Indisponible
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

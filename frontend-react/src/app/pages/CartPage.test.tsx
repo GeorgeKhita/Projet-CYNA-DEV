@@ -85,7 +85,7 @@ describe('interactions', () => {
 
   it('le bouton + incrémente la quantité', () => {
     renderWithProviders(<CartPage />);
-    fireEvent.click(screen.getByTitle ? screen.queryByTitle(/plus/i) ?? screen.getAllByRole('button')[1] : screen.getAllByRole('button')[1]);
+    fireEvent.click(screen.queryByTitle(/plus/i) ?? screen.getAllByRole('button')[1]);
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 

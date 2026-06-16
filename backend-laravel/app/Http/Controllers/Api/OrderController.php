@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\License;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\Product;
 use App\Models\Subscription;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +38,22 @@ class OrderController extends Controller
 
         if ($intent->status !== 'succeeded') {
             return response()->json(['message' => 'Paiement non confirmé par Stripe.'], 422);
+        }
+
+        // Vérifier la capacité maximale pour chaque produit
+        foreach ($data['items'] as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product && $product->max_capacity !== null) {
+                $activeCount = Subscription::where('product_id', $item['product_id'])
+                    ->whereIn('status', ['active', 'past_due'])
+                    ->count();
+                if ($activeCount + $item['quantity'] > $product->max_capacity) {
+                    $remaining = max(0, $product->max_capacity - $activeCount);
+                    return response()->json([
+                        'message' => "Stock insuffisant pour « {$product->name} ». Places restantes : {$remaining}.",
+                    ], 422);
+                }
+            }
         }
 
         DB::beginTransaction();

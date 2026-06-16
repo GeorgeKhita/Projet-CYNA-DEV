@@ -13,7 +13,7 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Product::with('category')
-            ->where('status', 'available')
+            ->withCount(['subscriptions as active_subscriptions_count' => fn($q) => $q->whereIn('status', ['active', 'past_due'])])
             ->orderBy('priority');
 
         if ($request->filled('category')) {
@@ -45,7 +45,8 @@ class ProductController extends Controller
             'sort'        => 'nullable|in:price_asc,price_desc,name_asc,name_desc',
         ]);
 
-        $query = Product::with('category')->where('status', 'available');
+        $query = Product::with('category')
+            ->withCount(['subscriptions as active_subscriptions_count' => fn($q) => $q->whereIn('status', ['active', 'past_due'])]);
 
         if ($request->filled('q')) {
             $term = '%' . $request->q . '%';
@@ -93,26 +94,37 @@ class ProductController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with('category')
+            ->withCount(['subscriptions as active_subscriptions_count' => fn($q) => $q->whereIn('status', ['active', 'past_due'])])
+            ->findOrFail($id);
         return response()->json($this->format($product));
     }
 
     private function format(Product $p): array
     {
+        $maxCapacity  = $p->max_capacity;
+        $activeCount  = (int) ($p->active_subscriptions_count ?? 0);
+        $inStock      = $maxCapacity === null || $activeCount < $maxCapacity;
+        $stockRemaining = $maxCapacity !== null ? max(0, $maxCapacity - $activeCount) : null;
+
         return [
-            'id'            => $p->id,
-            'name'          => $p->name,
-            'slug'          => $p->slug,
-            'description'   => $p->description,
-            'features'      => $p->features ?? [],
-            'images'        => $p->images ?? [],
-            'price_monthly' => (float) $p->price_monthly,
-            'price_annual'  => (float) $p->price_annual,
-            'status'        => $p->status,
-            'priority'      => $p->priority,
-            'category'      => $p->category?->name ?? '',
-            'category_color'=> $p->category?->color ?? '#00B4D8',
-            'category_id'   => $p->category_id,
+            'id'               => $p->id,
+            'name'             => $p->name,
+            'slug'             => $p->slug,
+            'description'      => $p->description,
+            'features'         => $p->features ?? [],
+            'images'           => $p->images ?? [],
+            'price_monthly'    => (float) $p->price_monthly,
+            'price_annual'     => (float) $p->price_annual,
+            'status'           => $p->status,
+            'priority'         => $p->priority,
+            'category'         => $p->category?->name ?? '',
+            'category_color'   => $p->category?->color ?? '#00B4D8',
+            'category_id'      => $p->category_id,
+            'max_capacity'     => $maxCapacity,
+            'subscriptions_count' => $activeCount,
+            'stock_remaining'  => $stockRemaining,
+            'in_stock'         => $inStock,
         ];
     }
 }
