@@ -11,6 +11,8 @@ export interface CartItem {
   maxStock?: number;
 }
 
+export const MAX_QTY = 10;
+
 export const CATEGORY_COLORS: Record<string, string> = {
   SOC: '#00B4D8',
   EDR: '#8B5CF6',
@@ -55,7 +57,7 @@ export function updateQuantity(id: number, duration: string, delta: number): voi
   if (!item) return;
   const newQty = item.quantity + delta;
   if (newQty < 1) return;
-  if (delta > 0 && item.maxStock !== undefined && newQty > item.maxStock) return;
+  if (delta > 0 && newQty > (item.maxStock ?? MAX_QTY)) return;
   item.quantity = newQty;
   saveCart(cart);
 }
