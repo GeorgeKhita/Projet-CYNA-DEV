@@ -50,7 +50,8 @@ describe('rendu', () => {
 
   it('affiche la section Changer le mot de passe', async () => {
     renderWithProviders(<ParametresPage />);
-    expect(await screen.findByText(/changer le mot de passe/i)).toBeInTheDocument();
+    // "Changer le mot de passe" = h2 ET bouton submit → findAllByText
+    expect((await screen.findAllByText(/changer le mot de passe/i)).length).toBeGreaterThanOrEqual(1);
   });
 
   it('affiche le bouton Supprimer mon compte', async () => {
@@ -104,7 +105,7 @@ describe('changement mot de passe', () => {
     const putSpy = vi.spyOn(clientModule.api, 'put').mockResolvedValue({});
 
     renderWithProviders(<ParametresPage />);
-    await screen.findByText(/changer le mot de passe/i);
+    await screen.findByRole('heading', { name: /changer le mot de passe/i });
 
     const pwdInputs = screen.getAllByPlaceholderText('••••••••');
     fireEvent.change(pwdInputs[0], { target: { value: 'OldPass123!' } });
@@ -123,7 +124,7 @@ describe('changement mot de passe', () => {
 
   it('affiche erreur si les nouveaux mots de passe ne correspondent pas', async () => {
     renderWithProviders(<ParametresPage />);
-    await screen.findByText(/changer le mot de passe/i);
+    await screen.findByRole('heading', { name: /changer le mot de passe/i });
 
     const pwdInputs = screen.getAllByPlaceholderText('••••••••');
     fireEvent.change(pwdInputs[0], { target: { value: 'OldPass123!' } });
