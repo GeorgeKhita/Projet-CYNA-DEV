@@ -268,33 +268,10 @@ function ListView({ products }: { products: Product[] }) {
 
 function StockBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/25 text-xs font-semibold">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-subtle text-muted-foreground border border-border text-xs font-semibold">
       <PackageX className="w-3 h-3" />
-      Stock épuisé
+      Temporairement indisponible
     </span>
-  );
-}
-
-function StockIndicator({ product }: { product: Product }) {
-  const { max_capacity, stock_remaining, in_stock } = product;
-  if (max_capacity == null) return null;
-
-  if (!in_stock || stock_remaining === 0) return null;
-
-  const pct = stock_remaining! / max_capacity;
-  const color = pct > 0.5 ? '#10B981' : pct > 0.2 ? '#F59E0B' : '#EF4444';
-  const label = stock_remaining === 1 ? '1 produit restant' : `${stock_remaining} produits restants`;
-
-  return (
-    <div className="mt-3">
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-muted-foreground">Disponibilité</span>
-        <span className="text-xs font-semibold" style={{ color }}>{label}</span>
-      </div>
-      <div className="h-1.5 bg-bg-subtle rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct * 100}%`, background: color }} />
-      </div>
-    </div>
   );
 }
 
@@ -352,9 +329,6 @@ function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        {/* Stock indicator */}
-        <StockIndicator product={product} />
-
         {/* CTA */}
         <div className="mt-4">
           {available ? (
@@ -363,7 +337,7 @@ function ProductCard({ product }: { product: Product }) {
             </Link>
           ) : (
             <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-              Indisponible
+              Temporairement indisponible
             </button>
           )}
         </div>
@@ -411,19 +385,14 @@ function ProductRow({ product }: { product: Product }) {
               {product.price_annual && (
                 <p className="text-xs text-muted-foreground">{product.price_annual.toLocaleString('fr-FR')}€/mois annuel</p>
               )}
-              {product.max_capacity != null && available && product.stock_remaining != null && (
-                <p className="text-xs font-semibold mt-0.5" style={{ color: (product.stock_remaining / product.max_capacity!) > 0.2 ? '#10B981' : '#EF4444' }}>
-                  {product.stock_remaining === 1 ? '1 produit restant' : `${product.stock_remaining} produits restants`}
-                </p>
-              )}
             </div>
             {available ? (
               <Link to={`/produit/${product.id}`} className="btn btn-primary whitespace-nowrap">
                 Voir le produit
               </Link>
             ) : (
-              <button disabled className="btn btn-ghost" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-                Indisponible
+              <button disabled className="btn btn-ghost whitespace-nowrap" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+                Temporairement indisponible
               </button>
             )}
           </div>

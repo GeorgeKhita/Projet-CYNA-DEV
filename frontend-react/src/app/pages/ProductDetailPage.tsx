@@ -151,22 +151,13 @@ export function ProductDetailPage() {
               )}
             </div>
 
-            {/* Stock info */}
-            {product.max_capacity != null && (
+            {/* Indisponibilité (sans révéler le stock restant) */}
+            {(product.in_stock === false || product.stock_remaining === 0) && (
               <div className="mb-4">
-                {product.in_stock === false || product.stock_remaining === 0 ? (
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/25 rounded-xl text-red-500 text-sm font-semibold">
-                    <PackageX className="w-4 h-4" />
-                    Stock épuisé — ce produit n'est plus disponible
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Disponibilité</span>
-                    <span className="font-semibold" style={{ color: (product.stock_remaining! / product.max_capacity!) > 0.2 ? '#10B981' : '#EF4444' }}>
-                      {product.stock_remaining === 1 ? '1 produit restant' : `${product.stock_remaining} produits restants`}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-bg-subtle border border-border rounded-xl text-muted-foreground text-sm font-semibold">
+                  <PackageX className="w-4 h-4" />
+                  Temporairement indisponible
+                </div>
               </div>
             )}
 
@@ -179,7 +170,7 @@ export function ProductDetailPage() {
             <div className="flex gap-3">
               {product.in_stock === false || product.stock_remaining === 0 ? (
                 <button disabled className="btn btn-ghost btn-lg flex-1" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-                  Indisponible
+                  Temporairement indisponible
                 </button>
               ) : (
                 <button onClick={handleAddToCart} className="btn btn-primary btn-lg flex-1">
