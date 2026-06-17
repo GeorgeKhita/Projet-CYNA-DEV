@@ -5,7 +5,7 @@ import { api } from '../../../api/client';
 import { useAuth } from '../../../context/AuthContext';
 
 export function AdminTwoFactorPage() {
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, updateUser } = useAuth();
   const [twoFaEnabled, setTwoFaEnabled]   = useState(false);
   const [step, setStep]                   = useState<'idle' | 'setup' | 'confirm' | 'disable'>('idle');
   const [qrCode, setQrCode]               = useState('');
@@ -38,6 +38,7 @@ export function AdminTwoFactorPage() {
       const data = await api.post<any>('/auth/admin/confirm-2fa', { code });
       setMessage(data.message);
       setTwoFaEnabled(true);
+      updateUser({ two_factor_enabled: true });
       setStep('idle');
       setCode('');
       setQrCode('');
@@ -53,6 +54,7 @@ export function AdminTwoFactorPage() {
       const data = await api.delete<any>('/auth/admin/disable-2fa', { code });
       setMessage(data.message);
       setTwoFaEnabled(false);
+      updateUser({ two_factor_enabled: false });
       setStep('idle');
       setCode('');
     } catch (err: any) { setError(err.message); }

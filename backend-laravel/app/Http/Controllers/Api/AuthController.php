@@ -438,13 +438,14 @@ class AuthController extends Controller
     private function formatUser(User $user): array
     {
         return [
-            'id'         => $user->id,
-            'first_name' => $user->first_name,
-            'last_name'  => $user->last_name,
-            'email'      => $user->email,
-            'company'    => $user->company,
-            'siren'      => $user->siren,
-            'role'       => $user->role,
+            'id'                 => $user->id,
+            'first_name'         => $user->first_name,
+            'last_name'          => $user->last_name,
+            'email'              => $user->email,
+            'company'            => $user->company,
+            'siren'              => $user->siren,
+            'role'               => $user->role,
+            'two_factor_enabled' => $user->two_factor_enabled && $user->two_factor_confirmed_at !== null,
         ];
     }
 }

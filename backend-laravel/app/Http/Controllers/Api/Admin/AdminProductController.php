@@ -26,7 +26,10 @@ class AdminProductController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->orderBy('priority')->paginate(20));
+        $paginated = $query->orderBy('priority')->paginate(20);
+        $paginated->getCollection()->transform(fn($p) => $this->format($p));
+
+        return response()->json($paginated);
     }
 
     public function store(Request $request): JsonResponse

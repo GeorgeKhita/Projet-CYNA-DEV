@@ -7,7 +7,9 @@ interface User {
   last_name: string;
   email: string;
   company?: string;
+  siren?: string;
   role: 'user' | 'admin';
+  two_factor_enabled?: boolean;
 }
 
 interface AuthContextType {
@@ -17,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -51,6 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  function updateUser(patch: Partial<User>) {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...patch };
+      localStorage.setItem('cyna_user', JSON.stringify(updated));
+      return updated;
+    });
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -59,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       login,
       logout,
+      updateUser,
     }}>
       {children}
     </AuthContext.Provider>
