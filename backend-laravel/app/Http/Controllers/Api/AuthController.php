@@ -29,6 +29,7 @@ class AuthController extends Controller
             'email'      => 'required|email|unique:users,email',
             'password'   => 'required|string|min:8|confirmed',
             'company'    => 'nullable|string|max:150',
+            'siren'      => 'nullable|string|size:9|regex:/^[0-9]{9}$/',
         ], [
             'first_name.required' => 'Le prénom est obligatoire.',
             'last_name.required'  => 'Le nom est obligatoire.',
@@ -38,6 +39,8 @@ class AuthController extends Controller
             'password.required'   => 'Le mot de passe est obligatoire.',
             'password.min'        => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed'  => 'Les mots de passe ne correspondent pas.',
+            'siren.size'          => 'Le SIREN doit contenir exactement 9 chiffres.',
+            'siren.regex'         => 'Le SIREN ne doit contenir que des chiffres.',
         ]);
 
         $user = User::create([
@@ -46,6 +49,7 @@ class AuthController extends Controller
             'email'      => $data['email'],
             'password'   => Hash::make($data['password']),
             'company'    => $data['company'] ?? null,
+            'siren'      => $data['siren'] ?? null,
             'role'       => 'user',
         ]);
 
@@ -439,6 +443,7 @@ class AuthController extends Controller
             'last_name'  => $user->last_name,
             'email'      => $user->email,
             'company'    => $user->company,
+            'siren'      => $user->siren,
             'role'       => $user->role,
         ];
     }

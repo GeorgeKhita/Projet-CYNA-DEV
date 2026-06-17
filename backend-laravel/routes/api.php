@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PaymentController;
@@ -53,6 +54,9 @@ Route::get('/carousel', function () {
         \App\Models\CarouselSlide::where('active', true)->orderBy('position')->get()
     );
 });
+
+// Recherche entreprises (proxy Sirene / data.gouv.fr)
+Route::get('/companies/search', [CompanyController::class, 'search']);
 
 // Formulaire de contact
 Route::post('/contact', [ContactController::class, 'send']);

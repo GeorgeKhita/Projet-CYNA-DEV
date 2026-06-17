@@ -1,18 +1,97 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { User, Mail, Lock, Info, Building } from 'lucide-react';
+import { User, Mail, Lock, Info, Building, Search, MapPin, CheckCircle } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+
+interface CompanySuggestion {
+  siren: string;
+  label: string;
+  city: string;
+  postal_code: string;
+  siret: string | null;
+}
 
 export function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ first_name: '', last_name: '', company: '', email: '', password: '', password_confirmation: '' });
-  const [error, setError] = useState('');
+
+  const [form, setForm] = useState({
+    first_name: '',
+    last_name: '',
+    company: '',
+    siren: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+  });
+  const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
+  // ── Autocomplete entreprise ──────────────────────────────────────────────
+  const [companyQuery, setCompanyQuery]     = useState('');
+  const [suggestions, setSuggestions]       = useState<CompanySuggestion[]>([]);
+  const [showDropdown, setShowDropdown]     = useState(false);
+  const [searchLoading, setSearchLoading]   = useState(false);
+  const [companyConfirmed, setCompanyConfirmed] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fermer le dropdown si clic en dehors
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounce de la recherche
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (companyQuery.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const results = await api.get<CompanySuggestion[]>(
+          `/companies/search?q=${encodeURIComponent(companyQuery)}`
+        );
+        setSuggestions(results);
+        setShowDropdown(results.length > 0);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+  }, [companyQuery]);
+
+  function handleCompanyInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setCompanyQuery(val);
+    setCompanyConfirmed(false);
+    setForm(f => ({ ...f, company: val, siren: '' }));
+  }
+
+  function selectSuggestion(s: CompanySuggestion) {
+    setForm(f => ({ ...f, company: s.label, siren: s.siren }));
+    setCompanyQuery(s.label);
+    setCompanyConfirmed(true);
+    setShowDropdown(false);
+    setSuggestions([]);
+  }
+
   function set(field: string) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [field]: e.target.value }));
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm(f => ({ ...f, [field]: e.target.value }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -68,12 +147,81 @@ export function RegisterPage() {
               </div>
             </div>
 
+            {/* ── Autocomplete Entreprise ── */}
             <div>
-              <label className="block text-ink mb-2">Entreprise</label>
-              <div className="relative">
-                <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="text" value={form.company} onChange={set('company')} placeholder="Nom de votre entreprise" className="field field-icon" />
+              <label className="block text-ink mb-2">
+                Entreprise
+                <span className="ml-2 text-xs text-muted-foreground font-normal">— Recherche via le registre SIRENE</span>
+              </label>
+              <div className="relative" ref={dropdownRef}>
+                <div className="relative">
+                  {companyConfirmed
+                    ? <CheckCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />
+                    : <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  }
+                  <input
+                    type="text"
+                    value={companyQuery}
+                    onChange={handleCompanyInput}
+                    onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+                    placeholder="Rechercher votre entreprise..."
+                    autoComplete="off"
+                    className="field field-icon pr-10"
+                  />
+                  {searchLoading && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <div className="w-4 h-4 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  {!searchLoading && companyQuery.length >= 2 && (
+                    <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Dropdown résultats */}
+                {showDropdown && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0f2040] border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.siren}
+                        type="button"
+                        onClick={() => selectSuggestion(s)}
+                        className="w-full text-left px-4 py-3 hover:bg-[#1e3a5f] transition-colors border-b border-border/50 last:border-0"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-ink truncate">{s.label}</p>
+                            {(s.city || s.postal_code) && (
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-3 h-3 flex-shrink-0" />
+                                {[s.postal_code, s.city].filter(Boolean).join(' ')}
+                              </p>
+                            )}
+                          </div>
+                          <span className="text-xs text-[#00B4D8] font-mono whitespace-nowrap mt-0.5">
+                            {s.siren}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Affichage SIREN sélectionné */}
+              {companyConfirmed && form.siren && (
+                <div className="mt-2 flex items-center gap-2 text-xs text-green-400">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span>Entreprise vérifiée — SIREN : <span className="font-mono font-semibold">{form.siren}</span></span>
+                </div>
+              )}
+
+              {/* Fallback saisie libre */}
+              {companyQuery.length >= 2 && !searchLoading && suggestions.length === 0 && !companyConfirmed && (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Aucune entreprise trouvée. Vous pouvez continuer avec ce nom.
+                </p>
+              )}
             </div>
 
             <div>

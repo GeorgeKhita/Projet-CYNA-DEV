@@ -17,6 +17,7 @@ class User extends Authenticatable
         'email',
         'password',
         'company',
+        'siren',
         'role',
         'is_active',
         'two_factor_enabled',
