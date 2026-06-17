@@ -8,6 +8,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://projet-cyna-dev-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
   ]
 }
