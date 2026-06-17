@@ -118,9 +118,9 @@ describe('annulation', () => {
     const cancelBtns = screen.getAllByRole('button', { name: /annuler/i });
     fireEvent.click(cancelBtns[0]);
 
-    // L'abonnement change de statut → passe dans la section "Abonnements annulés"
+    // L'abonnement change de statut → passe dans la section "Abonnements inactifs"
     await waitFor(() => {
-      expect(screen.getByText(/abonnements annulés/i)).toBeInTheDocument();
+      expect(screen.getByText(/abonnements inactifs/i)).toBeInTheDocument();
     });
   });
 });

@@ -75,7 +75,7 @@ describe('parcours : dashboard', () => {
 describe('parcours : annulation abonnement', () => {
   beforeEach(() => setAuthUser(mockUser));
 
-  it('annuler un abonnement actif → le déplace dans "Abonnements annulés"', async () => {
+  it('annuler un abonnement actif → le déplace dans "Abonnements inactifs"', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockActiveSubs);
     vi.spyOn(clientModule.api, 'patch').mockResolvedValue({});
 
@@ -86,9 +86,9 @@ describe('parcours : annulation abonnement', () => {
     const cancelBtns = screen.getAllByRole('button', { name: /annuler/i });
     fireEvent.click(cancelBtns[0]);
 
-    // L'abonnement passe en annulé → section "Abonnements annulés" apparaît
+    // L'abonnement passe en annulé → section "Abonnements inactifs" apparaît
     await waitFor(() => {
-      expect(screen.getByText(/abonnements annulés/i)).toBeInTheDocument();
+      expect(screen.getByText(/abonnements inactifs/i)).toBeInTheDocument();
     });
   });
 

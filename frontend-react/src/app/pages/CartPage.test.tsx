@@ -60,9 +60,9 @@ describe('panier avec items', () => {
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
-  it('affiche le total mensuel', () => {
+  it('affiche le total TTC', () => {
     renderWithProviders(<CartPage />);
-    expect(screen.getByText(/total mensuel/i)).toBeInTheDocument();
+    expect(screen.getByText(/total ttc/i)).toBeInTheDocument();
   });
 
   it('affiche le lien Passer à la caisse', () => {
@@ -117,6 +117,7 @@ describe('plusieurs items', () => {
   it('affiche Annuel pour la durée annual', () => {
     addToCart(item2);
     renderWithProviders(<CartPage />);
-    expect(screen.getByText(/annuel/i)).toBeInTheDocument();
+    // "Annuel" apparaît à la fois sur la ligne produit et dans le récapitulatif
+    expect(screen.getAllByText(/annuel/i).length).toBeGreaterThan(0);
   });
 });
