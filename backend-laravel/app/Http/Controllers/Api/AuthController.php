@@ -11,6 +11,7 @@ use BaconQrCode\Writer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -28,37 +29,55 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:100',
             'last_name'  => 'required|string|max:150',
             'email'      => 'required|email|unique:users,email',
-            'password'   => 'required|string|min:8|confirmed',
+            'password'   => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
             'company'    => 'nullable|string|max:150',
             'siren'      => 'nullable|string|size:9|regex:/^[0-9]{9}$/',
         ], [
-            'first_name.required' => 'Le prénom est obligatoire.',
-            'last_name.required'  => 'Le nom est obligatoire.',
-            'email.required'      => 'L\'email est obligatoire.',
-            'email.email'         => 'L\'adresse email n\'est pas valide.',
-            'email.unique'        => 'Cette adresse email est déjà utilisée.',
-            'password.required'   => 'Le mot de passe est obligatoire.',
-            'password.min'        => 'Le mot de passe doit contenir au moins 8 caractères.',
-            'password.confirmed'  => 'Les mots de passe ne correspondent pas.',
-            'siren.size'          => 'Le SIREN doit contenir exactement 9 chiffres.',
-            'siren.regex'         => 'Le SIREN ne doit contenir que des chiffres.',
+            'first_name.required'  => 'Le prénom est obligatoire.',
+            'last_name.required'   => 'Le nom est obligatoire.',
+            'email.required'       => 'L\'email est obligatoire.',
+            'email.email'          => 'L\'adresse email n\'est pas valide.',
+            'email.unique'         => 'Cette adresse email est déjà utilisée.',
+            'password.required'    => 'Le mot de passe est obligatoire.',
+            'password.confirmed'   => 'Les mots de passe ne correspondent pas.',
+            'siren.size'           => 'Le SIREN doit contenir exactement 9 chiffres.',
+            'siren.regex'          => 'Le SIREN ne doit contenir que des chiffres.',
         ]);
+
+        $verificationToken = Str::random(64);
 
         $user = User::create([
-            'first_name' => $data['first_name'],
-            'last_name'  => $data['last_name'],
-            'email'      => $data['email'],
-            'password'   => Hash::make($data['password']),
-            'company'    => $data['company'] ?? null,
-            'siren'      => $data['siren'] ?? null,
-            'role'       => 'user',
+            'first_name'                => $data['first_name'],
+            'last_name'                 => $data['last_name'],
+            'email'                     => $data['email'],
+            'password'                  => Hash::make($data['password']),
+            'company'                   => $data['company'] ?? null,
+            'siren'                     => $data['siren'] ?? null,
+            'role'                      => 'user',
+            'is_email_verified'         => false,
+            'is_active'                 => false,
+            'email_verification_token'  => $verificationToken,
         ]);
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $verifyUrl = rtrim(config('app.frontend_url', 'http://localhost:5173'), '/')
+            . '/verifier-email?token=' . $verificationToken
+            . '&email=' . urlencode($user->email);
+
+        Mail::send([], [], function ($message) use ($user, $verifyUrl) {
+            $message->to($user->email)
+                ->subject('Confirmez votre adresse email — CYNA')
+                ->html(
+                    "<p>Bonjour {$user->first_name},</p>"
+                    . "<p>Merci de vous être inscrit sur CYNA. Cliquez sur le lien ci-dessous pour activer votre compte :</p>"
+                    . "<p><a href=\"{$verifyUrl}\">Confirmer mon adresse email</a></p>"
+                    . "<p>Ce lien expire dans 24 heures.</p>"
+                    . "<p>Si vous n'avez pas créé de compte, ignorez cet email.</p>"
+                );
+        });
 
         return response()->json([
-            'user'  => $this->formatUser($user),
-            'token' => $token,
+            'requires_verification' => true,
+            'message' => 'Compte créé. Vérifiez votre boîte email pour activer votre compte.',
         ], 201);
     }
 
@@ -86,7 +105,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        if (!$user || !Hash::check($data['password'], $user->password ?? '')) {
             RateLimiter::hit($key, 120);
 
             if (RateLimiter::tooManyAttempts($key, 3)) {
@@ -102,6 +121,13 @@ class AuthController extends Controller
 
         RateLimiter::clear($key);
         Cache::forget($lockKey);
+
+        if (!$user->is_email_verified) {
+            return response()->json([
+                'message'               => 'Veuillez confirmer votre adresse email avant de vous connecter.',
+                'requires_verification' => true,
+            ], 403);
+        }
 
         if (!$user->is_active) {
             return response()->json(['message' => 'Votre compte a été désactivé.'], 403);
@@ -199,6 +225,42 @@ class AuthController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'Votre compte a été supprimé définitivement conformément au RGPD.']);
+    }
+
+    // ── Vérification email ────────────────────────────────────────────────
+
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)
+            ->where('email_verification_token', $request->token)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Lien de vérification invalide ou expiré.'], 422);
+        }
+
+        if ($user->is_email_verified) {
+            return response()->json(['message' => 'Votre adresse email est déjà confirmée.']);
+        }
+
+        $user->update([
+            'is_email_verified'        => true,
+            'is_active'                => true,
+            'email_verification_token' => null,
+        ]);
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Email confirmé. Votre compte est maintenant actif.',
+            'user'    => $this->formatUser($user),
+            'token'   => $token,
+        ]);
     }
 
     // ── Mot de passe oublié ───────────────────────────────────────────────
