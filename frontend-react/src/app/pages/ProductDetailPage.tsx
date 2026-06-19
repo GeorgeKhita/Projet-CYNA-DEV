@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router';
 import { Shield, Laptop, Globe, Check, Star, PackageX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { addToCart, CATEGORY_COLORS } from '../../lib/cart';
 
@@ -27,6 +28,7 @@ const CATEGORY_BADGES: Record<string, string> = { SOC: 'Surveillance', EDR: 'Pro
 export function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,9 +58,9 @@ export function ProductDetailPage() {
     const maxStock = product.stock_remaining ?? product.max_capacity ?? undefined;
     const added = addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan, maxStock });
     if (added) {
-      setAddedMsg('Ajouté au panier !');
+      setAddedMsg(t('product.added_success'));
     } else {
-      setAddedMsg('Stock maximum atteint pour ce produit.');
+      setAddedMsg(t('product.stock_max'));
     }
     setTimeout(() => setAddedMsg(''), 3000);
   }
@@ -79,6 +81,7 @@ export function ProductDetailPage() {
   const features: string[] = Array.isArray(product.features)
     ? (typeof product.features[0] === 'string' ? product.features : Object.values(product.features))
     : [];
+  const savePercent = Math.round((1 - product.price_annual / product.price_monthly) * 100);
 
   return (
     <div className="min-h-screen bg-card py-12">
@@ -125,18 +128,18 @@ export function ProductDetailPage() {
             )}
 
             <div className="mb-6">
-              <label className="block text-ink font-semibold mb-3">Choisir un plan</label>
+              <label className="block text-ink font-semibold mb-3">{t('product.choose_plan')}</label>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setSelectedPlan('monthly')}
                   className={`p-4 rounded-xl border-2 transition-all text-left ${selectedPlan === 'monthly' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-[#CBD3DF]'}`}>
-                  <div className="text-ink font-semibold">Mensuel</div>
-                  <div className="text-sm text-muted-foreground">Facturation mensuelle</div>
+                  <div className="text-ink font-semibold">{t('product.monthly')}</div>
+                  <div className="text-sm text-muted-foreground">{t('product.monthly_billing')}</div>
                 </button>
                 <button onClick={() => setSelectedPlan('annual')}
                   className={`p-4 rounded-xl border-2 transition-all text-left relative ${selectedPlan === 'annual' ? 'border-[#00B4D8] bg-[#00B4D8]/8' : 'border-border bg-card hover:border-[#CBD3DF]'}`}>
-                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-{Math.round((1 - product.price_annual / product.price_monthly) * 100)}%</div>
-                  <div className="text-ink font-semibold">Annuel</div>
-                  <div className="text-sm text-muted-foreground">Économisez {Math.round((1 - product.price_annual / product.price_monthly) * 100)}%</div>
+                  <div className="absolute -top-2 -right-2 bg-[#10B981] text-white text-xs font-bold px-2 py-1 rounded-full">-{savePercent}%</div>
+                  <div className="text-ink font-semibold">{t('product.annual')}</div>
+                  <div className="text-sm text-muted-foreground">{t('product.save_percent', { percent: savePercent })}</div>
                 </button>
               </div>
             </div>
@@ -144,25 +147,26 @@ export function ProductDetailPage() {
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-bold text-ink">{currentPrice?.toLocaleString('fr-FR')}€</span>
-                <span className="text-xl text-muted-foreground">/mois</span>
+                <span className="text-xl text-muted-foreground">{t('product.per_month')}</span>
               </div>
               {selectedPlan === 'annual' && product.price_annual && (
-                <p className="text-sm text-muted-foreground mt-2">Soit {(product.price_annual * 12).toLocaleString('fr-FR')}€ facturés annuellement</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {t('product.annual_billing', { price: (product.price_annual * 12).toLocaleString('fr-FR') })}
+                </p>
               )}
             </div>
 
-            {/* Indisponibilité (sans révéler le stock restant) */}
             {(product.in_stock === false || product.stock_remaining === 0) && (
               <div className="mb-4">
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-bg-subtle border border-border rounded-xl text-muted-foreground text-sm font-semibold">
                   <PackageX className="w-4 h-4" />
-                  Temporairement indisponible
+                  {t('product.unavailable')}
                 </div>
               </div>
             )}
 
             {addedMsg && (
-              <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-semibold border ${addedMsg.includes('maximum') ? 'bg-red-500/10 border-red-500/25 text-red-500' : 'bg-[#10B981]/12 border-[#10B981]/35 text-[#10B981]'}`}>
+              <div className={`mb-4 px-4 py-2 rounded-xl text-sm font-semibold border ${addedMsg === t('product.stock_max') ? 'bg-red-500/10 border-red-500/25 text-red-500' : 'bg-[#10B981]/12 border-[#10B981]/35 text-[#10B981]'}`}>
                 {addedMsg}
               </div>
             )}
@@ -170,24 +174,23 @@ export function ProductDetailPage() {
             <div className="flex gap-3">
               {product.in_stock === false || product.stock_remaining === 0 ? (
                 <button disabled className="btn btn-ghost btn-lg flex-1" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-                  Temporairement indisponible
+                  {t('product.unavailable')}
                 </button>
               ) : (
                 <button onClick={handleAddToCart} className="btn btn-primary btn-lg flex-1">
-                  Ajouter au panier
+                  {t('product.add_to_cart')}
                 </button>
               )}
               <Link to="/panier" className="btn btn-outline btn-lg flex-1">
-                Voir le panier
+                {t('product.view_cart')}
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Produits similaires */}
         {related.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-ink mb-6">Services similaires</h2>
+            <h2 className="text-2xl font-bold text-ink mb-6">{t('product.related')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map(sim => {
                 const simColor = CATEGORY_COLORS[sim.category] ?? '#00B4D8';
@@ -205,7 +208,7 @@ export function ProductDetailPage() {
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-ink">
-                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-muted-foreground">/mois</span>
+                      {sim.price_monthly?.toLocaleString('fr-FR')}€<span className="text-sm text-muted-foreground">{t('product.per_month')}</span>
                     </div>
                   </Link>
                 );

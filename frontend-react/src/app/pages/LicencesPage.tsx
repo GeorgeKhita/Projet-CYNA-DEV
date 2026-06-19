@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { Key, Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -17,6 +18,7 @@ interface License {
 export function LicencesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
   const [licenses, setLicenses]   = useState<License[]>([]);
   const [loading, setLoading]     = useState(true);
   const [copied, setCopied]       = useState<number | null>(null);
@@ -46,19 +48,23 @@ export function LicencesPage() {
 
           <div className="lg:col-span-3 space-y-6">
             <div>
-              <h1 className="text-4xl font-bold text-ink mb-1">Mes licences</h1>
-              <p className="text-muted-foreground">{licenses.length} clé{licenses.length !== 1 ? 's' : ''} de licence</p>
+              <h1 className="text-4xl font-bold text-ink mb-1">{t('licenses.title')}</h1>
+              <p className="text-muted-foreground">
+                {licenses.length === 1
+                  ? t('licenses.subtitle_singular', { count: licenses.length })
+                  : t('licenses.subtitle_plural', { count: licenses.length })}
+              </p>
             </div>
 
             {loading ? (
               <div className="flex items-center gap-3 text-muted-foreground py-8">
-                <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /> Chargement...
+                <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /> {t('licenses.loading')}
               </div>
             ) : licenses.length === 0 ? (
               <div className="text-center py-16 cyna-card">
                 <Key className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Aucune licence pour le moment.</p>
-                <p className="text-sm text-muted-foreground mt-2">Les clés de licence apparaissent ici après validation de votre commande.</p>
+                <p className="text-muted-foreground">{t('licenses.no_licenses')}</p>
+                <p className="text-sm text-muted-foreground mt-2">{t('licenses.no_licenses_desc')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -69,7 +75,7 @@ export function LicencesPage() {
                         <div className="flex items-center gap-2 mb-2">
                           <Key className="w-4 h-4 text-[#00B4D8]" />
                           <span className="font-bold text-ink">{lic.product ?? `Produit #${lic.order_id}`}</span>
-                          <span className="text-xs text-muted-foreground">— Commande #{lic.order_id}</span>
+                          <span className="text-xs text-muted-foreground">— {t('licenses.order')} #{lic.order_id}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <code className="font-mono text-base font-bold tracking-widest text-[#00B4D8] bg-[#00B4D8]/8 border border-[#00B4D8]/20 px-3 py-1.5 rounded-lg select-all">
@@ -78,7 +84,7 @@ export function LicencesPage() {
                           <button
                             onClick={() => handleCopy(lic.id, lic.license_key)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-bg-subtle hover:bg-bg-muted transition-colors"
-                            title="Copier la clé">
+                            title={t('licenses.copy')}>
                             {copied === lic.id
                               ? <Check className="w-4 h-4 text-[#10B981]" />
                               : <Copy className="w-4 h-4 text-muted-foreground" />}
@@ -86,9 +92,9 @@ export function LicencesPage() {
                         </div>
                       </div>
                       <div className="text-right text-xs text-muted-foreground space-y-0.5">
-                        <div>Générée le {new Date(lic.created_at).toLocaleDateString('fr-FR')}</div>
+                        <div>{t('licenses.generated', { date: new Date(lic.created_at).toLocaleDateString() })}</div>
                         {lic.activated_at && (
-                          <div>Activée le {new Date(lic.activated_at).toLocaleDateString('fr-FR')}</div>
+                          <div>{t('licenses.activated', { date: new Date(lic.activated_at).toLocaleDateString() })}</div>
                         )}
                       </div>
                     </div>

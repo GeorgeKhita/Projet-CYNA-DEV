@@ -1,11 +1,13 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Check, Mail, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 export function CheckoutIdentificationPage() {
   const { isAuthenticated, login } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,9 +19,9 @@ export function CheckoutIdentificationPage() {
   }, [isAuthenticated]);
 
   const steps = [
-    { id: 1, name: 'Identification', active: true,  completed: false },
-    { id: 2, name: 'Paiement',       active: false, completed: false },
-    { id: 3, name: 'Confirmation',   active: false, completed: false },
+    { id: 1, name: t('checkout.step_identification'), active: true,  completed: false },
+    { id: 2, name: t('checkout.step_payment'),        active: false, completed: false },
+    { id: 3, name: t('checkout.step_confirmation'),   active: false, completed: false },
   ];
 
   async function handleSubmit(e: FormEvent) {
@@ -31,7 +33,7 @@ export function CheckoutIdentificationPage() {
       login(data.token, data.user);
       navigate('/checkout/paiement');
     } catch (err: any) {
-      setError(err.message || 'Email ou mot de passe incorrect.');
+      setError(err.message || t('checkout.error_default'));
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,6 @@ export function CheckoutIdentificationPage() {
   return (
     <div className="min-h-screen bg-card py-12">
       <div className="max-w-3xl mx-auto px-6">
-        {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
@@ -64,8 +65,8 @@ export function CheckoutIdentificationPage() {
         </div>
 
         <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
-          <h1 className="text-3xl font-bold text-ink mb-2">Identification</h1>
-          <p className="text-muted-foreground mb-8">Connectez-vous pour finaliser votre commande</p>
+          <h1 className="text-3xl font-bold text-ink mb-2">{t('checkout.identification_title')}</h1>
+          <p className="text-muted-foreground mb-8">{t('checkout.identification_subtitle')}</p>
 
           {error && (
             <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
@@ -73,7 +74,7 @@ export function CheckoutIdentificationPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-ink mb-2">Email</label>
+              <label className="block text-ink mb-2">{t('checkout.email')}</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
@@ -81,7 +82,7 @@ export function CheckoutIdentificationPage() {
               </div>
             </div>
             <div>
-              <label className="block text-ink mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">{t('checkout.password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
@@ -89,13 +90,13 @@ export function CheckoutIdentificationPage() {
               </div>
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
-              {loading ? 'Connexion...' : 'Continuer vers le paiement'}
+              {loading ? t('checkout.loading') : t('checkout.continue')}
             </button>
           </form>
 
           <div className="mt-6 flex items-center justify-between text-sm">
-            <Link to="/inscription" className="text-primary hover:underline font-semibold">Pas de compte ? S'inscrire</Link>
-            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-primary transition-colors">Mot de passe oublié ?</Link>
+            <Link to="/inscription" className="text-primary hover:underline font-semibold">{t('checkout.no_account')}</Link>
+            <Link to="/mot-de-passe-oublie" className="text-muted-foreground hover:text-primary transition-colors">{t('checkout.forgot_password')}</Link>
           </div>
         </div>
       </div>

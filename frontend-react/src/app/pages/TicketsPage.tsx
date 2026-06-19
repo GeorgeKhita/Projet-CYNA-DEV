@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { LifeBuoy, Plus, Send, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -11,20 +12,17 @@ interface Ticket {
   messages_count: number; created_at: string; messages?: TicketMessage[];
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  open:        { label: 'Ouvert',      color: '#00B4D8' },
-  in_progress: { label: 'En cours',    color: '#F59E0B' },
-  resolved:    { label: 'Résolu',      color: '#10B981' },
-  closed:      { label: 'Fermé',       color: '#64748b' },
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Faible', normal: 'Normal', high: 'Élevé', urgent: 'Urgent',
+const STATUS_COLORS: Record<string, string> = {
+  open:        '#00B4D8',
+  in_progress: '#F59E0B',
+  resolved:    '#10B981',
+  closed:      '#64748b',
 };
 
 export function TicketsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
   const [tickets, setTickets]       = useState<Ticket[]>([]);
   const [loading, setLoading]       = useState(true);
   const [openId, setOpenId]         = useState<number | null>(null);
@@ -34,6 +32,13 @@ export function TicketsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ subject: '', message: '', priority: 'normal' });
   const [creating, setCreating]     = useState(false);
+
+  const priorityOptions = [
+    { value: 'low',    label: t('support.priority_low') },
+    { value: 'normal', label: t('support.priority_normal') },
+    { value: 'high',   label: t('support.priority_high') },
+    { value: 'urgent', label: t('support.priority_urgent') },
+  ];
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -69,7 +74,7 @@ export function TicketsPage() {
     setCreating(true);
     try {
       const ticket = await api.post<Ticket>('/tickets', form);
-      setTickets(t => [{ ...ticket, messages_count: 1 }, ...t]);
+      setTickets(prev => [{ ...ticket, messages_count: 1 }, ...prev]);
       setShowCreate(false);
       setForm({ subject: '', message: '', priority: 'normal' });
     } catch { alert('Erreur lors de la création.'); }
@@ -88,54 +93,60 @@ export function TicketsPage() {
           <div className="lg:col-span-3 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-ink mb-1">Support</h1>
-                <p className="text-muted-foreground">{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</p>
+                <h1 className="text-4xl font-bold text-ink mb-1">{t('support.title')}</h1>
+                <p className="text-muted-foreground">
+                  {tickets.length === 1
+                    ? t('support.subtitle_singular', { count: tickets.length })
+                    : t('support.subtitle_plural', { count: tickets.length })}
+                </p>
               </div>
               <button onClick={() => setShowCreate(v => !v)} className="btn btn-primary">
-                <Plus className="w-4 h-4" /> Nouveau ticket
+                <Plus className="w-4 h-4" /> {t('support.new_ticket')}
               </button>
             </div>
 
             {showCreate && (
               <div className="cyna-card p-6 space-y-4">
-                <h2 className="text-xl font-bold text-ink">Créer un ticket</h2>
+                <h2 className="text-xl font-bold text-ink">{t('support.create_ticket')}</h2>
                 <div>
-                  <label className="block text-ink mb-1 text-sm">Sujet</label>
-                  <input className="field" value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} placeholder="Décrivez brièvement votre problème" />
+                  <label className="block text-ink mb-1 text-sm">{t('support.subject_label')}</label>
+                  <input className="field" value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} placeholder={t('support.subject_placeholder')} />
                 </div>
                 <div>
-                  <label className="block text-ink mb-1 text-sm">Priorité</label>
+                  <label className="block text-ink mb-1 text-sm">{t('support.priority_label')}</label>
                   <select className="field" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
-                    {Object.entries(PRIORITY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    {priorityOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-ink mb-1 text-sm">Message</label>
-                  <textarea className="field resize-none" rows={4} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="Décrivez votre problème en détail..." />
+                  <label className="block text-ink mb-1 text-sm">{t('support.message_label')}</label>
+                  <textarea className="field resize-none" rows={4} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder={t('support.message_placeholder')} />
                 </div>
                 <div className="flex gap-3">
                   <button onClick={handleCreate} disabled={creating} className="btn btn-primary">
-                    <Send className="w-4 h-4" /> {creating ? 'Envoi...' : 'Envoyer'}
+                    <Send className="w-4 h-4" /> {creating ? t('support.sending') : t('support.send')}
                   </button>
-                  <button onClick={() => setShowCreate(false)} className="btn btn-ghost">Annuler</button>
+                  <button onClick={() => setShowCreate(false)} className="btn btn-ghost">{t('support.cancel')}</button>
                 </div>
               </div>
             )}
 
             {loading ? (
               <div className="flex items-center gap-3 text-muted-foreground py-8">
-                <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /> Chargement...
+                <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /> {t('support.loading')}
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-16 cyna-card">
                 <LifeBuoy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Aucun ticket pour le moment.</p>
-                <button onClick={() => setShowCreate(true)} className="btn btn-primary">Créer mon premier ticket</button>
+                <p className="text-muted-foreground mb-4">{t('support.no_tickets')}</p>
+                <button onClick={() => setShowCreate(true)} className="btn btn-primary">{t('support.create_first')}</button>
               </div>
             ) : (
               <div className="space-y-3">
                 {tickets.map(ticket => {
-                  const st = STATUS_LABELS[ticket.status] ?? { label: ticket.status, color: '#64748b' };
+                  const color = STATUS_COLORS[ticket.status] ?? '#64748b';
+                  const statusLabel = t(`support.status_${ticket.status}`) || ticket.status;
+                  const priorityLabel = priorityOptions.find(o => o.value === ticket.priority)?.label ?? ticket.priority;
                   const isOpen = openId === ticket.id;
                   return (
                     <div key={ticket.id} className="cyna-card overflow-hidden">
@@ -143,12 +154,12 @@ export function TicketsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 flex-wrap mb-1">
                             <span className="font-bold text-ink">#{ticket.id} — {ticket.subject}</span>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold border" style={{ color: st.color, borderColor: `${st.color}40`, backgroundColor: `${st.color}12` }}>{st.label}</span>
-                            <span className="text-xs text-muted-foreground">{PRIORITY_LABELS[ticket.priority]}</span>
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold border" style={{ color, borderColor: `${color}40`, backgroundColor: `${color}12` }}>{statusLabel}</span>
+                            <span className="text-xs text-muted-foreground">{priorityLabel}</span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Clock className="w-3.5 h-3.5" />
-                            {new Date(ticket.created_at).toLocaleDateString('fr-FR')} — {ticket.messages_count} message{ticket.messages_count !== 1 ? 's' : ''}
+                            {new Date(ticket.created_at).toLocaleDateString()} — {ticket.messages_count} {ticket.messages_count === 1 ? t('support.subtitle_singular', { count: 1 }).replace('1 ', '') : t('support.subtitle_plural', { count: ticket.messages_count }).replace(`${ticket.messages_count} `, '')}
                           </div>
                         </div>
                         {isOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />}
@@ -162,16 +173,16 @@ export function TicketsPage() {
                                 {detail.messages.map(msg => (
                                   <div key={msg.id} className={`flex ${msg.from === 'admin' ? 'justify-start' : 'justify-end'}`}>
                                     <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm ${msg.from === 'admin' ? 'bg-bg-subtle border border-border text-ink' : 'bg-[#00B4D8]/12 border border-[#00B4D8]/25 text-ink'}`}>
-                                      <div className="font-semibold text-xs mb-1 text-muted-foreground">{msg.from === 'admin' ? 'Support CYNA' : 'Vous'}</div>
+                                      <div className="font-semibold text-xs mb-1 text-muted-foreground">{msg.from === 'admin' ? t('support.admin_label') : t('support.you_label')}</div>
                                       <p className="whitespace-pre-wrap">{msg.message}</p>
-                                      <div className="text-xs text-muted-foreground mt-1">{new Date(msg.created_at).toLocaleString('fr-FR')}</div>
+                                      <div className="text-xs text-muted-foreground mt-1">{new Date(msg.created_at).toLocaleString()}</div>
                                     </div>
                                   </div>
                                 ))}
                               </div>
                               {!['resolved', 'closed'].includes(ticket.status) && (
                                 <div className="flex gap-3 pt-2">
-                                  <textarea className="field resize-none flex-1" rows={2} value={replyMsg} onChange={e => setReplyMsg(e.target.value)} placeholder="Votre réponse..." />
+                                  <textarea className="field resize-none flex-1" rows={2} value={replyMsg} onChange={e => setReplyMsg(e.target.value)} placeholder={t('support.reply_placeholder')} />
                                   <button onClick={() => handleReply(ticket.id)} disabled={sending || !replyMsg.trim()} className="btn btn-primary self-end">
                                     <Send className="w-4 h-4" />
                                   </button>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { FileText, CheckCircle, ArrowLeft, Send, Building2, User, Mail, Phone, MessageSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getCart, clearCart, CartItem } from '../../lib/cart';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,6 +10,7 @@ const SEUIL_HT = 5000;
 
 export function DevisPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isAuthenticated, loading: authLoading, user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [sent, setSent] = useState(false);
@@ -51,7 +53,7 @@ export function DevisPage() {
 
   function buildMessage() {
     const lignes = cartItems
-      .map(i => `- ${i.name} (${i.duration === 'monthly' ? 'Mensuel' : 'Annuel'}) × ${i.quantity} = ${(i.price * i.quantity).toLocaleString('fr-FR')}€ HT`)
+      .map(i => `- ${i.name} (${i.duration === 'monthly' ? t('quote.monthly') : t('quote.annual')}) × ${i.quantity} = ${(i.price * i.quantity).toLocaleString('fr-FR')}€ HT`)
       .join('\n');
 
     return (
@@ -83,7 +85,7 @@ export function DevisPage() {
       clearCart();
       setSent(true);
     } catch {
-      setError('Une erreur est survenue. Veuillez réessayer ou nous appeler directement.');
+      setError(t('quote.error_default'));
     } finally {
       setLoading(false);
     }
@@ -96,15 +98,13 @@ export function DevisPage() {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold text-ink mb-3">Demande envoyée !</h1>
-          <p className="text-muted-foreground mb-2">
-            Notre équipe commerciale a bien reçu votre demande de devis.
-          </p>
+          <h1 className="text-3xl font-bold text-ink mb-3">{t('quote.sent_title')}</h1>
+          <p className="text-muted-foreground mb-2">{t('quote.sent_desc1')}</p>
           <p className="text-muted-foreground mb-8">
-            Nous vous contacterons sous <strong>24 h ouvrées</strong> à l'adresse <strong>{form.email}</strong>.
+            {t('quote.sent_desc2')} <strong>{form.email}</strong>.
           </p>
           <Link to="/" className="btn btn-primary btn-lg">
-            Retour à l'accueil
+            {t('quote.back_home')}
           </Link>
         </div>
       </div>
@@ -115,21 +115,17 @@ export function DevisPage() {
     <div className="min-h-screen bg-card py-12">
       <div className="max-w-5xl mx-auto px-6">
 
-        {/* En-tête */}
         <div className="flex items-center gap-3 mb-2">
           <FileText className="w-8 h-8 text-[#00B4D8]" />
-          <h1 className="text-4xl font-bold text-ink">Demande de devis</h1>
+          <h1 className="text-4xl font-bold text-ink">{t('quote.title')}</h1>
         </div>
-        <p className="text-muted-foreground mb-10 ml-11">
-          Votre panier dépasse 5 000€ HT. Notre équipe commerciale vous prépare une offre sur-mesure.
-        </p>
+        <p className="text-muted-foreground mb-10 ml-11">{t('quote.subtitle')}</p>
 
         <div className="grid lg:grid-cols-5 gap-8">
 
-          {/* Récapitulatif panier */}
           <div className="lg:col-span-2">
             <div className="cyna-card p-6 sticky top-6">
-              <h2 className="text-lg font-bold text-ink mb-4">Récapitulatif</h2>
+              <h2 className="text-lg font-bold text-ink mb-4">{t('quote.summary')}</h2>
 
               <div className="space-y-3 mb-5 pb-5 border-b border-border">
                 {cartItems.map(item => (
@@ -137,7 +133,7 @@ export function DevisPage() {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-ink truncate">{item.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {item.duration === 'monthly' ? 'Mensuel' : 'Annuel'} × {item.quantity}
+                        {item.duration === 'monthly' ? t('quote.monthly') : t('quote.annual')} × {item.quantity}
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-ink flex-shrink-0">
@@ -149,17 +145,17 @@ export function DevisPage() {
 
               <div className="space-y-2 text-sm mb-4 pb-4 border-b border-border">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Sous-total HT</span>
+                  <span>{t('quote.subtotal_ht')}</span>
                   <span>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>TVA (20%)</span>
+                  <span>{t('quote.tva')}</span>
                   <span>{totalTVA.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-baseline">
-                <span className="font-bold text-ink">Total TTC</span>
+                <span className="font-bold text-ink">{t('quote.total_ttc')}</span>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-ink">
                     {totalTTC.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€
@@ -171,20 +167,19 @@ export function DevisPage() {
               </div>
 
               <Link to="/panier" className="flex items-center gap-1.5 mt-6 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Modifier le panier
+                <ArrowLeft className="w-4 h-4" /> {t('quote.edit_cart')}
               </Link>
             </div>
           </div>
 
-          {/* Formulaire */}
           <div className="lg:col-span-3">
             <form onSubmit={handleSubmit} className="cyna-card p-8 space-y-5">
-              <h2 className="text-lg font-bold text-ink">Vos coordonnées</h2>
+              <h2 className="text-lg font-bold text-ink">{t('quote.your_details')}</h2>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-ink mb-1.5">
-                    <User className="inline w-4 h-4 mr-1 text-muted-foreground" />Prénom *
+                    <User className="inline w-4 h-4 mr-1 text-muted-foreground" />{t('quote.first_name')} *
                   </label>
                   <input
                     type="text"
@@ -196,7 +191,7 @@ export function DevisPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-ink mb-1.5">Nom *</label>
+                  <label className="block text-sm font-medium text-ink mb-1.5">{t('quote.last_name')} *</label>
                   <input
                     type="text"
                     required
@@ -210,13 +205,13 @@ export function DevisPage() {
 
               <div>
                 <label className="block text-sm font-medium text-ink mb-1.5">
-                  <Building2 className="inline w-4 h-4 mr-1 text-muted-foreground" />Entreprise
+                  <Building2 className="inline w-4 h-4 mr-1 text-muted-foreground" />{t('quote.company')}
                 </label>
                 <input
                   type="text"
                   value={form.entreprise}
                   onChange={e => setForm(f => ({ ...f, entreprise: e.target.value }))}
-                  placeholder="ACME Corp (optionnel)"
+                  placeholder={t('quote.company_placeholder')}
                   className="input w-full"
                 />
               </div>
@@ -224,7 +219,7 @@ export function DevisPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-ink mb-1.5">
-                    <Mail className="inline w-4 h-4 mr-1 text-muted-foreground" />Email professionnel *
+                    <Mail className="inline w-4 h-4 mr-1 text-muted-foreground" />{t('quote.email')} *
                   </label>
                   <input
                     type="email"
@@ -237,13 +232,13 @@ export function DevisPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-ink mb-1.5">
-                    <Phone className="inline w-4 h-4 mr-1 text-muted-foreground" />Téléphone
+                    <Phone className="inline w-4 h-4 mr-1 text-muted-foreground" />{t('quote.phone')}
                   </label>
                   <input
                     type="tel"
                     value={form.telephone}
                     onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))}
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder={t('quote.phone_placeholder')}
                     className="input w-full"
                   />
                 </div>
@@ -251,13 +246,13 @@ export function DevisPage() {
 
               <div>
                 <label className="block text-sm font-medium text-ink mb-1.5">
-                  <MessageSquare className="inline w-4 h-4 mr-1 text-muted-foreground" />Informations complémentaires
+                  <MessageSquare className="inline w-4 h-4 mr-1 text-muted-foreground" />{t('quote.message')}
                 </label>
                 <textarea
                   rows={4}
                   value={form.message}
                   onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                  placeholder="Nombre d'utilisateurs, contraintes techniques, délais souhaités…"
+                  placeholder={t('quote.message_placeholder')}
                   className="input w-full resize-none"
                 />
               </div>
@@ -273,13 +268,13 @@ export function DevisPage() {
                 disabled={loading}
                 className="btn btn-primary btn-lg btn-block"
               >
-                {loading ? 'Envoi en cours…' : (
-                  <><Send className="w-5 h-5" /> Envoyer ma demande de devis</>
+                {loading ? t('quote.submitting') : (
+                  <><Send className="w-5 h-5" /> {t('quote.submit')}</>
                 )}
               </button>
 
               <p className="text-xs text-muted-foreground text-center">
-                Réponse sous 24 h ouvrées · Lun–Ven 9h–18h
+                {t('quote.response_time')}
               </p>
             </form>
           </div>
