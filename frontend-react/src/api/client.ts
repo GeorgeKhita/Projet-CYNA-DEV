@@ -12,8 +12,18 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+function getXsrfToken(): string | null {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+export async function initCsrf(): Promise<void> {
+  await fetch('/sanctum/csrf-cookie', { credentials: 'include' });
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
+  const token    = getToken();
+  const xsrfToken = getXsrfToken();
 
   const headers: Record<string, string> = {
     'Accept': 'application/json',
@@ -25,10 +35,17 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`/api${endpoint}`, { ...options, headers });
+  if (xsrfToken) {
+    headers['X-XSRF-TOKEN'] = xsrfToken;
+  }
+
+  const res = await fetch(`/api${endpoint}`, {
+    ...options,
+    headers,
+    credentials: 'include',
+  });
 
   if (!res.ok) {
-    // Token expiré ou invalide → déconnexion automatique (seulement si on avait un token)
     if (res.status === 401 && token) {
       localStorage.removeItem('cyna_token');
       localStorage.removeItem('cyna_user');
@@ -44,16 +61,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     throw new Error(err.message || `Erreur ${res.status}`);
   }
 
-  // 204 No Content
   if (res.status === 204) return undefined as T;
 
   return res.json();
 }
 
 export const api = {
-  get:    <T>(url: string)               => request<T>(url),
-  post:   <T>(url: string, data: unknown)  => request<T>(url, { method: 'POST',   body: JSON.stringify(data) }),
-  put:    <T>(url: string, data: unknown)  => request<T>(url, { method: 'PUT',    body: JSON.stringify(data) }),
-  patch:  <T>(url: string, data?: unknown) => request<T>(url, { method: 'PATCH',  body: data ? JSON.stringify(data) : undefined }),
+  get:    <T>(url: string)                => request<T>(url),
+  post:   <T>(url: string, data: unknown) => request<T>(url, { method: 'POST',   body: JSON.stringify(data) }),
+  put:    <T>(url: string, data: unknown) => request<T>(url, { method: 'PUT',    body: JSON.stringify(data) }),
+  patch:  <T>(url: string, data?: unknown) => request<T>(url, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
   delete: <T>(url: string, data?: unknown) => request<T>(url, { method: 'DELETE', body: data ? JSON.stringify(data) : undefined }),
 };

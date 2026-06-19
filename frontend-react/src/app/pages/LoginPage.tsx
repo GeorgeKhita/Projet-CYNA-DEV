@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
-import { api } from '../../api/client';
+import { api, initCsrf } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 export function LoginPage() {
@@ -19,6 +19,7 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
+      await initCsrf();
       const data = await api.post<any>('/auth/login', { email, password });
 
       if (data.requires_2fa) {

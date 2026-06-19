@@ -5,6 +5,10 @@
       "destination": "https://projet-cyna-dev-production.up.railway.app/api/:path*"
     },
     {
+      "source": "/sanctum/:path*",
+      "destination": "https://projet-cyna-dev-production.up.railway.app/sanctum/:path*"
+    },
+    {
       "source": "/((?!api).*)",
       "destination": "/index.html"
     }
