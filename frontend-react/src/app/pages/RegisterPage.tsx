@@ -15,6 +15,7 @@ interface CompanySuggestion {
 export function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [success, setSuccess] = useState(false);
 
   const [form, setForm] = useState({
     first_name: '',
@@ -103,14 +104,37 @@ export function RegisterPage() {
     }
     setLoading(true);
     try {
-      const data = await api.post<{ token: string; user: any }>('/auth/register', form);
-      login(data.token, data.user);
-      navigate('/espace-client');
+      await api.post<any>('/auth/register', form);
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la création du compte.');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-bg-subtle to-background flex items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md fade-up">
+          <div className="cyna-card p-8 shadow-[var(--shadow-lg)] text-center">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
+              <span className="text-2xl font-bold text-ink">CYNA</span>
+            </div>
+            <CheckCircle className="w-16 h-16 text-[#10B981] mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-ink mb-3">Vérifiez votre email</h1>
+            <p className="text-muted-foreground mb-6">
+              Un email de confirmation a été envoyé à <strong className="text-ink">{form.email}</strong>.<br />
+              Cliquez sur le lien dans l'email pour activer votre compte.
+            </p>
+            <Link to="/connexion" className="btn btn-primary btn-block">
+              Aller à la connexion
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

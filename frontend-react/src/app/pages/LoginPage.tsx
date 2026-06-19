@@ -34,7 +34,11 @@ export function LoginPage() {
         navigate(data.user?.role === 'admin' ? '/admin' : '/espace-client');
       }
     } catch (err: any) {
-      setError(err.message || 'Email ou mot de passe incorrect.');
+      if (err.message?.includes('confirmer votre adresse email')) {
+        setError('Votre compte n\'est pas encore activé. Vérifiez votre boîte email.');
+      } else {
+        setError(err.message || 'Email ou mot de passe incorrect.');
+      }
     } finally {
       setLoading(false);
     }
