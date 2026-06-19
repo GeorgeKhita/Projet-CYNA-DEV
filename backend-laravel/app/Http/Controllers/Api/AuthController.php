@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -73,11 +74,34 @@ class AuthController extends Controller
             'password.required' => 'Le mot de passe est obligatoire.',
         ]);
 
+        $key     = 'login:' . $request->ip() . '|' . $data['email'];
+        $lockKey = 'login_lock:' . $request->ip() . '|' . $data['email'];
+
+        if (Cache::has($lockKey)) {
+            $seconds = Cache::get($lockKey) - time();
+            return response()->json([
+                'message' => "Trop de tentatives. Réessayez dans {$seconds} secondes.",
+            ], 429);
+        }
+
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            RateLimiter::hit($key, 120);
+
+            if (RateLimiter::tooManyAttempts($key, 3)) {
+                Cache::put($lockKey, time() + 60, 60);
+                RateLimiter::clear($key);
+                return response()->json([
+                    'message' => 'Trop de tentatives. Réessayez dans 60 secondes.',
+                ], 429);
+            }
+
             return response()->json(['message' => 'Email ou mot de passe incorrect.'], 401);
         }
+
+        RateLimiter::clear($key);
+        Cache::forget($lockKey);
 
         if (!$user->is_active) {
             return response()->json(['message' => 'Votre compte a été désactivé.'], 403);

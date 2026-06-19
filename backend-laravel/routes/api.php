@@ -36,10 +36,10 @@ use App\Http\Controllers\Api\Admin\AdminContactController;
 // ── Routes publiques ─────────────────────────────────────────────────────
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login',    [AuthController::class, 'login']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
+    Route::post('/register',        [AuthController::class, 'register'])->middleware('throttle:auth-general');
+    Route::post('/login',           [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth-general');
+    Route::post('/reset-password',  [AuthController::class, 'resetPassword'])->middleware('throttle:auth-general');
 });
 
 // Produits + catégories publics

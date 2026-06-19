@@ -28,8 +28,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const res = await fetch(`/api${endpoint}`, { ...options, headers });
 
   if (!res.ok) {
-    // Token expiré ou invalide → déconnexion automatique
-    if (res.status === 401) {
+    // Token expiré ou invalide → déconnexion automatique (seulement si on avait un token)
+    if (res.status === 401 && token) {
       localStorage.removeItem('cyna_token');
       localStorage.removeItem('cyna_user');
       window.location.href = '/connexion';
