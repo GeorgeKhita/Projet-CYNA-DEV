@@ -22,7 +22,7 @@ const CATEGORY_TITLES: Record<string, string> = {
 };
 
 export function HomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categories, setCategories] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
@@ -51,7 +51,7 @@ export function HomePage() {
       setTopProducts(list.filter(p => p.status === 'available').slice(0, 3));
     }).catch(() => {});
     api.get<CarouselSlide[]>('/carousel').then(data => setSlides(Array.isArray(data) ? data : [])).catch(() => {});
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (slides.length <= 1) return;

@@ -36,7 +36,7 @@ function isAvailable(p: Product): boolean {
 }
 
 export function CatalogPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const [products, setProducts]   = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,7 +59,7 @@ export function CatalogPage() {
       })
       .catch(() => setError(t('catalog.error')))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, [i18n.language]);
 
   const activeCategoryData = useMemo(
     () => categories.find(c => c.name === selectedCategory) ?? null,

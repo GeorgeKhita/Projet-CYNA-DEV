@@ -28,7 +28,7 @@ const CATEGORY_BADGES: Record<string, string> = { SOC: 'Surveillance', EDR: 'Pro
 export function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ export function ProductDetailPage() {
       })
       .catch(() => navigate('/catalogue'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, i18n.language]);
 
   function handleAddToCart() {
     if (!product) return;

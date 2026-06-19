@@ -102,6 +102,9 @@ class ProductController extends Controller
 
     private function format(Product $p): array
     {
+        $lang  = request()->query('lang', request()->header('Accept-Language', 'fr'));
+        $useEn = str_starts_with((string) $lang, 'en');
+
         $maxCapacity  = $p->max_capacity;
         $activeCount  = (int) ($p->active_subscriptions_count ?? 0);
         $inStock      = $maxCapacity === null || $activeCount < $maxCapacity;
@@ -109,10 +112,10 @@ class ProductController extends Controller
 
         return [
             'id'               => $p->id,
-            'name'             => $p->name,
+            'name'             => ($useEn && $p->name_en) ? $p->name_en : $p->name,
             'slug'             => $p->slug,
-            'description'      => $p->description,
-            'features'         => $p->features ?? [],
+            'description'      => ($useEn && $p->description_en) ? $p->description_en : $p->description,
+            'features'         => ($useEn && $p->features_en) ? $p->features_en : ($p->features ?? []),
             'images'           => $p->images ?? [],
             'price_monthly'    => (float) $p->price_monthly,
             'price_annual'     => (float) $p->price_annual,
