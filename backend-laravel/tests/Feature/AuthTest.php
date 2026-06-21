@@ -21,10 +21,15 @@ class AuthTest extends TestCase
             'company'               => 'ACME Corp',
         ]);
 
+        // Depuis l'ajout de la vérification email, l'inscription ne renvoie plus
+        // de token directement : le compte est créé inactif en attente de validation.
         $response->assertStatus(201)
-            ->assertJsonStructure(['user', 'token']);
+            ->assertJsonPath('requires_verification', true);
 
-        $this->assertDatabaseHas('users', ['email' => 'jean@test.fr']);
+        $this->assertDatabaseHas('users', [
+            'email'             => 'jean@test.fr',
+            'is_email_verified' => false,
+        ]);
     }
 
     public function test_user_can_login(): void
