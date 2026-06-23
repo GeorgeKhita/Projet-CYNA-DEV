@@ -30,7 +30,7 @@ class AuthController extends Controller
             'last_name'  => 'required|string|max:150',
             'email'      => 'required|email|unique:users,email',
             'password'   => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
-            'company'    => 'nullable|string|max:150',
+            'company'    => 'required|string|max:150',
             'siren'      => 'nullable|string|size:9|regex:/^[0-9]{9}$/',
         ], [
             'first_name.required'  => 'Le prénom est obligatoire.',
@@ -40,6 +40,7 @@ class AuthController extends Controller
             'email.unique'         => 'Cette adresse email est déjà utilisée.',
             'password.required'    => 'Le mot de passe est obligatoire.',
             'password.confirmed'   => 'Les mots de passe ne correspondent pas.',
+            'company.required'     => 'L\'entreprise est obligatoire.',
             'siren.size'           => 'Le SIREN doit contenir exactement 9 chiffres.',
             'siren.regex'          => 'Le SIREN ne doit contenir que des chiffres.',
         ]);
