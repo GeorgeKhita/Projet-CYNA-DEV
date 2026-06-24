@@ -174,7 +174,7 @@ export function RegisterPage() {
             {/* ── Autocomplete Entreprise ── */}
             <div>
               <label className="block text-ink mb-2">
-                Entreprise
+                Entreprise <span className="text-destructive">*</span>
                 <span className="ml-2 text-xs text-muted-foreground font-normal">— Recherche via le registre SIRENE</span>
               </label>
               <div className="relative" ref={dropdownRef}>
@@ -190,6 +190,7 @@ export function RegisterPage() {
                     onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
                     placeholder="Rechercher votre entreprise..."
                     autoComplete="off"
+                    required
                     className="field field-icon pr-10"
                   />
                   {searchLoading && (

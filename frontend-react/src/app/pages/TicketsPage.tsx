@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { LifeBuoy, Plus, Send, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +24,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 export function TicketsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const location = useLocation();
   const [tickets, setTickets]       = useState<Ticket[]>([]);
   const [loading, setLoading]       = useState(true);
   const [openId, setOpenId]         = useState<number | null>(null);
@@ -76,7 +77,7 @@ export function TicketsPage() {
   }
 
   if (authLoading) return <div className="min-h-screen bg-card flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
-  if (!isAuthenticated) return <Navigate to="/connexion" replace />;
+  if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
 
   return (
     <div className="min-h-screen bg-card py-12">

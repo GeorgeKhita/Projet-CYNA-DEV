@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { Navigate, useNavigate, useLocation } from 'react-router';
 import { User, Mail, Building, Lock, Check, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,7 @@ import { DashboardSidebar } from '../components/DashboardSidebar';
 export function ParametresPage() {
   const { user, isAuthenticated, loading: authLoading, login, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ first_name: '', last_name: '', company: '', email: '' });
   const [pwd, setPwd] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [saving, setSaving] = useState(false);
@@ -34,7 +35,11 @@ export function ParametresPage() {
     try {
       const updated = await api.put<any>('/auth/me', form);
       login(localStorage.getItem('cyna_token')!, updated);
-      setSuccess('Profil mis à jour avec succès.');
+      if (updated.pending_email_sent) {
+        setSuccess(`Profil mis à jour. Un email de confirmation a été envoyé à ${updated.pending_email} pour valider votre nouvelle adresse.`);
+      } else {
+        setSuccess('Profil mis à jour avec succès.');
+      }
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -80,7 +85,7 @@ export function ParametresPage() {
   }
 
   if (authLoading) return <div className="min-h-screen bg-card flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
-  if (!isAuthenticated) return <Navigate to="/connexion" replace />;
+  if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
 
   return (
     <div className="min-h-screen bg-card py-12">

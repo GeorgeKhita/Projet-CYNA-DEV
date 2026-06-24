@@ -11,6 +11,7 @@ export function LoginPage() {
   const redirectTo = searchParams.get('redirect');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +20,7 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const data = await api.post<any>('/auth/login', { email, password });
+      const data = await api.post<any>('/auth/login', { email, password, remember_me: rememberMe });
 
       if (data.requires_2fa) {
         sessionStorage.setItem('2fa_pending_token', data.pending_token);
@@ -96,7 +97,7 @@ export function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-border-strong text-[#00B4D8]" />
+                <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-border-strong text-[#00B4D8]" />
                 Se souvenir de moi
               </label>
               <Link to="/mot-de-passe-oublie" className="text-primary hover:underline font-semibold">

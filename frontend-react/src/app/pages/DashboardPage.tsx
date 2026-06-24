@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import { CreditCard, Calendar, CheckCircle } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -17,6 +17,7 @@ interface Subscription {
 
 export function DashboardPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const location = useLocation();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -34,7 +35,7 @@ export function DashboardPage() {
     </div>
   );
 
-  if (!isAuthenticated) return <Navigate to="/connexion" replace />;
+  if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
 
   const activeSubs = subscriptions.filter(s => s.status === 'active');
   const monthlyTotal = activeSubs.reduce((sum, s) => sum + (s.price ?? 0), 0);

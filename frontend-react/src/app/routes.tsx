@@ -25,6 +25,8 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { AdminTwoFactorPage } from './pages/admin/AdminTwoFactorPage';
 import { TwoFactorVerifyPage } from './pages/TwoFactorVerifyPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
 import { TicketsPage } from './pages/TicketsPage';
 import { LicencesPage } from './pages/LicencesPage';
 import { CGUPage } from './pages/CGUPage';
@@ -55,6 +57,8 @@ export const router = createBrowserRouter([
       { path: 'connexion',                   Component: LoginPage },
       { path: 'verification-2fa',            Component: TwoFactorVerifyPage },
       { path: 'inscription',                 Component: RegisterPage },
+      { path: 'verifier-email',               Component: VerifyEmailPage },
+      { path: 'confirmer-changement-email',   Component: ConfirmEmailChangePage },
       { path: 'mot-de-passe-oublie',         Component: ForgotPasswordPage },
       { path: 'reinitialiser-mot-de-passe',  Component: ResetPasswordPage },
       { path: 'contact',                     Component: ContactPage },

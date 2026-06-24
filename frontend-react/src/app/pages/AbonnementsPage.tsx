@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { ShoppingBag, Calendar, AlertCircle, RefreshCw, Settings } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +26,7 @@ const RENEWABLE_STATUSES = ['cancelled', 'expired', 'past_due'];
 
 export function AbonnementsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const location = useLocation();
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading]       = useState(true);
   const [cancelling, setCancelling] = useState<number | null>(null);
@@ -66,7 +67,7 @@ export function AbonnementsPage() {
   }
 
   if (authLoading) return <div className="min-h-screen bg-card flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" /></div>;
-  if (!isAuthenticated) return <Navigate to="/connexion" replace />;
+  if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
 
   const active    = subs.filter(s => s.status === 'active');
   const inactive  = subs.filter(s => s.status !== 'active');
