@@ -25,12 +25,15 @@ class User extends Authenticatable
         'two_factor_confirmed_at',
         'is_email_verified',
         'email_verification_token',
+        'pending_email',
+        'pending_email_token',
     ];
 
     protected $hidden = [
         'password',
         'two_factor_secret',
         'email_verification_token',
+        'pending_email_token',
     ];
 
     protected $casts = [

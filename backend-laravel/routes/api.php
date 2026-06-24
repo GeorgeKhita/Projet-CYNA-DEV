@@ -40,7 +40,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login',           [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth-general');
     Route::post('/reset-password',  [AuthController::class, 'resetPassword'])->middleware('throttle:auth-general');
-    Route::get('/verify-email',     [AuthController::class, 'verifyEmail']);
+    Route::get('/verify-email',          [AuthController::class, 'verifyEmail']);
+    Route::get('/confirm-email-change',  [AuthController::class, 'confirmEmailChange']);
 });
 
 // Produits + catégories publics

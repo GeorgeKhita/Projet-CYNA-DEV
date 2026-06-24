@@ -146,8 +146,11 @@ class AuthController extends Controller
             ]);
         }
 
+        $remember  = $request->boolean('remember_me', false);
+        $expiresAt = $remember ? now()->addDays(30) : now()->addDay();
+
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
 
         return response()->json([
             'user'  => $this->formatUser($user),
@@ -183,12 +186,11 @@ class AuthController extends Controller
             'email'            => 'sometimes|email|unique:users,email,' . $user->id,
             'company'          => 'nullable|string|max:150',
             'current_password' => 'required_with:password|string',
-            'password'         => 'nullable|string|min:8|confirmed',
+            'password'         => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
         ], [
-            'email.unique'          => 'Cette adresse email est déjà utilisée.',
+            'email.unique'                   => 'Cette adresse email est déjà utilisée.',
             'current_password.required_with' => 'Le mot de passe actuel est requis.',
-            'password.min'          => 'Le nouveau mot de passe doit contenir au moins 8 caractères.',
-            'password.confirmed'    => 'Les mots de passe ne correspondent pas.',
+            'password.confirmed'             => 'Les mots de passe ne correspondent pas.',
         ]);
 
         if (isset($data['current_password'])) {
@@ -200,10 +202,44 @@ class AuthController extends Controller
             }
         }
 
-        $user->fill(\Arr::except($data, ['current_password', 'password', 'password_confirmation']));
+        $pendingEmailSent = false;
+
+        if (isset($data['email']) && $data['email'] !== $user->email) {
+            $pendingToken = Str::random(64);
+            $pendingEmail = $data['email'];
+
+            $user->pending_email       = $pendingEmail;
+            $user->pending_email_token = $pendingToken;
+
+            $confirmUrl = rtrim(config('app.frontend_url', 'http://localhost:5173'), '/')
+                . '/confirmer-changement-email?token=' . $pendingToken
+                . '&email=' . urlencode($pendingEmail);
+
+            Mail::send([], [], function ($message) use ($user, $confirmUrl, $pendingEmail) {
+                $message->to($pendingEmail)
+                    ->subject('Confirmez votre nouvelle adresse email — CYNA')
+                    ->html(
+                        "<p>Bonjour {$user->first_name},</p>"
+                        . "<p>Cliquez sur le lien ci-dessous pour confirmer votre nouvelle adresse email :</p>"
+                        . "<p><a href=\"{$confirmUrl}\">Confirmer ma nouvelle adresse email</a></p>"
+                        . "<p>Si vous n'avez pas demandé ce changement, ignorez cet email.</p>"
+                    );
+            });
+
+            $pendingEmailSent = true;
+            unset($data['email']);
+        }
+
+        $user->fill(\Arr::except($data, ['current_password', 'password', 'password_confirmation', 'email']));
         $user->save();
 
-        return response()->json($this->formatUser($user));
+        $response = $this->formatUser($user);
+        if ($pendingEmailSent) {
+            $response['pending_email_sent'] = true;
+            $response['pending_email']      = $user->pending_email;
+        }
+
+        return response()->json($response);
     }
 
     // ── Droit à l'oubli RGPD ─────────────────────────────────────────────
@@ -249,6 +285,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Votre adresse email est déjà confirmée.']);
         }
 
+        if ($user->created_at->diffInHours(now()) > 24) {
+            return response()->json([
+                'message' => 'Ce lien a expiré (valide 24h). Veuillez créer un nouveau compte.',
+            ], 422);
+        }
+
         $user->update([
             'is_email_verified'        => true,
             'is_active'                => true,
@@ -261,6 +303,35 @@ class AuthController extends Controller
             'message' => 'Email confirmé. Votre compte est maintenant actif.',
             'user'    => $this->formatUser($user),
             'token'   => $token,
+        ]);
+    }
+
+    // ── Confirmation changement email ────────────────────────────────────
+
+    public function confirmEmailChange(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('pending_email', $request->email)
+            ->where('pending_email_token', $request->token)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Lien de confirmation invalide ou déjà utilisé.'], 422);
+        }
+
+        $user->update([
+            'email'               => $request->email,
+            'pending_email'       => null,
+            'pending_email_token' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Adresse email mise à jour avec succès.',
+            'user'    => $this->formatUser($user),
         ]);
     }
 
@@ -306,7 +377,7 @@ class AuthController extends Controller
         $request->validate([
             'token'    => 'required|string',
             'email'    => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
         ]);
 
         $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
