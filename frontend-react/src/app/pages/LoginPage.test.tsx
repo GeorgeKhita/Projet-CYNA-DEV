@@ -95,7 +95,7 @@ describe('soumission réussie', () => {
     fireEvent.submit(screen.getByRole('button', { name: /se connecter/i }).closest('form')!);
 
     await waitFor(() => {
-      expect(postSpy).toHaveBeenCalledWith('/auth/login', { email: 'nouh@cyna.fr', password: 'Pass123!' });
+      expect(postSpy).toHaveBeenCalledWith('/auth/login', { email: 'nouh@cyna.fr', password: 'Pass123!', remember_me: false });
     });
   });
 
