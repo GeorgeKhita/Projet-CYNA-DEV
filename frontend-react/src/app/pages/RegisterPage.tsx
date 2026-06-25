@@ -1,6 +1,7 @@
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { User, Mail, Lock, Info, Building, Search, MapPin, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -15,6 +16,7 @@ interface CompanySuggestion {
 export function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [success, setSuccess] = useState(false);
 
   const [form, setForm] = useState({
@@ -29,7 +31,6 @@ export function RegisterPage() {
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ── Autocomplete entreprise ──────────────────────────────────────────────
   const [companyQuery, setCompanyQuery]     = useState('');
   const [suggestions, setSuggestions]       = useState<CompanySuggestion[]>([]);
   const [showDropdown, setShowDropdown]     = useState(false);
@@ -38,7 +39,6 @@ export function RegisterPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fermer le dropdown si clic en dehors
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -49,7 +49,6 @@ export function RegisterPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Debounce de la recherche
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -99,7 +98,7 @@ export function RegisterPage() {
     e.preventDefault();
     setError('');
     if (form.password !== form.password_confirmation) {
-      setError('Les mots de passe ne correspondent pas.');
+      setError(t('register.error_passwords'));
       return;
     }
     setLoading(true);
@@ -107,7 +106,7 @@ export function RegisterPage() {
       await api.post<any>('/auth/register', form);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la création du compte.');
+      setError(err.message || t('register.error_default'));
     } finally {
       setLoading(false);
     }
@@ -146,8 +145,8 @@ export function RegisterPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
               <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-ink mb-2">Créer un compte</h1>
-            <p className="text-muted-foreground">Rejoignez la communauté CYNA</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">{t('register.title')}</h1>
+            <p className="text-muted-foreground">{t('register.subtitle')}</p>
           </div>
 
           {error && (
@@ -159,23 +158,23 @@ export function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-ink mb-2">Prénom</label>
+                <label className="block text-ink mb-2">{t('register.first_name')}</label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input type="text" value={form.first_name} onChange={set('first_name')} placeholder="Jean" required className="field field-icon" />
                 </div>
               </div>
               <div>
-                <label className="block text-ink mb-2">Nom</label>
+                <label className="block text-ink mb-2">{t('register.last_name')}</label>
                 <input type="text" value={form.last_name} onChange={set('last_name')} placeholder="Dupont" required className="field" />
               </div>
             </div>
 
-            {/* ── Autocomplete Entreprise ── */}
+            {/* Autocomplete Entreprise */}
             <div>
               <label className="block text-ink mb-2">
-                Entreprise <span className="text-destructive">*</span>
-                <span className="ml-2 text-xs text-muted-foreground font-normal">— Recherche via le registre SIRENE</span>
+                {t('register.company')}
+                <span className="ml-2 text-xs text-muted-foreground font-normal">{t('register.company_hint')}</span>
               </label>
               <div className="relative" ref={dropdownRef}>
                 <div className="relative">
@@ -188,7 +187,7 @@ export function RegisterPage() {
                     value={companyQuery}
                     onChange={handleCompanyInput}
                     onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-                    placeholder="Rechercher votre entreprise..."
+                    placeholder={t('register.company_placeholder')}
                     autoComplete="off"
                     required
                     className="field field-icon pr-10"
@@ -203,7 +202,6 @@ export function RegisterPage() {
                   )}
                 </div>
 
-                {/* Dropdown résultats */}
                 {showDropdown && (
                   <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0f2040] border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
                     {suggestions.map((s) => (
@@ -233,24 +231,20 @@ export function RegisterPage() {
                 )}
               </div>
 
-              {/* Affichage SIREN sélectionné */}
               {companyConfirmed && form.siren && (
                 <div className="mt-2 flex items-center gap-2 text-xs text-green-400">
                   <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Entreprise vérifiée — SIREN : <span className="font-mono font-semibold">{form.siren}</span></span>
+                  <span>{t('register.company_verified')} <span className="font-mono font-semibold">{form.siren}</span></span>
                 </div>
               )}
 
-              {/* Fallback saisie libre */}
               {companyQuery.length >= 2 && !searchLoading && suggestions.length === 0 && !companyConfirmed && (
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Aucune entreprise trouvée. Vous pouvez continuer avec ce nom.
-                </p>
+                <p className="mt-1.5 text-xs text-muted-foreground">{t('register.company_not_found')}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-ink mb-2">Email professionnel</label>
+              <label className="block text-ink mb-2">{t('register.email')}</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="email" value={form.email} onChange={set('email')} placeholder="votre.email@entreprise.com" required className="field field-icon" />
@@ -258,7 +252,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-ink mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">{t('register.password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={form.password} onChange={set('password')} placeholder="••••••••" required className="field field-icon" />
@@ -266,7 +260,7 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-ink mb-2">Confirmer le mot de passe</label>
+              <label className="block text-ink mb-2">{t('register.confirm_password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')} placeholder="••••••••" required className="field field-icon" />
@@ -276,20 +270,18 @@ export function RegisterPage() {
             <div className="bg-bg-subtle border border-border rounded-xl p-4">
               <div className="flex items-start gap-2">
                 <Info className="w-4 h-4 text-[#00B4D8] mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Minimum 8 caractères, avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial
-                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t('register.password_hint')}</p>
               </div>
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
-              {loading ? 'Création...' : 'Créer mon compte'}
+              {loading ? t('register.submitting') : t('register.submit')}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Déjà un compte ? </span>
-            <Link to="/connexion" className="text-primary hover:underline font-semibold">Se connecter</Link>
+            <span className="text-muted-foreground">{t('register.already_account')} </span>
+            <Link to="/connexion" className="text-primary hover:underline font-semibold">{t('register.login_link')}</Link>
           </div>
         </div>
       </div>

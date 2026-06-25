@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router';
 import { User, Mail, Building, Lock, Check, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -9,6 +10,7 @@ export function ParametresPage() {
   const { user, isAuthenticated, loading: authLoading, login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [form, setForm] = useState({ first_name: '', last_name: '', company: '', email: '' });
   const [pwd, setPwd] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [saving, setSaving] = useState(false);
@@ -36,9 +38,9 @@ export function ParametresPage() {
       const updated = await api.put<any>('/auth/me', form);
       login(localStorage.getItem('cyna_token')!, updated);
       if (updated.pending_email_sent) {
-        setSuccess(`Profil mis à jour. Un email de confirmation a été envoyé à ${updated.pending_email} pour valider votre nouvelle adresse.`);
+        setSuccess(t('settings.success_profile_email', { email: updated.pending_email }));
       } else {
-        setSuccess('Profil mis à jour avec succès.');
+        setSuccess(t('settings.success_profile'));
       }
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
@@ -46,12 +48,12 @@ export function ParametresPage() {
 
   async function handlePassword(e: FormEvent) {
     e.preventDefault();
-    if (pwd.password !== pwd.password_confirmation) { setError('Les mots de passe ne correspondent pas.'); return; }
+    if (pwd.password !== pwd.password_confirmation) { setError(t('settings.error_passwords')); return; }
     setSaving(true); setError(''); setSuccess('');
     try {
       await api.put('/auth/me', pwd);
       setPwd({ current_password: '', password: '', password_confirmation: '' });
-      setSuccess('Mot de passe modifié avec succès.');
+      setSuccess(t('settings.success_password'));
     } catch (err: any) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -95,8 +97,8 @@ export function ParametresPage() {
 
           <div className="lg:col-span-3 space-y-8">
             <div>
-              <h1 className="text-4xl font-bold text-ink mb-2">Paramètres</h1>
-              <p className="text-muted-foreground">Gérez vos informations personnelles</p>
+              <h1 className="text-4xl font-bold text-ink mb-2">{t('settings.title')}</h1>
+              <p className="text-muted-foreground">{t('settings.subtitle')}</p>
             </div>
 
             {success && (
@@ -108,128 +110,123 @@ export function ParametresPage() {
               <div className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive">{error}</div>
             )}
 
-            {/* Profil */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-ink mb-6">Informations personnelles</h2>
+              <h2 className="text-2xl font-bold text-ink mb-6">{t('settings.personal_info')}</h2>
               <form onSubmit={handleProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-ink mb-2">Prénom</label>
+                    <label className="block text-ink mb-2">{t('settings.first_name')}</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input type="text" value={form.first_name} onChange={setField('first_name')} required className="field field-icon" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-ink mb-2">Nom</label>
+                    <label className="block text-ink mb-2">{t('settings.last_name')}</label>
                     <input type="text" value={form.last_name} onChange={setField('last_name')} required className="field" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">Entreprise</label>
+                  <label className="block text-ink mb-2">{t('settings.company')}</label>
                   <div className="relative">
                     <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="text" value={form.company} onChange={setField('company')} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">Email</label>
+                  <label className="block text-ink mb-2">{t('settings.email')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="email" value={form.email} onChange={setField('email')} required className="field field-icon" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving} className="btn btn-primary">
-                  {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                  {saving ? t('settings.saving') : t('settings.save')}
                 </button>
               </form>
             </div>
 
-            {/* Mot de passe */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-ink mb-6">Changer le mot de passe</h2>
+              <h2 className="text-2xl font-bold text-ink mb-6">{t('settings.change_password')}</h2>
               <form onSubmit={handlePassword} className="space-y-5">
                 <div>
-                  <label className="block text-ink mb-2">Mot de passe actuel</label>
+                  <label className="block text-ink mb-2">{t('settings.current_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">Nouveau mot de passe</label>
+                  <label className="block text-ink mb-2">{t('settings.new_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">Confirmer le nouveau mot de passe</label>
+                  <label className="block text-ink mb-2">{t('settings.confirm_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving} className="btn btn-ghost">
-                  {saving ? 'Modification...' : 'Changer le mot de passe'}
+                  {saving ? t('settings.changing') : t('settings.change_pwd_btn')}
                 </button>
               </form>
             </div>
 
-            {/* RGPD */}
             <div className="cyna-card p-8">
-              <h2 className="text-2xl font-bold text-ink mb-2">Mes données (RGPD)</h2>
-              <p className="text-muted-foreground mb-6">Conformément au RGPD, vous pouvez exporter ou supprimer définitivement vos données personnelles.</p>
+              <h2 className="text-2xl font-bold text-ink mb-2">{t('settings.rgpd_title')}</h2>
+              <p className="text-muted-foreground mb-6">{t('settings.rgpd_desc')}</p>
               <button onClick={handleExportData} className="btn btn-ghost">
                 <Download className="w-4 h-4 text-[#00B4D8]" />
-                Exporter mes données (JSON)
+                {t('settings.export_data')}
               </button>
             </div>
 
-            {/* Zone danger */}
             <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-2">
                 <AlertTriangle className="w-6 h-6 text-destructive" />
-                <h2 className="text-2xl font-bold text-destructive">Zone dangereuse</h2>
+                <h2 className="text-2xl font-bold text-destructive">{t('settings.danger_zone')}</h2>
               </div>
               <p className="text-muted-foreground mb-6">
-                La suppression de votre compte est <strong className="text-ink">irréversible</strong>. Toutes vos données (commandes, abonnements, factures) seront définitivement supprimées.
+                {t('settings.danger_desc').split('irréversible').map((part, i) =>
+                  i === 0 ? <span key={i}>{part}<strong className="text-ink">irréversible</strong></span> : <span key={i}>{part}</span>
+                )}
               </p>
               <button onClick={() => setShowDeleteModal(true)} className="btn btn-danger">
                 <Trash2 className="w-4 h-4" />
-                Supprimer mon compte
+                {t('settings.delete_account')}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal confirmation suppression */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card border border-destructive/30 rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-8 h-8 text-destructive flex-shrink-0" />
-              <h3 className="text-xl font-bold text-ink">Confirmer la suppression</h3>
+              <h3 className="text-xl font-bold text-ink">{t('settings.confirm_delete_title')}</h3>
             </div>
-            <p className="text-ink-soft mb-6">
-              Cette action est <strong className="text-destructive">irréversible</strong>. Entrez votre mot de passe pour confirmer.
-            </p>
+            <p className="text-ink-soft mb-6">{t('settings.confirm_delete_desc')}</p>
             {error && <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>}
             <input
               type="password"
               value={deleteConfirm}
               onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder="Votre mot de passe"
+              placeholder={t('settings.delete_confirm_placeholder')}
               className="field mb-4"
             />
             <div className="flex gap-3">
               <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
-                Annuler
+                {t('settings.cancel')}
               </button>
               <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
                 className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
-                {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+                {deleting ? t('settings.deleting') : t('settings.delete_permanently')}
               </button>
             </div>
           </div>

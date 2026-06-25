@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router';
 import { Shield, Laptop, Globe, ArrowRight, Star, Zap, Clock, Users, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { CATEGORY_COLORS } from '../../lib/cart';
 
@@ -20,24 +21,25 @@ const CATEGORY_TITLES: Record<string, string> = {
   XDR: 'Extended Detection & Response',
 };
 
-const stats = [
-  { value: '500+',   label: 'Entreprises protégées', icon: Users },
-  { value: '99.9%',  label: 'Uptime garanti',        icon: CheckCircle },
-  { value: '24/7',   label: 'Support SOC dédié',     icon: Clock },
-  { value: '< 5min', label: 'Temps de réponse',      icon: Zap },
-];
-
-const steps = [
-  { number: '01', title: 'Choisissez votre solution',    description: 'Parcourez notre catalogue et sélectionnez la solution adaptée à vos besoins (SOC, EDR, XDR)' },
-  { number: '02', title: 'Déployez en quelques minutes', description: "Nos solutions SaaS s'intègrent facilement à votre infrastructure existante sans configuration complexe" },
-  { number: '03', title: 'Protégez-vous en temps réel',  description: "Bénéficiez d'une surveillance continue et d'une réponse automatisée aux incidents 24h/24" },
-];
-
 export function HomePage() {
+  const { t, i18n } = useTranslation();
   const [categories, setCategories] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const stats = [
+    { value: '500+',   label: t('home.stats_companies'), icon: Users },
+    { value: '99.9%',  label: t('home.stats_uptime'),    icon: CheckCircle },
+    { value: '24/7',   label: t('home.stats_soc'),       icon: Clock },
+    { value: '< 5min', label: t('home.stats_response'),  icon: Zap },
+  ];
+
+  const steps = [
+    { number: '01', title: t('home.step1_title'), description: t('home.step1_desc') },
+    { number: '02', title: t('home.step2_title'), description: t('home.step2_desc') },
+    { number: '03', title: t('home.step3_title'), description: t('home.step3_desc') },
+  ];
 
   const nextSlide = useCallback(() => setCurrentSlide(i => (i + 1) % slides.length), [slides.length]);
   const prevSlide = () => setCurrentSlide(i => (i - 1 + slides.length) % slides.length);
@@ -49,7 +51,7 @@ export function HomePage() {
       setTopProducts(list.filter(p => p.status === 'available').slice(0, 3));
     }).catch(() => {});
     api.get<CarouselSlide[]>('/carousel').then(data => setSlides(Array.isArray(data) ? data : [])).catch(() => {});
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -61,7 +63,6 @@ export function HomePage() {
     <div className="bg-background">
       {/* ===================== HERO ===================== */}
       <section className="relative overflow-hidden bg-gradient-to-b from-bg-subtle to-background">
-        {/* décor */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-10%] right-[-5%] w-[36rem] h-[36rem] bg-[#00B4D8]/10 rounded-full blur-[120px]" />
           <div className="absolute bottom-[-20%] left-[-10%] w-[32rem] h-[32rem] bg-[#7C5CFC]/10 rounded-full blur-[120px]" />
@@ -80,22 +81,21 @@ export function HomePage() {
           <div className="max-w-3xl fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full mb-8 shadow-[var(--shadow-sm)]">
               <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse" />
-              <span className="text-ink-soft text-sm font-semibold">Nouveau : Conformité NIS2 &amp; ISO 27001 intégrée</span>
+              <span className="text-ink-soft text-sm font-semibold">{t('home.hero_badge')}</span>
             </div>
             <h1 className="text-5xl lg:text-[4.25rem] font-bold text-ink mb-6 leading-[1.05]">
-              Protégez votre entreprise avec les solutions{' '}
+              {t('home.hero_title')}{' '}
               <span className="bg-gradient-to-r from-[#00B4D8] to-[#7C5CFC] bg-clip-text text-transparent">Cyna</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl">
-              Découvrez nos solutions SaaS de cybersécurité de nouvelle génération : SOC, EDR et XDR.
-              Détection intelligente, réponse automatisée, conformité garantie.
+              {t('home.hero_subtitle')}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/catalogue" className="btn btn-primary btn-lg">
-                Découvrir nos solutions <ArrowRight className="w-5 h-5" />
+                {t('home.hero_cta_primary')} <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/catalogue" className="btn btn-ghost btn-lg">
-                Essai gratuit 14 jours
+                {t('home.hero_cta_secondary')}
               </Link>
             </div>
           </div>
@@ -179,8 +179,8 @@ export function HomePage() {
       {/* ===================== CATÉGORIES ===================== */}
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-bold text-ink mb-4">Nos catégories de solutions</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Chaque solution est conçue pour répondre à des besoins spécifiques de cybersécurité en entreprise</p>
+          <h2 className="text-4xl font-bold text-ink mb-4">{t('home.categories_title')}</h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{t('home.categories_subtitle')}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(categories.length > 0 ? categories : [
@@ -206,9 +206,9 @@ export function HomePage() {
                 <p className="text-sm font-semibold mb-3" style={{ color }}>{CATEGORY_TITLES[cat.name] ?? cat.name}</p>
                 <p className="text-muted-foreground leading-relaxed mb-5">{cat.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{cat.products_count ?? 0} solutions disponibles</span>
+                  <span className="text-xs text-muted-foreground">{cat.products_count ?? 0} {t('home.solutions_available')}</span>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-sm font-semibold" style={{ color }}>
-                    Explorer <ArrowRight className="w-4 h-4" />
+                    {t('home.explore')} <ArrowRight className="w-4 h-4" />
                   </div>
                 </div>
               </Link>
@@ -221,8 +221,8 @@ export function HomePage() {
       <section className="section-muted border-y border-border">
         <div className="max-w-7xl mx-auto px-6 py-24">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold text-ink mb-4">Comment ça marche ?</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Déployez votre protection cybersécurité en 3 étapes simples</p>
+            <h2 className="text-4xl font-bold text-ink mb-4">{t('home.how_title')}</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{t('home.how_subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
             {steps.map((step, index) => (
@@ -246,40 +246,43 @@ export function HomePage() {
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-3">
             <Star className="w-6 h-6 text-[#F59E0B] fill-[#F59E0B]" />
-            <h2 className="text-4xl font-bold text-ink">Top Produits du moment</h2>
+            <h2 className="text-4xl font-bold text-ink">{t('home.top_products')}</h2>
           </div>
           <Link to="/catalogue" className="text-primary hover:text-[#00B4D8] text-sm font-semibold flex items-center gap-1">
-            Voir tout <ArrowRight className="w-4 h-4" />
+            {t('home.see_all')} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {topProducts.map(product => {
             const color = product.category_color ?? CATEGORY_COLORS[product.category] ?? '#00B4D8';
+            const isEn = i18n.language === 'en';
+            const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+            const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
             return (
               <div key={product.id} className="cyna-card cyna-card-hover overflow-hidden group flex flex-col">
                 <div className="h-2" style={{ background: `linear-gradient(90deg, ${color}, ${color}30)` }} />
                 <div className="p-6 flex-1">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-ink">{product.name}</h3>
+                    <h3 className="text-xl font-bold text-ink">{displayName}</h3>
                     <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                       {product.category}
                     </span>
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{product.description}</p>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">{displayDescription}</p>
                   <div className="flex items-end justify-between">
                     <div>
                       <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-                      <span className="text-muted-foreground">/mois</span>
+                      <span className="text-muted-foreground">{t('home.per_month')}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">Facturation mensuelle</span>
+                    <span className="text-xs text-muted-foreground">{t('home.monthly_billing')}</span>
                   </div>
                 </div>
                 <div className="px-6 pb-6 flex gap-3">
                   <Link to={`/produit/${product.id}`} className="btn btn-primary flex-1">
-                    Voir le produit
+                    {t('home.view_product')}
                   </Link>
                   <Link to={`/produit/${product.id}`} className="btn btn-ghost">
-                    Essai
+                    {t('home.trial')}
                   </Link>
                 </div>
               </div>
@@ -297,16 +300,14 @@ export function HomePage() {
               <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#7C5CFC]/20 rounded-full blur-[100px]" />
             </div>
             <div className="relative">
-              <h2 className="text-4xl font-bold text-white mb-4">Prêt à sécuriser votre infrastructure ?</h2>
-              <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-                Rejoignez plus de 500 entreprises qui font confiance à CYNA. Essai gratuit 14 jours, sans engagement.
-              </p>
+              <h2 className="text-4xl font-bold text-white mb-4">{t('home.cta_title')}</h2>
+              <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">{t('home.cta_subtitle')}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/catalogue" className="btn btn-primary btn-lg">
-                  Commencer maintenant <ArrowRight className="w-5 h-5" />
+                  {t('home.cta_primary')} <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link to="/contact" className="btn btn-lg bg-white/10 text-white border border-white/20 hover:bg-white/20 hover:-translate-y-0.5">
-                  Parler à un expert
+                  {t('home.cta_secondary')}
                 </Link>
               </div>
             </div>

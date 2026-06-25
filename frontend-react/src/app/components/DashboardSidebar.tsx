@@ -1,20 +1,22 @@
 import { Link, useLocation } from 'react-router';
 import { LayoutDashboard, CreditCard, ShoppingBag, Settings, User, LogOut, LifeBuoy, Key } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-
-const menuItems = [
-  { icon: LayoutDashboard, label: "Vue d'ensemble", href: '/espace-client' },
-  { icon: ShoppingBag,     label: 'Abonnements',    href: '/espace-client/abonnements' },
-  { icon: CreditCard,      label: 'Commandes',       href: '/espace-client/commandes' },
-  { icon: Key,             label: 'Licences',        href: '/espace-client/licences' },
-  { icon: LifeBuoy,        label: 'Support',         href: '/espace-client/tickets' },
-  { icon: Settings,        label: 'Paramètres',      href: '/espace-client/parametres' },
-];
 
 export function DashboardSidebar() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.toUpperCase() || 'U';
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: t('sidebar.overview'),       href: '/espace-client' },
+    { icon: ShoppingBag,     label: t('sidebar.subscriptions'),  href: '/espace-client/abonnements' },
+    { icon: CreditCard,      label: t('sidebar.orders'),         href: '/espace-client/commandes' },
+    { icon: Key,             label: t('sidebar.licenses'),       href: '/espace-client/licences' },
+    { icon: LifeBuoy,        label: t('sidebar.support'),        href: '/espace-client/tickets' },
+    { icon: Settings,        label: t('sidebar.settings'),       href: '/espace-client/parametres' },
+  ];
 
   return (
     <div className="cyna-card p-6 sticky top-24">
@@ -49,7 +51,7 @@ export function DashboardSidebar() {
         <button onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-left mt-2">
           <LogOut className="w-5 h-5" />
-          <span className="font-semibold">Se déconnecter</span>
+          <span className="font-semibold">{t('sidebar.logout')}</span>
         </button>
       </nav>
     </div>

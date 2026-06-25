@@ -2,19 +2,23 @@ import { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { ShoppingCart, Menu, X, ChevronDown, Shield, Laptop, Globe, LogOut, Search, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { getCartCount } from '../../lib/cart';
+import i18n from '../../i18n';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [lang, setLang] = useState(i18n.language ?? 'fr');
 
   useEffect(() => {
     setCartCount(getCartCount());
@@ -43,6 +47,13 @@ export function Navbar() {
       setSearchQuery('');
       setMobileOpen(false);
     }
+  }
+
+  function toggleLang() {
+    const next = lang === 'fr' ? 'en' : 'fr';
+    localStorage.setItem('cyna_lang', next);
+    i18n.changeLanguage(next);
+    setLang(next);
   }
 
   const isActive = (path: string) => location.pathname === path;
@@ -77,7 +88,7 @@ export function Navbar() {
                 onMouseEnter={() => setSolutionsOpen(true)}
                 className="nav-link flex items-center gap-1"
               >
-                Solutions
+                {t('navbar.solutions')}
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${solutionsOpen ? 'rotate-180' : ''}`} />
               </button>
               {solutionsOpen && (
@@ -110,14 +121,14 @@ export function Navbar() {
                       className="block border-t border-border px-4 py-3 text-primary text-sm font-semibold hover:bg-bg-subtle transition-colors"
                       onClick={() => setSolutionsOpen(false)}
                     >
-                      Voir tout le catalogue →
+                      {t('navbar.view_catalog')}
                     </Link>
                   </div>
                 </div>
               )}
             </div>
-            <Link to="/catalogue" className={`nav-link ${isActive('/catalogue') ? 'is-active' : ''}`}>Tarifs</Link>
-            <Link to="/contact" className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`}>Contact</Link>
+            <Link to="/catalogue" className={`nav-link ${isActive('/catalogue') ? 'is-active' : ''}`}>{t('navbar.pricing')}</Link>
+            <Link to="/contact" className={`nav-link ${isActive('/contact') ? 'is-active' : ''}`}>{t('navbar.contact')}</Link>
           </div>
 
           {/* Barre de recherche */}
@@ -128,7 +139,7 @@ export function Navbar() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Rechercher..."
+                placeholder={t('navbar.search_placeholder')}
                 className="w-full bg-bg-subtle border border-border rounded-full pl-10 pr-4 py-2.5 text-ink placeholder:text-muted-foreground focus:outline-none focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/15 text-sm transition-all"
               />
             </div>
@@ -136,11 +147,21 @@ export function Navbar() {
 
           {/* Actions droite */}
           <div className="flex items-center gap-2.5">
+
+            {/* Sélecteur de langue */}
+            <button
+              onClick={toggleLang}
+              className="px-2.5 py-1.5 text-xs font-bold rounded-xl border border-border hover:bg-bg-subtle transition-colors text-ink-soft"
+              title={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
+            >
+              {lang === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR'}
+            </button>
+
             {/* Toggle dark/light */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2.5 hover:bg-bg-subtle rounded-xl transition-colors"
-              title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              title={theme === 'dark' ? t('navbar.light_mode') : t('navbar.dark_mode')}
             >
               {theme === 'dark'
                 ? <Sun className="w-5 h-5 text-[#F59E0B]" />
@@ -173,7 +194,7 @@ export function Navbar() {
                 <button
                   onClick={handleLogout}
                   className="p-2.5 hover:bg-destructive/10 rounded-xl transition-colors group"
-                  title="Se déconnecter"
+                  title={t('navbar.logout')}
                 >
                   <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
                 </button>
@@ -181,7 +202,7 @@ export function Navbar() {
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <Link to="/connexion" className="btn btn-dark">
-                  Connexion
+                  {t('navbar.login')}
                 </Link>
               </div>
             )}
@@ -206,7 +227,7 @@ export function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher..."
+                  placeholder={t('navbar.search_placeholder')}
                   className="w-full bg-bg-subtle border border-border rounded-full pl-10 pr-4 py-2.5 text-ink placeholder:text-muted-foreground focus:outline-none focus:border-primary text-sm"
                 />
               </div>
@@ -225,20 +246,20 @@ export function Navbar() {
                 </Link>
               );
             })}
-            <Link to="/catalogue" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>Tarifs</Link>
-            <Link to="/contact" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>Contact</Link>
+            <Link to="/catalogue" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>{t('navbar.pricing')}</Link>
+            <Link to="/contact" className="block px-3 py-2.5 text-ink-soft hover:text-ink font-semibold" onClick={() => setMobileOpen(false)}>{t('navbar.contact')}</Link>
             <div className="pt-3 flex gap-3">
               {isAuthenticated ? (
                 <>
-                  <Link to="/espace-client" className="btn btn-ghost btn-block" onClick={() => setMobileOpen(false)}>Mon espace</Link>
+                  <Link to="/espace-client" className="btn btn-ghost btn-block" onClick={() => setMobileOpen(false)}>{t('navbar.my_space')}</Link>
                   <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="btn btn-danger btn-block">
-                    Déconnexion
+                    {t('navbar.logout')}
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/connexion" className="btn btn-dark btn-block" onClick={() => setMobileOpen(false)}>Connexion</Link>
-                  <Link to="/inscription" className="btn btn-outline btn-block" onClick={() => setMobileOpen(false)}>Inscription</Link>
+                  <Link to="/connexion" className="btn btn-dark btn-block" onClick={() => setMobileOpen(false)}>{t('navbar.login')}</Link>
+                  <Link to="/inscription" className="btn btn-outline btn-block" onClick={() => setMobileOpen(false)}>{t('navbar.register')}</Link>
                 </>
               )}
             </div>

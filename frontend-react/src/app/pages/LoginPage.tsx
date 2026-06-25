@@ -1,12 +1,14 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect');
   const [email, setEmail] = useState('');
@@ -36,9 +38,9 @@ export function LoginPage() {
       }
     } catch (err: any) {
       if (err.message?.includes('confirmer votre adresse email')) {
-        setError('Votre compte n\'est pas encore activé. Vérifiez votre boîte email.');
+        setError(t('login.error_email_not_confirmed'));
       } else {
-        setError(err.message || 'Email ou mot de passe incorrect.');
+        setError(err.message || t('login.error_default'));
       }
     } finally {
       setLoading(false);
@@ -54,19 +56,19 @@ export function LoginPage() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00B4D8] to-[#0098B7] flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,180,216,0.35)]">⬡</div>
               <span className="text-2xl font-bold text-ink">CYNA</span>
             </div>
-            <h1 className="text-3xl font-bold text-ink mb-2">Connexion</h1>
-            <p className="text-muted-foreground">Accédez à votre espace client</p>
+            <h1 className="text-3xl font-bold text-ink mb-2">{t('login.title')}</h1>
+            <p className="text-muted-foreground">{t('login.subtitle')}</p>
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+            <div role="alert" className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-ink mb-2">Email</label>
+              <label className="block text-ink mb-2">{t('login.email')}</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -81,7 +83,7 @@ export function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-ink mb-2">Mot de passe</label>
+              <label className="block text-ink mb-2">{t('login.password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -98,15 +100,15 @@ export function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                 <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-4 h-4 rounded border-border-strong text-[#00B4D8]" />
-                Se souvenir de moi
+                {t('login.remember_me')}
               </label>
               <Link to="/mot-de-passe-oublie" className="text-primary hover:underline font-semibold">
-                Mot de passe oublié ?
+                {t('login.forgot_password')}
               </Link>
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? t('login.submitting') : t('login.submit')}
             </button>
           </form>
 
@@ -115,12 +117,12 @@ export function LoginPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-card text-muted-foreground">ou</span>
+              <span className="px-4 bg-card text-muted-foreground">{t('login.or')}</span>
             </div>
           </div>
 
           <Link to="/inscription" className="btn btn-outline btn-block btn-lg">
-            Créer un compte
+            {t('login.create_account')}
           </Link>
         </div>
       </div>

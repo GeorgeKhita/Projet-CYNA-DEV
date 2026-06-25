@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Check, Shield, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { api } from '../../api/client';
@@ -20,15 +21,9 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-const steps = [
-  { id: 1, name: 'Identification', active: false, completed: true },
-  { id: 2, name: 'Adresse', active: false, completed: true },
-  { id: 3, name: 'Paiement', active: true, completed: false },
-  { id: 4, name: 'Confirmation', active: false, completed: false },
-];
-
 function PaymentForm() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [clientSecret, setClientSecret] = useState('');
@@ -42,13 +37,13 @@ function PaymentForm() {
     if (cart.length === 0) return;
     api.post<{ client_secret: string }>('/payments/intent', { amount: total })
       .then(res => setClientSecret(res.client_secret))
-      .catch(() => setError("Impossible d'initialiser le paiement. Réessayez."));
+      .catch(() => setError(t('checkout.error_payment_init')));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!stripe || !elements || !clientSecret) return;
-    if (cart.length === 0) { setError('Votre panier est vide.'); return; }
+    if (cart.length === 0) { setError(t('checkout.error_empty_cart')); return; }
 
     setLoading(true);
     setError('');
@@ -105,12 +100,12 @@ function PaymentForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-ink mb-2">Informations de carte</label>
+        <label className="block text-ink mb-2">{t('checkout.card_info')}</label>
         <div className="w-full bg-card border border-border rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Testez avec <span className="text-ink-soft font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
+          {t('checkout.test_hint')} <span className="text-ink-soft font-mono">4242 4242 4242 4242</span> · exp. future · CVV quelconque
         </p>
       </div>
 
@@ -119,9 +114,9 @@ function PaymentForm() {
           <Shield className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-0.5" />
           <div>
             <div className="text-success font-semibold mb-1 flex items-center gap-2">
-              <Lock className="w-4 h-4" /> Paiement sécurisé par Stripe
+              <Lock className="w-4 h-4" /> {t('checkout.secure_title')}
             </div>
-            <div className="text-sm text-ink-soft">Conforme PCI-DSS · Données cryptées SSL · Transactions sécurisées</div>
+            <div className="text-sm text-ink-soft">{t('checkout.secure_desc')}</div>
           </div>
         </div>
       </div>
@@ -131,17 +126,25 @@ function PaymentForm() {
       )}
 
       <button type="submit" disabled={loading || !stripe || !clientSecret} className="btn btn-primary btn-lg btn-block">
-        {loading ? 'Traitement...' : `Confirmer l'achat · ${total.toLocaleString('fr-FR')}€`}
+        {loading ? t('checkout.processing') : t('checkout.confirm_purchase', { total: total.toLocaleString('fr-FR') })}
       </button>
     </form>
   );
 }
 
 export function CheckoutPaymentPage() {
+  const { t } = useTranslation();
+
+  const steps = [
+    { id: 1, name: t('checkout.step_identification'), active: false, completed: true },
+    { id: 2, name: t('checkout.step_address'),        active: false, completed: true },
+    { id: 3, name: t('checkout.step_payment'),        active: true,  completed: false },
+    { id: 4, name: t('checkout.step_confirmation'),   active: false, completed: false },
+  ];
+
   return (
     <div className="min-h-screen bg-card py-12">
       <div className="max-w-3xl mx-auto px-6">
-        {/* Progress Bar */}
         <div className="mb-12">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
@@ -163,8 +166,8 @@ export function CheckoutPaymentPage() {
         </div>
 
         <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
-          <h1 className="text-3xl font-bold text-ink mb-2">Paiement</h1>
-          <p className="text-muted-foreground mb-8">Entrez vos informations de carte bancaire</p>
+          <h1 className="text-3xl font-bold text-ink mb-2">{t('checkout.payment_title')}</h1>
+          <p className="text-muted-foreground mb-8">{t('checkout.payment_subtitle')}</p>
 
           <Elements stripe={stripePromise}>
             <PaymentForm />

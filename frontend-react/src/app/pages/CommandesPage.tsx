@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { ShoppingCart, Package, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -23,11 +24,11 @@ interface Order {
   items?: OrderItem[];
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  paid:     { label: 'Payée',      color: '#10B981' },
-  pending:  { label: 'En attente', color: '#F59E0B' },
-  failed:   { label: 'Échouée',   color: '#EF4444' },
-  refunded: { label: 'Remboursée', color: '#7C5CFC' },
+const STATUS_COLORS: Record<string, string> = {
+  paid:     '#10B981',
+  pending:  '#F59E0B',
+  failed:   '#EF4444',
+  refunded: '#7C5CFC',
 };
 
 async function downloadInvoice(invoiceId: number, ref: string) {
@@ -53,6 +54,7 @@ async function downloadInvoice(invoiceId: number, ref: string) {
 export function CommandesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -94,24 +96,29 @@ export function CommandesPage() {
 
           <div className="lg:col-span-3 space-y-8">
             <div>
-              <h1 className="text-4xl font-bold text-ink mb-2">Mes commandes</h1>
-              <p className="text-muted-foreground">{orders.length} commande{orders.length !== 1 ? 's' : ''}</p>
+              <h1 className="text-4xl font-bold text-ink mb-2">{t('orders.title')}</h1>
+              <p className="text-muted-foreground">
+                {orders.length === 1
+                  ? t('orders.subtitle_singular', { count: orders.length })
+                  : t('orders.subtitle_plural', { count: orders.length })}
+              </p>
             </div>
 
             {loading ? (
               <div className="flex items-center gap-3 text-muted-foreground py-8">
                 <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
-                Chargement...
+                {t('orders.loading')}
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-16 cyna-card">
                 <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Aucune commande pour le moment.</p>
+                <p className="text-muted-foreground">{t('orders.no_orders')}</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {orders.map(order => {
-                  const statusInfo = STATUS_LABELS[order.status] ?? { label: order.status, color: '#9AA3AF' };
+                  const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
+                  const statusLabel = t(`orders.status_${order.status}`) || order.status;
                   const isOpen = expanded === order.id;
                   return (
                     <div key={order.id} className="cyna-card overflow-hidden">
@@ -124,16 +131,16 @@ export function CommandesPage() {
                           <div className="text-left">
                             <div className="text-ink font-bold">{order.ref}</div>
                             <div className="text-sm text-muted-foreground">
-                              {new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(order.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           <span
                             className="px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{ backgroundColor: `${statusInfo.color}18`, color: statusInfo.color, border: `1px solid ${statusInfo.color}35` }}
+                            style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
                           >
-                            {statusInfo.label}
+                            {statusLabel}
                           </span>
                           <div className="text-xl font-bold text-ink">
                             {order.total?.toLocaleString('fr-FR')}€
@@ -150,7 +157,7 @@ export function CommandesPage() {
                                 <div key={i} className="flex items-center justify-between text-sm">
                                   <div>
                                     <span className="text-ink font-medium">{item.product?.name ?? `Produit #${item.product_id}`}</span>
-                                    <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? 'Annuel' : 'Mensuel'}</span>
+                                    <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? t('orders.annual') : t('orders.monthly')}</span>
                                   </div>
                                   <span className="text-ink font-semibold">
                                     {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
@@ -158,7 +165,7 @@ export function CommandesPage() {
                                 </div>
                               ))}
                               <div className="pt-3 border-t border-border flex justify-between font-semibold">
-                                <span className="text-ink">Total</span>
+                                <span className="text-ink">{t('orders.total')}</span>
                                 <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
                               </div>
                             </div>
@@ -172,7 +179,7 @@ export function CommandesPage() {
                                 className="btn btn-ghost"
                               >
                                 <FileDown className="w-4 h-4 text-[#00B4D8]" />
-                                {downloading === order.invoice_id ? 'Génération...' : 'Télécharger la facture PDF'}
+                                {downloading === order.invoice_id ? t('orders.generating') : t('orders.download_invoice')}
                               </button>
                               {downloadError && downloading === null && (
                                 <p className="text-sm text-destructive">{downloadError}</p>

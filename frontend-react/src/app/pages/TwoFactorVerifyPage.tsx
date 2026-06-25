@@ -1,11 +1,13 @@
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 export function TwoFactorVerifyPage() {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const navigate  = useNavigate();
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [error, setError]   = useState('');
@@ -45,7 +47,7 @@ export function TwoFactorVerifyPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const code = digits.join('');
-    if (code.length !== 6) { setError('Entrez les 6 chiffres.'); return; }
+    if (code.length !== 6) { setError(t('two_factor.error_incomplete')); return; }
 
     const pendingToken = sessionStorage.getItem('2fa_pending_token');
     if (!pendingToken) { navigate('/connexion'); return; }
@@ -60,7 +62,7 @@ export function TwoFactorVerifyPage() {
       login(data.token, data.user);
       navigate('/admin');
     } catch (err: any) {
-      setError(err.message || 'Code invalide.');
+      setError(err.message || t('two_factor.error_default'));
       setDigits(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -77,11 +79,8 @@ export function TwoFactorVerifyPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-[#00B4D8]/10 border border-[#00B4D8]/30 rounded-2xl mb-4">
               <ShieldCheck className="w-8 h-8 text-[#00B4D8]" />
             </div>
-            <h1 className="text-2xl font-bold text-ink mb-2">Vérification en 2 étapes</h1>
-            <p className="text-muted-foreground text-sm">
-              Ouvrez <strong className="text-ink">Google Authenticator</strong> et entrez
-              le code à 6 chiffres affiché pour CYNA.
-            </p>
+            <h1 className="text-2xl font-bold text-ink mb-2">{t('two_factor.title')}</h1>
+            <p className="text-muted-foreground text-sm">{t('two_factor.subtitle')}</p>
           </div>
 
           {error && (
@@ -112,14 +111,14 @@ export function TwoFactorVerifyPage() {
               disabled={loading || digits.join('').length !== 6}
               className="btn btn-primary btn-block btn-lg"
             >
-              {loading ? 'Vérification...' : 'Vérifier le code'}
+              {loading ? t('two_factor.verifying') : t('two_factor.verify')}
             </button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Le code change toutes les 30 secondes.{' '}
+            {t('two_factor.code_hint')}{' '}
             <button onClick={() => navigate('/connexion')} className="text-primary hover:underline font-semibold">
-              Retour à la connexion
+              {t('two_factor.back_to_login')}
             </button>
           </p>
         </div>

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Search, SlidersHorizontal, LayoutGrid, List, PackageX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 import { ProductVisual } from '../components/ProductVisual';
 
@@ -15,7 +16,9 @@ interface Category {
 interface Product {
   id: number;
   name: string;
+  name_en?: string;
   description: string;
+  description_en?: string;
   category: string;
   category_color?: string;
   category_id: number;
@@ -35,6 +38,7 @@ function isAvailable(p: Product): boolean {
 }
 
 export function CatalogPage() {
+  const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const [products, setProducts]   = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -55,9 +59,9 @@ export function CatalogPage() {
         const list = Array.isArray(prods) ? prods : (prods as any).data ?? [];
         setProducts(list);
       })
-      .catch(() => setError('Impossible de charger le catalogue.'))
+      .catch(() => setError(t('catalog.error')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [i18n.language]);
 
   const activeCategoryData = useMemo(
     () => categories.find(c => c.name === selectedCategory) ?? null,
@@ -75,7 +79,6 @@ export function CatalogPage() {
       return matchCat && matchSearch;
     });
 
-    // Always apply spec ordering first, then user's secondary sort
     const available   = filtered.filter(isAvailable);
     const unavailable = filtered.filter(p => !isAvailable(p));
 
@@ -109,7 +112,7 @@ export function CatalogPage() {
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
                   style={{ background: `${categoryColor}25`, color: categoryColor, border: `1px solid ${categoryColor}40` }}>
-                  Catégorie
+                  {t('catalog.category_label')}
                 </span>
               </div>
               <h1 className="text-4xl lg:text-5xl font-bold text-white mb-3">{activeCategoryData.name}</h1>
@@ -124,8 +127,8 @@ export function CatalogPage() {
       {selectedCategory === 'all' && (
         <div className="bg-bg-subtle border-b border-border">
           <div className="max-w-7xl mx-auto px-6 py-10">
-            <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-2">Catalogue des solutions</h1>
-            <p className="text-muted-foreground text-lg">Découvrez nos solutions de cybersécurité adaptées à votre entreprise</p>
+            <h1 className="text-4xl lg:text-5xl font-bold text-ink mb-2">{t('catalog.title')}</h1>
+            <p className="text-muted-foreground text-lg">{t('catalog.subtitle')}</p>
           </div>
         </div>
       )}
@@ -142,7 +145,7 @@ export function CatalogPage() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Rechercher une solution..."
+                placeholder={t('catalog.search_placeholder')}
                 className="w-full bg-bg-subtle border border-border rounded-xl pl-10 pr-4 py-2.5 text-ink text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8] transition-all"
               />
             </div>
@@ -152,7 +155,7 @@ export function CatalogPage() {
               <button
                 onClick={() => setSelectedCategory('all')}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${selectedCategory === 'all' ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle text-ink-soft hover:bg-bg-muted border border-border'}`}>
-                Tous
+                {t('catalog.filter_all')}
               </button>
               {categories.map(cat => (
                 <button
@@ -176,10 +179,10 @@ export function CatalogPage() {
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as typeof sortBy)}
                 className="bg-card border border-border rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:ring-4 focus:ring-[#00B4D8]/15 focus:border-[#00B4D8]">
-                <option value="default">Priorité</option>
-                <option value="price-asc">Prix croissant</option>
-                <option value="price-desc">Prix décroissant</option>
-                <option value="name">Nom A–Z</option>
+                <option value="default">{t('catalog.sort_default')}</option>
+                <option value="price-asc">{t('catalog.sort_price_asc')}</option>
+                <option value="price-desc">{t('catalog.sort_price_desc')}</option>
+                <option value="name">{t('catalog.sort_name')}</option>
               </select>
               <div className="flex border border-border rounded-xl overflow-hidden">
                 <button onClick={() => setViewMode('grid')}
@@ -199,8 +202,8 @@ export function CatalogPage() {
           {/* Result count */}
           {!loading && !error && (
             <p className="text-xs text-muted-foreground mt-2">
-              {filteredAndSorted.length} solution{filteredAndSorted.length !== 1 ? 's' : ''}
-              {selectedCategory !== 'all' && ` dans ${selectedCategory}`}
+              {filteredAndSorted.length} {filteredAndSorted.length !== 1 ? t('catalog.result_plural') : t('catalog.result_singular')}
+              {selectedCategory !== 'all' && ` ${t('catalog.result_in')} ${selectedCategory}`}
             </p>
           )}
         </div>
@@ -212,24 +215,24 @@ export function CatalogPage() {
         {loading && (
           <div className="text-center py-24">
             <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Chargement du catalogue...</p>
+            <p className="text-muted-foreground">{t('catalog.loading')}</p>
           </div>
         )}
 
         {error && (
           <div className="text-center py-24">
             <p className="text-destructive mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="btn btn-primary">Réessayer</button>
+            <button onClick={() => window.location.reload()} className="btn btn-primary">{t('catalog.retry')}</button>
           </div>
         )}
 
         {!loading && !error && filteredAndSorted.length === 0 && (
           <div className="text-center py-24">
             <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-xl text-ink font-semibold mb-2">Aucun résultat</p>
-            <p className="text-muted-foreground mb-6">Essayez un autre terme ou une autre catégorie</p>
+            <p className="text-xl text-ink font-semibold mb-2">{t('catalog.no_results_title')}</p>
+            <p className="text-muted-foreground mb-6">{t('catalog.no_results_subtitle')}</p>
             <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-primary">
-              Réinitialiser les filtres
+              {t('catalog.reset_filters')}
             </button>
           </div>
         )}
@@ -267,19 +270,21 @@ function ListView({ products }: { products: Product[] }) {
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 function StockBadge() {
+  const { t } = useTranslation();
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-subtle text-muted-foreground border border-border text-xs font-semibold">
       <PackageX className="w-3 h-3" />
-      Temporairement indisponible
+      {t('catalog.unavailable')}
     </span>
   );
 }
 
 function PriorityBadge({ priority }: { priority: number }) {
+  const { t } = useTranslation();
   if (priority <= 0) return null;
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-[#F59E0B]/10 text-[#B45309] border border-[#F59E0B]/25">
-      Recommandé
+      {t('catalog.recommended')}
     </span>
   );
 }
@@ -287,6 +292,10 @@ function PriorityBadge({ priority }: { priority: number }) {
 // ── Product card (grid) ───────────────────────────────────────────────────────
 
 function ProductCard({ product }: { product: Product }) {
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+  const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+  const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
   const color     = product.category_color ?? '#00B4D8';
   const available = isAvailable(product);
 
@@ -301,7 +310,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Header */}
       <div className="px-5 pt-4 pb-3 border-b border-border">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-lg font-bold text-ink leading-tight">{product.name}</h3>
+          <h3 className="text-lg font-bold text-ink leading-tight">{displayName}</h3>
           <span className="chip flex-shrink-0 text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
             {product.category}
           </span>
@@ -314,17 +323,17 @@ function ProductCard({ product }: { product: Product }) {
 
       {/* Body */}
       <div className="p-5 flex-1 flex flex-col">
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{product.description}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{displayDescription}</p>
 
         {/* Price */}
         <div className="mb-3">
           <div className="flex items-end gap-1">
             <span className="text-2xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-            <span className="text-muted-foreground text-sm mb-0.5">/mois HT</span>
+            <span className="text-muted-foreground text-sm mb-0.5">{t('catalog.per_month_ht')}</span>
           </div>
           {product.price_annual && (
             <p className="text-xs text-muted-foreground mt-0.5">
-              ou {product.price_annual.toLocaleString('fr-FR')}€/mois en annuel
+              {t('catalog.per_month_annual', { price: product.price_annual.toLocaleString('fr-FR') })}
             </p>
           )}
         </div>
@@ -333,11 +342,11 @@ function ProductCard({ product }: { product: Product }) {
         <div className="mt-4">
           {available ? (
             <Link to={`/produit/${product.id}`} className="btn btn-primary btn-block text-center">
-              Voir le produit
+              {t('catalog.view_product')}
             </Link>
           ) : (
             <button disabled className="btn btn-ghost btn-block" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-              Temporairement indisponible
+              {t('catalog.unavailable')}
             </button>
           )}
         </div>
@@ -349,6 +358,10 @@ function ProductCard({ product }: { product: Product }) {
 // ── Product row (list) ────────────────────────────────────────────────────────
 
 function ProductRow({ product }: { product: Product }) {
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+  const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+  const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
   const color     = product.category_color ?? '#00B4D8';
   const available = isAvailable(product);
 
@@ -365,14 +378,14 @@ function ProductRow({ product }: { product: Product }) {
         <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="text-base font-bold text-ink">{product.name}</h3>
+              <h3 className="text-base font-bold text-ink">{displayName}</h3>
               <span className="chip text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                 {product.category}
               </span>
               {!available && <StockBadge />}
               {available && product.priority && product.priority > 0 && <PriorityBadge priority={product.priority} />}
             </div>
-            <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+            <p className="text-muted-foreground text-sm line-clamp-2">{displayDescription}</p>
           </div>
 
           {/* Price + CTA */}
@@ -380,7 +393,7 @@ function ProductRow({ product }: { product: Product }) {
             <div className="text-right min-w-[120px]">
               <div className="flex items-end gap-1 justify-end">
                 <span className="text-xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>
-                <span className="text-muted-foreground text-xs mb-0.5">/mois HT</span>
+                <span className="text-muted-foreground text-xs mb-0.5">{t('catalog.per_month_ht')}</span>
               </div>
               {product.price_annual && (
                 <p className="text-xs text-muted-foreground">{product.price_annual.toLocaleString('fr-FR')}€/mois annuel</p>
@@ -388,11 +401,11 @@ function ProductRow({ product }: { product: Product }) {
             </div>
             {available ? (
               <Link to={`/produit/${product.id}`} className="btn btn-primary whitespace-nowrap">
-                Voir le produit
+                {t('catalog.view_product')}
               </Link>
             ) : (
               <button disabled className="btn btn-ghost whitespace-nowrap" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-                Temporairement indisponible
+                {t('catalog.unavailable')}
               </button>
             )}
           </div>

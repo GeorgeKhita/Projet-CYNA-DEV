@@ -14,6 +14,7 @@ export function clearToken(): void {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
+  const lang = localStorage.getItem('cyna_lang') ?? 'fr';
 
   const headers: Record<string, string> = {
     'Accept': 'application/json',
@@ -25,7 +26,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`/api${endpoint}`, { ...options, headers });
+  const separator = endpoint.includes('?') ? '&' : '?';
+  const url = `/api${endpoint}${separator}lang=${lang}`;
+
+  const res = await fetch(url, { ...options, headers });
 
   if (!res.ok) {
     // Token expiré ou invalide → déconnexion automatique (seulement si on avait un token)

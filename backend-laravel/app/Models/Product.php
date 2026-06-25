@@ -12,9 +12,12 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
+        'name_en',
         'slug',
         'description',
+        'description_en',
         'features',
+        'features_en',
         'images',
         'price_monthly',
         'price_annual',
@@ -25,6 +28,7 @@ class Product extends Model
 
     protected $casts = [
         'features'      => 'array',
+        'features_en'   => 'array',
         'images'        => 'array',
         'price_monthly' => 'decimal:2',
         'price_annual'  => 'decimal:2',

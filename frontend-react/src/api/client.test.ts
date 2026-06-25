@@ -63,7 +63,7 @@ describe('api.get', () => {
     await api.get('/produits');
 
     expect(mockFn).toHaveBeenCalledWith(
-      '/api/produits',
+      '/api/produits?lang=fr',
       expect.objectContaining({ headers: expect.any(Object) })
     );
   });
@@ -145,7 +145,7 @@ describe('api.delete', () => {
     await api.delete('/produits/1');
 
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      '/api/produits/1',
+      '/api/produits/1?lang=fr',
       expect.objectContaining({ method: 'DELETE' })
     );
   });
