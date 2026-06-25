@@ -8,9 +8,12 @@ import { addToCart, CATEGORY_COLORS } from '../../lib/cart';
 interface Product {
   id: number;
   name: string;
+  name_en?: string;
   category: string;
   description: string;
+  description_en?: string;
   features?: string[];
+  features_en?: string[];
   price_monthly: number;
   price_annual: number;
   status?: string;
@@ -56,7 +59,7 @@ export function ProductDetailPage() {
     const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
     const price = selectedPlan === 'monthly' ? product.price_monthly : product.price_annual;
     const maxStock = product.stock_remaining ?? product.max_capacity ?? undefined;
-    const added = addToCart({ id: product.id, name: product.name, category: product.category, categoryColor: color, price, duration: selectedPlan, maxStock });
+    const added = addToCart({ id: product.id, name: displayName, category: product.category, categoryColor: color, price, duration: selectedPlan, maxStock });
     if (added) {
       setAddedMsg(t('product.added_success'));
     } else {
@@ -75,11 +78,15 @@ export function ProductDetailPage() {
 
   if (!product) return null;
 
+  const isEn = i18n.language === 'en';
+  const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+  const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
+  const rawFeatures = (isEn && product.features_en?.length) ? product.features_en : product.features;
   const color = CATEGORY_COLORS[product.category] ?? '#00B4D8';
   const Icon = CATEGORY_ICONS[product.category] ?? Shield;
   const currentPrice = selectedPlan === 'monthly' ? product.price_monthly : product.price_annual;
-  const features: string[] = Array.isArray(product.features)
-    ? (typeof product.features[0] === 'string' ? product.features : Object.values(product.features))
+  const features: string[] = Array.isArray(rawFeatures)
+    ? (typeof rawFeatures[0] === 'string' ? rawFeatures : Object.values(rawFeatures))
     : [];
   const savePercent = Math.round((1 - product.price_annual / product.price_monthly) * 100);
 
@@ -104,7 +111,7 @@ export function ProductDetailPage() {
           {/* Infos */}
           <div>
             <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-bold text-ink">{product.name}</h1>
+              <h1 className="text-4xl font-bold text-ink">{displayName}</h1>
               {product.popular && (
                 <span className="px-3 py-1 bg-[#7C5CFC]/12 text-[#7C5CFC] border border-[#7C5CFC]/30 rounded-full text-sm font-semibold flex items-center gap-1">
                   <Star className="w-4 h-4 fill-[#7C5CFC]" />{CATEGORY_BADGES[product.category] ?? 'Premium'}
@@ -112,7 +119,7 @@ export function ProductDetailPage() {
               )}
             </div>
 
-            <p className="text-ink-soft leading-relaxed mb-8 text-lg">{product.description}</p>
+            <p className="text-ink-soft leading-relaxed mb-8 text-lg">{displayDescription}</p>
 
             {features.length > 0 && (
               <div className="space-y-3 mb-8">
@@ -203,7 +210,7 @@ export function ProductDetailPage() {
                         <SimIcon className="w-5 h-5" style={{ color: simColor }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-ink group-hover:text-primary transition-colors truncate">{sim.name}</h3>
+                        <h3 className="text-lg font-bold text-ink group-hover:text-primary transition-colors truncate">{(isEn && sim.name_en) ? sim.name_en : sim.name}</h3>
                         <span className="text-xs font-semibold" style={{ color: simColor }}>{sim.category}</span>
                       </div>
                     </div>

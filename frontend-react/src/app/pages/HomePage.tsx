@@ -255,17 +255,20 @@ export function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {topProducts.map(product => {
             const color = product.category_color ?? CATEGORY_COLORS[product.category] ?? '#00B4D8';
+            const isEn = i18n.language === 'en';
+            const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+            const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
             return (
               <div key={product.id} className="cyna-card cyna-card-hover overflow-hidden group flex flex-col">
                 <div className="h-2" style={{ background: `linear-gradient(90deg, ${color}, ${color}30)` }} />
                 <div className="p-6 flex-1">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-ink">{product.name}</h3>
+                    <h3 className="text-xl font-bold text-ink">{displayName}</h3>
                     <span className="chip" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                       {product.category}
                     </span>
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{product.description}</p>
+                  <p className="text-muted-foreground mb-6 leading-relaxed">{displayDescription}</p>
                   <div className="flex items-end justify-between">
                     <div>
                       <span className="text-3xl font-bold text-ink">{product.price_monthly?.toLocaleString('fr-FR')}€</span>

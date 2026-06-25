@@ -51,8 +51,8 @@ export function Navbar() {
 
   function toggleLang() {
     const next = lang === 'fr' ? 'en' : 'fr';
-    i18n.changeLanguage(next);
     localStorage.setItem('cyna_lang', next);
+    i18n.changeLanguage(next);
     setLang(next);
   }
 

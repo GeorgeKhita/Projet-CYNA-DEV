@@ -16,7 +16,9 @@ interface Category {
 interface Product {
   id: number;
   name: string;
+  name_en?: string;
   description: string;
+  description_en?: string;
   category: string;
   category_color?: string;
   category_id: number;
@@ -290,7 +292,10 @@ function PriorityBadge({ priority }: { priority: number }) {
 // ── Product card (grid) ───────────────────────────────────────────────────────
 
 function ProductCard({ product }: { product: Product }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+  const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+  const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
   const color     = product.category_color ?? '#00B4D8';
   const available = isAvailable(product);
 
@@ -305,7 +310,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Header */}
       <div className="px-5 pt-4 pb-3 border-b border-border">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-lg font-bold text-ink leading-tight">{product.name}</h3>
+          <h3 className="text-lg font-bold text-ink leading-tight">{displayName}</h3>
           <span className="chip flex-shrink-0 text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
             {product.category}
           </span>
@@ -318,7 +323,7 @@ function ProductCard({ product }: { product: Product }) {
 
       {/* Body */}
       <div className="p-5 flex-1 flex flex-col">
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{product.description}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{displayDescription}</p>
 
         {/* Price */}
         <div className="mb-3">
@@ -353,7 +358,10 @@ function ProductCard({ product }: { product: Product }) {
 // ── Product row (list) ────────────────────────────────────────────────────────
 
 function ProductRow({ product }: { product: Product }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+  const displayName = (isEn && product.name_en) ? product.name_en : product.name;
+  const displayDescription = (isEn && product.description_en) ? product.description_en : product.description;
   const color     = product.category_color ?? '#00B4D8';
   const available = isAvailable(product);
 
@@ -370,14 +378,14 @@ function ProductRow({ product }: { product: Product }) {
         <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="text-base font-bold text-ink">{product.name}</h3>
+              <h3 className="text-base font-bold text-ink">{displayName}</h3>
               <span className="chip text-xs" style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}>
                 {product.category}
               </span>
               {!available && <StockBadge />}
               {available && product.priority && product.priority > 0 && <PriorityBadge priority={product.priority} />}
             </div>
-            <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+            <p className="text-muted-foreground text-sm line-clamp-2">{displayDescription}</p>
           </div>
 
           {/* Price + CTA */}
