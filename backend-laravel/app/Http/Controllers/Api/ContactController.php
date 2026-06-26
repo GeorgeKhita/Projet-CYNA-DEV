@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Mail;
+use App\Services\MailService;
 
 class ContactController extends Controller
 {
@@ -31,16 +31,15 @@ class ContactController extends Controller
             'status'       => 'new',
         ]);
 
-        Mail::send([], [], function ($m) use ($validated) {
-            $m->to('support@cyna-it.fr', 'Support CYNA')
-              ->replyTo($validated['email'])
-              ->subject('[Contact] ' . $validated['subject'])
-              ->html(
-                  "<p><strong>De :</strong> {$validated['email']}</p>"
-                  . "<p><strong>Sujet :</strong> {$validated['subject']}</p>"
-                  . "<hr><p>" . nl2br(htmlspecialchars($validated['message'])) . "</p>"
-              );
-        });
+        MailService::send(
+            'support@cyna-it.fr',
+            '[Contact] ' . $validated['subject'],
+            "<p><strong>De :</strong> {$validated['email']}</p>"
+            . "<p><strong>Sujet :</strong> {$validated['subject']}</p>"
+            . "<hr><p>" . nl2br(htmlspecialchars($validated['message'])) . "</p>",
+            'Support CYNA',
+            $validated['email']
+        );
 
         return response()->json(['message' => 'Votre message a bien été envoyé.']);
     }

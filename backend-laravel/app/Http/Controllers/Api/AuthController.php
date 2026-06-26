@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use App\Services\MailService;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
@@ -64,17 +64,16 @@ class AuthController extends Controller
             . '/verifier-email?token=' . $verificationToken
             . '&email=' . urlencode($user->email);
 
-        Mail::send([], [], function ($message) use ($user, $verifyUrl) {
-            $message->to($user->email)
-                ->subject('Confirmez votre adresse email — CYNA')
-                ->html(
-                    "<p>Bonjour {$user->first_name},</p>"
-                    . "<p>Merci de vous être inscrit sur CYNA. Cliquez sur le lien ci-dessous pour activer votre compte :</p>"
-                    . "<p><a href=\"{$verifyUrl}\">Confirmer mon adresse email</a></p>"
-                    . "<p>Ce lien expire dans 24 heures.</p>"
-                    . "<p>Si vous n'avez pas créé de compte, ignorez cet email.</p>"
-                );
-        });
+        MailService::send(
+            $user->email,
+            'Confirmez votre adresse email — CYNA',
+            "<p>Bonjour {$user->first_name},</p>"
+            . "<p>Merci de vous être inscrit sur CYNA. Cliquez sur le lien ci-dessous pour activer votre compte :</p>"
+            . "<p><a href=\"{$verifyUrl}\">Confirmer mon adresse email</a></p>"
+            . "<p>Ce lien expire dans 24 heures.</p>"
+            . "<p>Si vous n'avez pas créé de compte, ignorez cet email.</p>",
+            $user->first_name . ' ' . $user->last_name
+        );
 
         return response()->json([
             'requires_verification' => true,
@@ -215,16 +214,15 @@ class AuthController extends Controller
                 . '/confirmer-changement-email?token=' . $pendingToken
                 . '&email=' . urlencode($pendingEmail);
 
-            Mail::send([], [], function ($message) use ($user, $confirmUrl, $pendingEmail) {
-                $message->to($pendingEmail)
-                    ->subject('Confirmez votre nouvelle adresse email — CYNA')
-                    ->html(
-                        "<p>Bonjour {$user->first_name},</p>"
-                        . "<p>Cliquez sur le lien ci-dessous pour confirmer votre nouvelle adresse email :</p>"
-                        . "<p><a href=\"{$confirmUrl}\">Confirmer ma nouvelle adresse email</a></p>"
-                        . "<p>Si vous n'avez pas demandé ce changement, ignorez cet email.</p>"
-                    );
-            });
+            MailService::send(
+                $pendingEmail,
+                'Confirmez votre nouvelle adresse email — CYNA',
+                "<p>Bonjour {$user->first_name},</p>"
+                . "<p>Cliquez sur le lien ci-dessous pour confirmer votre nouvelle adresse email :</p>"
+                . "<p><a href=\"{$confirmUrl}\">Confirmer ma nouvelle adresse email</a></p>"
+                . "<p>Si vous n'avez pas demandé ce changement, ignorez cet email.</p>",
+                $user->first_name . ' ' . $user->last_name
+            );
 
             $pendingEmailSent = true;
             unset($data['email']);
@@ -358,16 +356,15 @@ class AuthController extends Controller
             . '/reinitialiser-mot-de-passe?token=' . $token
             . '&email=' . urlencode($request->email);
 
-        Mail::send([], [], function ($message) use ($user, $resetUrl) {
-            $message->to($user->email)
-                ->subject('Réinitialisation de votre mot de passe CYNA')
-                ->html(
-                    "<p>Bonjour {$user->first_name},</p>"
-                    . "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>"
-                    . "<p><a href=\"{$resetUrl}\">Réinitialiser mon mot de passe</a></p>"
-                    . "<p>Ce lien expire dans 24 heures.</p>"
-                );
-        });
+        MailService::send(
+            $user->email,
+            'Réinitialisation de votre mot de passe CYNA',
+            "<p>Bonjour {$user->first_name},</p>"
+            . "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>"
+            . "<p><a href=\"{$resetUrl}\">Réinitialiser mon mot de passe</a></p>"
+            . "<p>Ce lien expire dans 24 heures.</p>",
+            $user->first_name . ' ' . $user->last_name
+        );
 
         return response()->json(['message' => 'Si cet email existe, un lien de réinitialisation vous a été envoyé.']);
     }

@@ -134,10 +134,12 @@ class OrderController extends Controller
                                    <p><strong>Montant :</strong> " . number_format($data['total'], 2, ',', ' ') . " €</p>
                                    <p><strong>Référence :</strong> {$invoiceNumber}</p>
                                    <p>Pensez à contacter le client.</p>";
-                    Mail::html($adminHtml, function ($m) use ($adminEmail, $invoiceNumber, $data) {
-                        $m->to($adminEmail)
-                          ->subject("⚠️ Commande importante #{$invoiceNumber} — " . number_format($data['total'], 2, ',', ' ') . ' €');
-                    });
+                    \App\Services\MailService::send(
+                        $adminEmail,
+                        "⚠️ Commande importante #{$invoiceNumber} — " . number_format($data['total'], 2, ',', ' ') . ' €',
+                        $adminHtml,
+                        'Admin CYNA'
+                    );
                 }
 
                 // Mail de confirmation client avec PDF en pièce jointe
@@ -206,11 +208,19 @@ class OrderController extends Controller
   </div>
 </body></html>";
 
-                Mail::html($confirmHtml, function ($m) use ($user, $invoiceNumber, $pdfContent) {
-                    $m->to($user->email, $user->first_name . ' ' . $user->last_name)
-                      ->subject("Confirmation de commande {$invoiceNumber} — CYNA")
-                      ->attachData($pdfContent, "facture-{$invoiceNumber}.pdf", ['mime' => 'application/pdf']);
-                });
+                \App\Services\MailService::send(
+                    $user->email,
+                    "Confirmation de commande {$invoiceNumber} — CYNA",
+                    $confirmHtml,
+                    $user->first_name . ' ' . $user->last_name,
+                    null,
+                    [
+                        'content'     => base64_encode($pdfContent),
+                        'filename'    => "facture-{$invoiceNumber}.pdf",
+                        'type'        => 'application/pdf',
+                        'disposition' => 'attachment',
+                    ]
+                );
 
             } catch (\Throwable $mailError) {
                 \Illuminate\Support\Facades\Log::error('OrderController: échec envoi email', [
