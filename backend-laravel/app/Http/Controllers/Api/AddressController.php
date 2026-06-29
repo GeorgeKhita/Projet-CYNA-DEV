@@ -28,11 +28,32 @@ class AddressController extends Controller
             'postal_code'  => 'required|string|max:20',
             'country'      => 'required|string|size:2',
             'phone_number' => 'nullable|string|max:30',
+            'is_default'   => 'boolean',
         ]);
 
-        $address = $request->user()->addresses()->create($data);
+        $user = $request->user();
+
+        $isFirstAddress = $user->addresses()->count() === 0;
+        $makeDefault    = $isFirstAddress || ($data['is_default'] ?? false);
+
+        if ($makeDefault) {
+            $user->addresses()->update(['is_default' => false]);
+        }
+
+        $address = $user->addresses()->create(array_merge($data, ['is_default' => $makeDefault]));
 
         return response()->json($address, 201);
+    }
+
+    public function setDefault(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $address = $user->addresses()->findOrFail($id);
+
+        $user->addresses()->update(['is_default' => false]);
+        $address->update(['is_default' => true]);
+
+        return response()->json($address);
     }
 
     public function update(Request $request, int $id): JsonResponse

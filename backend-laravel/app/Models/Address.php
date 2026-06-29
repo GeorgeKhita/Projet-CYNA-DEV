@@ -17,6 +17,11 @@ class Address extends Model
         'postal_code',
         'country',
         'phone_number',
+        'is_default',
+    ];
+
+    protected $casts = [
+        'is_default' => 'boolean',
     ];
 
     public function user()
