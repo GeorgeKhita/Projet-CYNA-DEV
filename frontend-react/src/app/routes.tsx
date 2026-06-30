@@ -1,11 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { Layout } from './components/Layout';
+import { CheckoutLayout } from './components/CheckoutLayout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutIdentificationPage } from './pages/CheckoutIdentificationPage';
+import { CheckoutAddressPage } from './pages/CheckoutAddressPage';
 import { CheckoutPaymentPage } from './pages/CheckoutPaymentPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -45,9 +47,16 @@ export const router = createBrowserRouter([
       { path: 'catalogue',                   Component: CatalogPage },
       { path: 'produit/:id',                 Component: ProductDetailPage },
       { path: 'panier',                      Component: CartPage },
-      { path: 'checkout/identification',     Component: CheckoutIdentificationPage },
-      { path: 'checkout/paiement',           Component: CheckoutPaymentPage },
-      { path: 'confirmation',                Component: ConfirmationPage },
+      {
+        path: 'checkout',
+        Component: CheckoutLayout,
+        children: [
+          { path: 'identification', Component: CheckoutIdentificationPage },
+          { path: 'adresse',        Component: CheckoutAddressPage },
+          { path: 'paiement',       Component: CheckoutPaymentPage },
+          { path: 'confirmation',   Component: ConfirmationPage },
+        ],
+      },
       { path: 'espace-client',               Component: DashboardPage },
       { path: 'espace-client/abonnements',   Component: AbonnementsPage },
       { path: 'espace-client/commandes',     Component: CommandesPage },
