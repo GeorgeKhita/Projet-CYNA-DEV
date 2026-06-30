@@ -178,66 +178,32 @@ export function AdminDashboardPage() {
                 Chargement des graphiques...
               </div>
             ) : chartData && (
-              <div className="p-6 grid grid-cols-1 xl:grid-cols-3 gap-8">
+              <div className="p-6 space-y-8">
 
                 {/* 1. Histogramme total des ventes par jour / semaine */}
-                <div className="xl:col-span-2">
+                <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
                     Ventes {period === 'daily' ? 'par jour' : 'par semaine'}
                   </h3>
-                  <ResponsiveContainer width="100%" height={260}>
+                  <ResponsiveContainer width="100%" height={240}>
                     <BarChart data={chartData.sales} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                       <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} axisLine={false} tickLine={false}
                         tickFormatter={v => `${v}€`} width={60} />
                       <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v.toLocaleString('fr-FR')}€`, 'Ventes']} />
-                      <Bar dataKey="total" name="Ventes totales" fill="#00B4D8" radius={[6, 6, 0, 0]} maxBarSize={48} />
+                      <Bar dataKey="total" name="Ventes totales" fill="#00B4D8" radius={[6, 6, 0, 0]} maxBarSize={52} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* 2. Camembert — répartition par catégorie */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-                    Répartition par catégorie
-                  </h3>
-                  {chartData.category_totals.length === 0 || chartData.category_totals.every(c => c.value === 0) ? (
-                    <div className="flex items-center justify-center h-[260px] text-muted-foreground text-sm">
-                      Aucune donnée sur la période
-                    </div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height={260}>
-                      <PieChart>
-                        <Pie
-                          data={chartData.category_totals}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="45%"
-                          outerRadius={90}
-                          innerRadius={52}
-                          paddingAngle={3}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          labelLine={false}
-                        >
-                          {chartData.category_totals.map((entry, idx) => (
-                            <Cell key={entry.name} fill={getCategoryColor(entry.name, idx)} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={TOOLTIP_STYLE}
-                          formatter={(v: number) => [`${v.toLocaleString('fr-FR')}€`, '']}
-                        />
-                        <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
+                <div className="border-t border-border" />
 
-                {/* 3. Histogramme multi-couches — paniers par catégorie */}
-                {chartData.categories.length > 0 && (
-                  <div className="xl:col-span-3">
+                {/* 2 + 3 — Histogramme multi-couches (gauche) + Camembert (droite) */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+                  {/* 2. Histogramme empilé par catégorie */}
+                  <div className="xl:col-span-2">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
                       Paniers moyens par catégorie
                     </h3>
@@ -252,7 +218,7 @@ export function AdminDashboardPage() {
                           formatter={(v: number, name: string) => [`${v.toLocaleString('fr-FR')}€`, name]}
                         />
                         <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-                        {chartData.categories.map((cat, idx) => (
+                        {chartData.categories.length > 0 ? chartData.categories.map((cat, idx) => (
                           <Bar
                             key={cat}
                             dataKey={cat}
@@ -260,13 +226,55 @@ export function AdminDashboardPage() {
                             stackId="categories"
                             fill={getCategoryColor(cat, idx)}
                             radius={idx === chartData.categories.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
-                            maxBarSize={48}
+                            maxBarSize={52}
                           />
-                        ))}
+                        )) : (
+                          <Bar dataKey="total" name="Ventes" fill="#00B4D8" radius={[6, 6, 0, 0]} maxBarSize={52} />
+                        )}
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                )}
+
+                  {/* 3. Camembert — répartition par catégorie */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+                      Répartition par catégorie
+                    </h3>
+                    {chartData.category_totals.length === 0 || chartData.category_totals.every(c => c.value === 0) ? (
+                      <div className="flex flex-col items-center justify-center h-[240px] gap-3">
+                        <div className="w-28 h-28 rounded-full border-[12px] border-border opacity-30" />
+                        <span className="text-muted-foreground text-sm">Aucune vente sur la période</span>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={240}>
+                        <PieChart>
+                          <Pie
+                            data={chartData.category_totals}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="42%"
+                            outerRadius={85}
+                            innerRadius={48}
+                            paddingAngle={3}
+                            label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
+                            labelLine={false}
+                          >
+                            {chartData.category_totals.map((entry, idx) => (
+                              <Cell key={entry.name} fill={getCategoryColor(entry.name, idx)} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={TOOLTIP_STYLE}
+                            formatter={(v: number) => [`${v.toLocaleString('fr-FR')}€`, '']}
+                          />
+                          <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+
+                </div>
               </div>
             )}
           </div>
