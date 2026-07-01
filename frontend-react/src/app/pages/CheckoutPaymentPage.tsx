@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Shield, Lock } from 'lucide-react';
+import { Shield, Lock, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -8,6 +8,8 @@ import { api } from '../../api/client';
 import { getCart, clearCart } from '../../lib/cart';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const PROMO_SESSION_KEY = 'cyna_promo';
 
 const CARD_ELEMENT_OPTIONS = {
   style: {
@@ -21,6 +23,14 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
+interface AppliedPromo {
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  label: string;
+  discount_amount: number;
+}
+
 function PaymentForm() {
   const navigate = useNavigate();
   const { t }    = useTranslation();
@@ -29,16 +39,26 @@ function PaymentForm() {
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState('');
+  const [promo, setPromo]               = useState<AppliedPromo | null>(null);
 
-  const cart  = getCart();
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cart    = getCart();
+  const baseHT  = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = promo?.discount_amount ?? 0;
+  const total    = Math.max(0, baseHT - discount);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem(PROMO_SESSION_KEY);
+    if (saved) {
+      try { setPromo(JSON.parse(saved)); } catch {}
+    }
+  }, []);
 
   useEffect(() => {
     if (cart.length === 0) return;
     api.post<{ client_secret: string }>('/payments/intent', { amount: total })
       .then(res => setClientSecret(res.client_secret))
       .catch(() => setError(t('checkout.error_payment_init')));
-  }, []);
+  }, [total]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,9 +85,9 @@ function PaymentForm() {
       const cartSnapshot = [...cart];
       const tva          = Math.round(total * 0.20 * 100) / 100;
       const ttc          = Math.round((total + tva) * 100) / 100;
-      const orderData    = {
+      const orderData: Record<string, unknown> = {
         payment_intent_id: paymentIntent.id,
-        subtotal: total,
+        subtotal: baseHT,
         tax: tva,
         total: ttc,
         items: cartSnapshot.map(item => ({
@@ -78,10 +98,14 @@ function PaymentForm() {
           duration:    item.duration,
         })),
       };
+      if (promo) {
+        orderData.promo_code = promo.code;
+      }
 
       try {
         const res = await api.post<any>('/orders', orderData);
         clearCart();
+        sessionStorage.removeItem(PROMO_SESSION_KEY);
         navigate('/checkout/confirmation', { state: { order: res, cart: cartSnapshot } });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -99,6 +123,13 @@ function PaymentForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {promo && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-[#10B981]/8 border border-[#10B981]/30 rounded-xl text-[#10B981] text-sm font-semibold">
+          <Tag className="w-4 h-4 shrink-0" />
+          <span>Code <strong>{promo.code}</strong> appliqué ({promo.label}) — économie de {promo.discount_amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
+        </div>
+      )}
+
       <div>
         <label className="block text-ink mb-2">{t('checkout.card_info')}</label>
         <div className="w-full bg-card border border-border rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
