@@ -30,9 +30,10 @@ class ProductController extends Controller
             $query->orderByDesc('price_monthly');
         }
 
-        $products = $query->get()->map(fn($p) => $this->format($p));
+        $perPage  = min((int) ($request->get('per_page', 12)), 50);
+        $paginated = $query->paginate($perPage)->through(fn($p) => $this->format($p));
 
-        return response()->json($products);
+        return response()->json($paginated);
     }
 
     public function search(Request $request): JsonResponse
