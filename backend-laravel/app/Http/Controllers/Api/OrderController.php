@@ -8,6 +8,7 @@ use App\Models\License;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use App\Models\PromoCode;
 use App\Models\Subscription;
 use App\Services\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -32,6 +33,7 @@ class OrderController extends Controller
             'items.*.quantity'   => 'required|integer|min:1',
             'items.*.duration'   => 'required|in:monthly,annual',
             'address_id'         => 'nullable|integer|exists:addresses,id',
+            'promo_code'         => 'nullable|string|max:50',
         ]);
 
         // Prix figés : lecture depuis la DB, jamais depuis le client
@@ -75,18 +77,32 @@ class OrderController extends Controller
             ];
         }
 
-        $tax   = round($subtotal * 0.20, 2);
-        $total = round($subtotal + $tax, 2);
+        // Code promo — validation et calcul de remise côté serveur
+        $promoCode      = null;
+        $discountAmount = 0.0;
+
+        if (!empty($data['promo_code'])) {
+            $promoCode = PromoCode::whereRaw('UPPER(code) = ?', [strtoupper(trim($data['promo_code']))])->first();
+            if ($promoCode && $promoCode->isValid($subtotal)) {
+                $discountAmount = $promoCode->computeDiscount($subtotal);
+            }
+        }
+
+        $discountedSubtotal = max(0, round($subtotal - $discountAmount, 2));
+        $tax   = round($discountedSubtotal * 0.20, 2);
+        $total = round($discountedSubtotal + $tax, 2);
 
         DB::beginTransaction();
         try {
             $order = Order::create([
-                'user_id'    => $request->user()->id,
-                'address_id' => $data['address_id'] ?? null,
-                'status'     => 'pending',
-                'subtotal'   => $subtotal,
-                'tax'        => $tax,
-                'total'      => $total,
+                'user_id'       => $request->user()->id,
+                'address_id'    => $data['address_id'] ?? null,
+                'promo_code_id' => $promoCode?->id,
+                'status'        => 'pending',
+                'subtotal'      => $subtotal,
+                'discount'      => $discountAmount,
+                'tax'           => $tax,
+                'total'         => $total,
             ]);
 
             foreach ($lineItems as $line) {
@@ -103,6 +119,10 @@ class OrderController extends Controller
             ]);
 
             $order->update(['stripe_pi_id' => $intent->id]);
+
+            if ($promoCode) {
+                $promoCode->increment('uses_count');
+            }
 
             DB::commit();
 
@@ -188,11 +208,15 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // ── Email (hors transaction) ──────────────────────────────────
+            // ── Génération PDF + envoi email (hors transaction) ──────────────
             try {
                 \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
                 $invoice->load(['order.items.product', 'user']);
                 $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
+
+                $storagePath = "invoices/facture-{$invoiceNumber}.pdf";
+                \Illuminate\Support\Facades\Storage::disk('local')->put($storagePath, $pdfContent);
+                $invoice->update(['pdf_path' => $storagePath]);
 
                 $itemsHtml = $order->details->map(function ($d) {
                     $product = $d->product ?? Product::find($d->product_id);
@@ -290,13 +314,14 @@ class OrderController extends Controller
             }
 
             return response()->json([
-                'id'         => $order->id,
-                'ref'        => $invoiceNumber,
-                'status'     => 'paid',
-                'total'      => (float) $order->total,
-                'invoice_id' => $invoice->id,
-                'licenses'   => $licenses,
-                'created_at' => $order->created_at,
+                'id'                   => $order->id,
+                'ref'                  => $invoiceNumber,
+                'status'               => 'paid',
+                'total'                => (float) $order->total,
+                'invoice_id'           => $invoice->id,
+                'invoice_download_url' => "/api/invoices/{$invoice->id}/download",
+                'licenses'             => $licenses,
+                'created_at'           => $order->created_at,
             ]);
 
         } catch (\Throwable $e) {
@@ -313,13 +338,14 @@ class OrderController extends Controller
             ->latest()
             ->get()
             ->map(fn($o) => [
-                'id'         => $o->id,
-                'ref'        => 'CYN-' . str_pad($o->id, 6, '0', STR_PAD_LEFT),
-                'status'     => $o->status,
-                'total'      => (float) $o->total,
-                'invoice_id' => $o->invoice?->id,
-                'created_at' => $o->created_at,
-                'items'      => $o->details->map(fn($d) => [
+                'id'                   => $o->id,
+                'ref'                  => 'CYN-' . str_pad($o->id, 6, '0', STR_PAD_LEFT),
+                'status'               => $o->status,
+                'total'                => (float) $o->total,
+                'invoice_id'           => $o->invoice?->id,
+                'invoice_download_url' => $o->invoice ? "/api/invoices/{$o->invoice->id}/download" : null,
+                'created_at'           => $o->created_at,
+                'items'                => $o->details->map(fn($d) => [
                     'product_id' => $d->product_id,
                     'product'    => ['name' => $d->product?->name],
                     'quantity'   => $d->quantity,
@@ -334,24 +360,34 @@ class OrderController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $order = Order::where('user_id', $request->user()->id)
-            ->with(['details.product', 'invoice'])
+            ->with(['details.product', 'invoice', 'subscriptions.product'])
             ->findOrFail($id);
 
         return response()->json([
-            'id'         => $order->id,
-            'ref'        => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
-            'status'     => $order->status,
-            'subtotal'   => (float) $order->subtotal,
-            'tax'        => (float) $order->tax,
-            'total'      => (float) $order->total,
-            'invoice_id' => $order->invoice?->id,
-            'created_at' => $order->created_at,
-            'items'      => $order->details->map(fn($d) => [
+            'id'                   => $order->id,
+            'ref'                  => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
+            'status'               => $order->status,
+            'subtotal'             => (float) $order->subtotal,
+            'tax'                  => (float) $order->tax,
+            'total'                => (float) $order->total,
+            'invoice_id'           => $order->invoice?->id,
+            'invoice_download_url' => $order->invoice ? "/api/invoices/{$order->invoice->id}/download" : null,
+            'created_at'           => $order->created_at,
+            'items'                => $order->details->map(fn($d) => [
                 'product_id' => $d->product_id,
                 'product'    => ['name' => $d->product?->name],
                 'quantity'   => $d->quantity,
                 'unit_price' => (float) $d->unit_price,
                 'duration'   => $d->duration,
+            ]),
+            'subscriptions' => $order->subscriptions->map(fn($s) => [
+                'id'                   => $s->id,
+                'product_id'           => $s->product_id,
+                'product_name'         => $s->product?->name,
+                'status'               => $s->status,
+                'billing_cycle'        => $s->billing_cycle,
+                'current_period_start' => $s->current_period_start?->format('Y-m-d'),
+                'current_period_end'   => $s->current_period_end?->format('Y-m-d'),
             ]),
         ]);
     }

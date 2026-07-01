@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders, setAuthUser } from '../../test-utils';
 import { CommandesPage } from './CommandesPage';
 import * as clientModule from '../../api/client';
@@ -10,6 +10,24 @@ const mockOrders = [
     ref: 'CMD-0101',
     status: 'paid',
     total: 299,
+    created_at: '2026-05-01T10:00:00Z',
+  },
+  {
+    id: 102,
+    ref: 'CMD-0102',
+    status: 'paid',
+    total: 1990,
+    created_at: '2025-11-15T10:00:00Z',
+  },
+];
+
+const mockOrdersWithInvoice = [
+  {
+    id: 101,
+    ref: 'CMD-0101',
+    status: 'paid',
+    total: 299,
+    invoice_id: 42,
     created_at: '2026-05-01T10:00:00Z',
   },
   {
@@ -114,5 +132,80 @@ describe('lien détail', () => {
     await screen.findByText('CMD-0101');
     const links = screen.getAllByRole('link', { name: /voir le détail/i });
     expect(links[0]).toHaveAttribute('href', '/espace-client/commandes/101');
+  });
+});
+
+// ── Téléchargement de facture ─────────────────────────────────────────────
+
+describe('téléchargement facture', () => {
+  beforeEach(() => setAuthUser());
+
+  it('affiche un bouton de téléchargement uniquement pour les commandes avec facture', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const downloadBtns = screen.getAllByTitle(/télécharger la facture/i);
+    expect(downloadBtns).toHaveLength(1);
+  });
+
+  it('pas de bouton téléchargement quand aucune commande n\'a de facture', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    expect(screen.queryByTitle(/télécharger la facture/i)).not.toBeInTheDocument();
+  });
+
+  it('appelle /api/invoices/:id/download au clic et affiche une erreur en cas d\'échec', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    vi.spyOn(clientModule, 'getToken').mockReturnValue('tok-test');
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: async () => 'Forbidden',
+    } as any);
+
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+
+    const btn = screen.getByTitle(/télécharger la facture/i);
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/HTTP 403/i)).toBeInTheDocument();
+    });
+  });
+
+  it('déclenche le téléchargement en cas de succès', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    vi.spyOn(clientModule, 'getToken').mockReturnValue('tok-test');
+
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+
+    const blob = new Blob(['%PDF-fake'], { type: 'application/pdf' });
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+    } as any);
+
+    const createObjectURL = vi.fn(() => 'blob:test');
+    global.URL.createObjectURL = createObjectURL;
+    global.URL.revokeObjectURL = vi.fn();
+
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el: Node) => el);
+    const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el: Node) => el);
+    const clickSpy       = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    const btn = screen.getByTitle(/télécharger la facture/i);
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(createObjectURL).toHaveBeenCalledWith(blob);
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+    clickSpy.mockRestore();
   });
 });

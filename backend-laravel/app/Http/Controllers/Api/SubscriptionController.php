@@ -38,6 +38,33 @@ class SubscriptionController extends Controller
         return response()->json($subscriptions);
     }
 
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $subscription = Subscription::with('product.category')
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        return response()->json([
+            'id'                   => $subscription->id,
+            'status'               => $subscription->status,
+            'billing_cycle'        => $subscription->billing_cycle,
+            'current_period_start' => $subscription->current_period_start?->format('Y-m-d'),
+            'current_period_end'   => $subscription->current_period_end?->format('Y-m-d'),
+            'cancelled_at'         => $subscription->cancelled_at?->format('Y-m-d H:i:s'),
+            'price'                => (float) ($subscription->billing_cycle === 'annual'
+                ? $subscription->product?->price_annual
+                : $subscription->product?->price_monthly),
+            'product'              => $subscription->product ? [
+                'id'             => $subscription->product->id,
+                'name'           => $subscription->product->name,
+                'category'       => $subscription->product->category?->name ?? '',
+                'category_color' => $subscription->product->category?->color ?? '#00B4D8',
+            ] : null,
+            'order_id'             => $subscription->order_id,
+            'created_at'           => $subscription->created_at,
+        ]);
+    }
+
     public function cancel(Subscription $subscription, Request $request): JsonResponse
     {
         if ($subscription->user_id !== $request->user()->id) {
