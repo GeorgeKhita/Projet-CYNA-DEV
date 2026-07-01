@@ -11,6 +11,7 @@ import { ConfirmationPage } from './pages/ConfirmationPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AbonnementsPage } from './pages/AbonnementsPage';
 import { CommandesPage } from './pages/CommandesPage';
+import { CommandeDetailPage } from './pages/CommandeDetailPage';
 import { ParametresPage } from './pages/ParametresPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -50,7 +51,8 @@ export const router = createBrowserRouter([
       { path: 'confirmation',                Component: ConfirmationPage },
       { path: 'espace-client',               Component: DashboardPage },
       { path: 'espace-client/abonnements',   Component: AbonnementsPage },
-      { path: 'espace-client/commandes',     Component: CommandesPage },
+      { path: 'espace-client/commandes',      Component: CommandesPage },
+      { path: 'espace-client/commandes/:id', Component: CommandeDetailPage },
       { path: 'espace-client/parametres',    Component: ParametresPage },
       { path: 'espace-client/licences',     Component: LicencesPage },
       { path: 'espace-client/tickets',      Component: TicketsPage },

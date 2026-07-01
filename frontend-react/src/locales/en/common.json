@@ -236,7 +236,19 @@
     "status_paid": "Paid",
     "status_pending": "Pending",
     "status_failed": "Failed",
-    "status_refunded": "Refunded"
+    "status_refunded": "Refunded",
+    "view_detail": "View details",
+    "back": "Back to orders",
+    "detail_title": "Order lines",
+    "product_col": "Product",
+    "qty_col": "Qty",
+    "period_col": "Period",
+    "unit_price_col": "Unit price (excl. VAT)",
+    "line_total_col": "Total (excl. VAT)",
+    "subtotal_ht": "Subtotal (excl. VAT)",
+    "tva": "VAT (20%)",
+    "total_ttc": "Total (incl. VAT)",
+    "not_found": "Order not found."
   },
   "settings": {
     "title": "Settings",

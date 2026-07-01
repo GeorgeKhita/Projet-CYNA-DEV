@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders, setAuthUser } from '../../test-utils';
 import { CommandesPage } from './CommandesPage';
 import * as clientModule from '../../api/client';
@@ -11,19 +11,13 @@ const mockOrders = [
     status: 'paid',
     total: 299,
     created_at: '2026-05-01T10:00:00Z',
-    items: [
-      { product_id: 1, product: { name: 'CYNA SOC' }, quantity: 1, unit_price: 299, duration: 'monthly' },
-    ],
   },
   {
     id: 102,
     ref: 'CMD-0102',
     status: 'paid',
     total: 1990,
-    created_at: '2026-04-15T10:00:00Z',
-    items: [
-      { product_id: 2, product: { name: 'CYNA EDR' }, quantity: 1, unit_price: 1990, duration: 'annual' },
-    ],
+    created_at: '2025-11-15T10:00:00Z',
   },
 ];
 
@@ -75,36 +69,50 @@ describe('rendu', () => {
   });
 });
 
-// ── Accordéon ────────────────────────────────────────────────────────────
+// ── Groupement par année ──────────────────────────────────────────────────
 
-describe('accordéon', () => {
+describe('groupement par année', () => {
   beforeEach(() => setAuthUser());
 
-  it("n'affiche pas les détails au départ", async () => {
+  it('affiche un en-tête 2026 et un en-tête 2025', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
     await screen.findByText('CMD-0101');
-    expect(screen.queryByText('CYNA SOC')).not.toBeInTheDocument();
+    expect(screen.getByText('2026')).toBeInTheDocument();
+    expect(screen.getByText('2025')).toBeInTheDocument();
   });
 
-  it('affiche les détails après clic sur la ligne', async () => {
+  it('place CMD-0101 sous 2026 et CMD-0102 sous 2025', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
-    const ref = await screen.findByText('CMD-0101');
-    fireEvent.click(ref.closest('button')!);
-    expect(await screen.findByText('CYNA SOC')).toBeInTheDocument();
+    await screen.findByText('CMD-0101');
+    const h2026 = screen.getByText('2026');
+    const h2025 = screen.getByText('2025');
+    const section2026 = h2026.closest('div')!.parentElement!;
+    const section2025 = h2025.closest('div')!.parentElement!;
+    expect(section2026).toHaveTextContent('CMD-0101');
+    expect(section2025).toHaveTextContent('CMD-0102');
+  });
+});
+
+// ── Lien vers le détail ───────────────────────────────────────────────────
+
+describe('lien détail', () => {
+  beforeEach(() => setAuthUser());
+
+  it('affiche un lien "Voir le détail" pour chaque commande', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const links = screen.getAllByRole('link', { name: /voir le détail/i });
+    expect(links).toHaveLength(2);
   });
 
-  it('referme la ligne après un deuxième clic', async () => {
+  it('le lien pointe vers /espace-client/commandes/:id', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
-    const ref = await screen.findByText('CMD-0101');
-    const btn = ref.closest('button')!;
-    fireEvent.click(btn);
-    await screen.findByText('CYNA SOC');
-    fireEvent.click(btn);
-    await waitFor(() => {
-      expect(screen.queryByText('CYNA SOC')).not.toBeInTheDocument();
-    });
+    await screen.findByText('CMD-0101');
+    const links = screen.getAllByRole('link', { name: /voir le détail/i });
+    expect(links[0]).toHaveAttribute('href', '/espace-client/commandes/101');
   });
 });

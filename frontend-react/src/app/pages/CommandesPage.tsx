@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router';
-import { ShoppingCart, Package, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
+import { Navigate, useLocation, Link } from 'react-router';
+import { ShoppingCart, Package, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { api, getToken } from '../../api/client';
+import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
-
-interface OrderItem {
-  product_id: number;
-  product?: { name: string };
-  quantity: number;
-  unit_price: number;
-  duration: string;
-}
 
 interface Order {
   id: number;
@@ -21,7 +13,6 @@ interface Order {
   total: number;
   invoice_id?: number;
   created_at: string;
-  items?: OrderItem[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -31,35 +22,12 @@ const STATUS_COLORS: Record<string, string> = {
   refunded: '#7C5CFC',
 };
 
-async function downloadInvoice(invoiceId: number, ref: string) {
-  const token = getToken();
-  const res = await fetch(`/api/invoices/${invoiceId}/download`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status} — ${body.slice(0, 120)}`);
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `facture-${ref}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 100);
-}
-
 export function CommandesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const [downloading, setDownloading] = useState<number | null>(null);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -69,24 +37,20 @@ export function CommandesPage() {
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  async function handleDownload(invoiceId: number, ref: string) {
-    setDownloading(invoiceId);
-    setDownloadError(null);
-    try {
-      await downloadInvoice(invoiceId, ref);
-    } catch (err: any) {
-      setDownloadError(err?.message ?? 'Erreur inconnue');
-    } finally {
-      setDownloading(null);
-    }
-  }
-
   if (authLoading) return (
     <div className="min-h-screen bg-card flex items-center justify-center">
       <div className="w-10 h-10 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
     </div>
   );
   if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+
+  const byYear: Record<string, Order[]> = {};
+  for (const order of orders) {
+    const year = new Date(order.created_at).getFullYear().toString();
+    if (!byYear[year]) byYear[year] = [];
+    byYear[year].push(order);
+  }
+  const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
 
   return (
     <div className="min-h-screen bg-card py-12">
@@ -115,82 +79,53 @@ export function CommandesPage() {
                 <p className="text-muted-foreground">{t('orders.no_orders')}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {orders.map(order => {
-                  const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
-                  const statusLabel = t(`orders.status_${order.status}`) || order.status;
-                  const isOpen = expanded === order.id;
-                  return (
-                    <div key={order.id} className="cyna-card overflow-hidden">
-                      <button
-                        onClick={() => setExpanded(isOpen ? null : order.id)}
-                        className="w-full flex items-center justify-between p-6 hover:bg-bg-subtle transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Package className="w-6 h-6 text-[#00B4D8]" />
-                          <div className="text-left">
-                            <div className="text-ink font-bold">{order.ref}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(order.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span
-                            className="px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
-                          >
-                            {statusLabel}
-                          </span>
-                          <div className="text-xl font-bold text-ink">
-                            {order.total?.toLocaleString('fr-FR')}€
-                          </div>
-                          {isOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
-                        </div>
-                      </button>
-
-                      {isOpen && (
-                        <div className="border-t border-border p-6 space-y-4">
-                          {order.items && order.items.length > 0 && (
-                            <div className="space-y-3">
-                              {order.items.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between text-sm">
-                                  <div>
-                                    <span className="text-ink font-medium">{item.product?.name ?? `Produit #${item.product_id}`}</span>
-                                    <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? t('orders.annual') : t('orders.monthly')}</span>
-                                  </div>
-                                  <span className="text-ink font-semibold">
-                                    {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
-                                  </span>
+              <div className="space-y-8">
+                {years.map(year => (
+                  <div key={year}>
+                    <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <span className="px-3 py-1 bg-bg-subtle border border-border rounded-lg">{year}</span>
+                      <span>{byYear[year].length} commande{byYear[year].length > 1 ? 's' : ''}</span>
+                    </h2>
+                    <div className="space-y-3">
+                      {byYear[year].map(order => {
+                        const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
+                        const statusLabel = t(`orders.status_${order.status}`) || order.status;
+                        return (
+                          <div key={order.id} className="cyna-card p-5 flex items-center justify-between gap-4 flex-wrap">
+                            <div className="flex items-center gap-4">
+                              <Package className="w-5 h-5 text-[#00B4D8] shrink-0" />
+                              <div>
+                                <div className="text-ink font-bold">{order.ref}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                    day: 'numeric', month: 'long', year: 'numeric',
+                                  })}
                                 </div>
-                              ))}
-                              <div className="pt-3 border-t border-border flex justify-between font-semibold">
-                                <span className="text-ink">{t('orders.total')}</span>
-                                <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
                               </div>
                             </div>
-                          )}
-
-                          {order.invoice_id && (
-                            <div className="pt-2 space-y-2">
-                              <button
-                                onClick={() => handleDownload(order.invoice_id!, order.ref)}
-                                disabled={downloading === order.invoice_id}
-                                className="btn btn-ghost"
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <span
+                                className="px-3 py-1 rounded-full text-xs font-semibold"
+                                style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
                               >
-                                <FileDown className="w-4 h-4 text-[#00B4D8]" />
-                                {downloading === order.invoice_id ? t('orders.generating') : t('orders.download_invoice')}
-                              </button>
-                              {downloadError && downloading === null && (
-                                <p className="text-sm text-destructive">{downloadError}</p>
-                              )}
+                                {statusLabel}
+                              </span>
+                              <span className="text-xl font-bold text-ink">
+                                {order.total?.toLocaleString('fr-FR')}€
+                              </span>
+                              <Link
+                                to={`/espace-client/commandes/${order.id}`}
+                                className="btn btn-outline btn-sm flex items-center gap-1.5"
+                              >
+                                {t('orders.view_detail')} <ArrowRight className="w-4 h-4" />
+                              </Link>
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
