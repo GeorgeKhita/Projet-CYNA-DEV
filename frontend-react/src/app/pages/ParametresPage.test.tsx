@@ -135,6 +135,62 @@ describe('changement mot de passe', () => {
 
     expect(await screen.findByText(/ne correspondent pas/i)).toBeInTheDocument();
   });
+
+  it('affiche le message de succès après changement de mot de passe', async () => {
+    vi.spyOn(clientModule.api, 'put').mockResolvedValue({});
+
+    renderWithProviders(<ParametresPage />);
+    await screen.findByRole('heading', { name: /changer le mot de passe/i });
+
+    const pwdInputs = screen.getAllByPlaceholderText('••••••••');
+    fireEvent.change(pwdInputs[0], { target: { value: 'OldPass123!' } });
+    fireEvent.change(pwdInputs[1], { target: { value: 'NewPass456!' } });
+    fireEvent.change(pwdInputs[2], { target: { value: 'NewPass456!' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
+
+    expect(await screen.findByText(/mot de passe modifié/i)).toBeInTheDocument();
+  });
+
+  it("affiche le message d'erreur API si le mot de passe actuel est incorrect", async () => {
+    vi.spyOn(clientModule.api, 'put').mockRejectedValue(new Error('Mot de passe actuel incorrect.'));
+
+    renderWithProviders(<ParametresPage />);
+    await screen.findByRole('heading', { name: /changer le mot de passe/i });
+
+    const pwdInputs = screen.getAllByPlaceholderText('••••••••');
+    fireEvent.change(pwdInputs[0], { target: { value: 'WrongPass1!' } });
+    fireEvent.change(pwdInputs[1], { target: { value: 'NewPass456!' } });
+    fireEvent.change(pwdInputs[2], { target: { value: 'NewPass456!' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /changer le mot de passe/i }));
+
+    expect(await screen.findByText(/mot de passe actuel incorrect/i)).toBeInTheDocument();
+  });
+});
+
+// ── Changement d'email ─────────────────────────────────────────────────────
+
+describe("changement d'email", () => {
+  beforeEach(() => {
+    setAuthUser({ id: 1, first_name: 'Nouh', last_name: 'Martin', email: 'nouh@cyna.fr', role: 'user' });
+  });
+
+  it("affiche le message email en attente quand l'email change", async () => {
+    vi.spyOn(clientModule.api, 'put').mockResolvedValue({
+      id: 1, first_name: 'Nouh', last_name: 'Martin', email: 'nouh@cyna.fr', role: 'user',
+      pending_email_sent: true,
+      pending_email: 'nouveau@cyna.fr',
+    });
+
+    renderWithProviders(<ParametresPage />);
+    const emailInput = await screen.findByDisplayValue('nouh@cyna.fr');
+    fireEvent.change(emailInput, { target: { value: 'nouveau@cyna.fr' } });
+    fireEvent.click(screen.getByRole('button', { name: /enregistrer les modifications/i }));
+
+    expect(await screen.findByText(/email de confirmation/i)).toBeInTheDocument();
+    expect(screen.getByText(/nouveau@cyna\.fr/)).toBeInTheDocument();
+  });
 });
 
 // ── Suppression de compte (modal) ─────────────────────────────────────────
