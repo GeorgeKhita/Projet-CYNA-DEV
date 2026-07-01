@@ -124,3 +124,54 @@ describe('annulation', () => {
     });
   });
 });
+
+// ── Renouvellement ────────────────────────────────────────────────────────
+
+const mockSubsCancelled = [
+  {
+    id: 1,
+    product: { id: 10, name: 'CYNA SOC', category: 'SOC', category_color: '#00B4D8' },
+    status: 'cancelled',
+    price: 299,
+    billing_cycle: 'monthly',
+    current_period_end: '2026-05-01',
+  },
+];
+
+describe('renouvellement', () => {
+  beforeEach(() => setAuthUser());
+
+  it('affiche le bouton Renouveler pour un abonnement annulé', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockSubsCancelled);
+    renderWithProviders(<AbonnementsPage />);
+    expect(await screen.findByRole('button', { name: /renouveler/i })).toBeInTheDocument();
+  });
+
+  it('appelle api.patch /subscriptions/1/renew sur confirmation', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockSubsCancelled);
+    const patchSpy = vi.spyOn(clientModule.api, 'patch').mockResolvedValue({
+      status: 'active',
+      current_period_end: '2026-08-01',
+    });
+
+    renderWithProviders(<AbonnementsPage />);
+    await screen.findByRole('button', { name: /renouveler/i });
+    fireEvent.click(screen.getByRole('button', { name: /renouveler/i }));
+
+    await waitFor(() => {
+      expect(patchSpy).toHaveBeenCalledWith('/subscriptions/1/renew');
+    });
+  });
+
+  it("n'appelle pas api.patch si l'utilisateur refuse le renouvellement", async () => {
+    vi.stubGlobal('confirm', vi.fn(() => false));
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockSubsCancelled);
+    const patchSpy = vi.spyOn(clientModule.api, 'patch').mockResolvedValue({});
+
+    renderWithProviders(<AbonnementsPage />);
+    await screen.findByRole('button', { name: /renouveler/i });
+    fireEvent.click(screen.getByRole('button', { name: /renouveler/i }));
+
+    expect(patchSpy).not.toHaveBeenCalled();
+  });
+});
