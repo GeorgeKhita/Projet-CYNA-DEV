@@ -75,7 +75,7 @@ describe('parcours : checkout identification', () => {
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutIdentificationPage />);
     expect(screen.getByRole('heading', { name: /identification/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /continuer vers le paiement/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continuer/i })).toBeInTheDocument();
   });
 
   it('connexion réussie appelle l\'API puis redirige', async () => {
@@ -89,7 +89,7 @@ describe('parcours : checkout identification', () => {
 
     fireEvent.change(screen.getByPlaceholderText(/votre.email/i), { target: { value: 'n@c.fr' } });
     fireEvent.change(screen.getByPlaceholderText('••••••••'),      { target: { value: 'Pass123!' } });
-    fireEvent.submit(screen.getByRole('button', { name: /continuer/i }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /^continuer$/i }).closest('form')!);
 
     await waitFor(() => {
       expect(postSpy).toHaveBeenCalledWith('/auth/login', { email: 'n@c.fr', password: 'Pass123!' });
