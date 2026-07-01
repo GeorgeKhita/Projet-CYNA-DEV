@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmationMail;
 use App\Models\Invoice;
 use App\Models\License;
 use App\Models\Order;
@@ -317,6 +318,8 @@ class OrderController extends Controller
                 'id'                   => $order->id,
                 'ref'                  => $invoiceNumber,
                 'status'               => 'paid',
+                'subtotal'             => (float) $order->subtotal,
+                'tax'                  => (float) $order->tax,
                 'total'                => (float) $order->total,
                 'invoice_id'           => $invoice->id,
                 'invoice_download_url' => "/api/invoices/{$invoice->id}/download",

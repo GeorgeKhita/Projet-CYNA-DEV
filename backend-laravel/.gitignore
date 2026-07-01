@@ -7,6 +7,9 @@
 /storage/framework/sessions/
 /storage/framework/cache/
 /storage/framework/views/
+/storage/app/
+/storage/fonts/*.afm.json
+/storage/fonts/*.ufm.json
 .env
 .env.backup
 .phpunit.result.cache
