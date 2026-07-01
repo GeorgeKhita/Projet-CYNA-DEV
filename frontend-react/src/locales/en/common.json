@@ -267,6 +267,7 @@
     "delete_permanently": "Permanently delete",
     "deleting": "Deleting...",
     "success_profile": "Profile updated successfully.",
+    "success_profile_email": "A confirmation email has been sent to {{email}}. Click the link to validate your new address.",
     "success_password": "Password changed successfully.",
     "error_passwords": "Passwords do not match."
   },
