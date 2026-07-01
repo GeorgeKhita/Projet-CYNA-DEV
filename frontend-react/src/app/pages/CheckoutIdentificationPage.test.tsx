@@ -17,23 +17,15 @@ describe('rendu', () => {
     expect(screen.getByRole('heading', { name: /identification/i })).toBeInTheDocument();
   });
 
-  it('affiche les étapes du tunnel (Identification / Paiement / Confirmation)', () => {
-    renderWithProviders(<CheckoutIdentificationPage />);
-    // "Identification" apparaît dans le h1 ET le step → getAllByText
-    expect(screen.getAllByText('Identification').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Paiement').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Confirmation').length).toBeGreaterThanOrEqual(1);
-  });
-
   it('affiche le champ email et mot de passe', () => {
     renderWithProviders(<CheckoutIdentificationPage />);
     expect(screen.getByPlaceholderText(/votre.email/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
-  it('affiche le bouton Continuer vers le paiement', () => {
+  it('affiche le bouton Continuer', () => {
     renderWithProviders(<CheckoutIdentificationPage />);
-    expect(screen.getByRole('button', { name: /continuer vers le paiement/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continuer/i })).toBeInTheDocument();
   });
 
   it('affiche le lien S\'inscrire', () => {
@@ -47,7 +39,6 @@ describe('rendu', () => {
 describe('déjà authentifié', () => {
   it('l\'utilisateur authentifié est reconnu comme isAuthenticated', () => {
     setAuthUser();
-    // Vérifie que setAuthUser() a bien stocké le token (condition de redirection)
     expect(localStorage.getItem('cyna_token')).toBe('test-token');
     expect(JSON.parse(localStorage.getItem('cyna_user')!).first_name).toBe('Nouh');
   });

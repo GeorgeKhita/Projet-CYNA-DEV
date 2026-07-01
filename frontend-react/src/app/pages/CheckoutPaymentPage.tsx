@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, Shield, Lock } from 'lucide-react';
+import { Shield, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -23,14 +23,14 @@ const CARD_ELEMENT_OPTIONS = {
 
 function PaymentForm() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const stripe = useStripe();
+  const { t }    = useTranslation();
+  const stripe   = useStripe();
   const elements = useElements();
   const [clientSecret, setClientSecret] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
 
-  const cart = getCart();
+  const cart  = getCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   useEffect(() => {
@@ -63,26 +63,26 @@ function PaymentForm() {
 
     if (paymentIntent?.status === 'succeeded') {
       const cartSnapshot = [...cart];
-      const tva   = Math.round(total * 0.20 * 100) / 100;
-      const ttc   = Math.round((total + tva) * 100) / 100;
-      const orderData = {
+      const tva          = Math.round(total * 0.20 * 100) / 100;
+      const ttc          = Math.round((total + tva) * 100) / 100;
+      const orderData    = {
         payment_intent_id: paymentIntent.id,
         subtotal: total,
         tax: tva,
         total: ttc,
         items: cartSnapshot.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
+          product_id:  item.id,
+          quantity:    item.quantity,
+          unit_price:  item.price,
           total_price: item.price * item.quantity,
-          duration: item.duration,
+          duration:    item.duration,
         })),
       };
 
       try {
         const res = await api.post<any>('/orders', orderData);
         clearCart();
-        navigate('/confirmation', { state: { order: res, cart: cartSnapshot } });
+        navigate('/checkout/confirmation', { state: { order: res, cart: cartSnapshot } });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Erreur inconnue';
         setError(
@@ -135,45 +135,14 @@ function PaymentForm() {
 export function CheckoutPaymentPage() {
   const { t } = useTranslation();
 
-  const steps = [
-    { id: 1, name: t('checkout.step_identification'), active: false, completed: true },
-    { id: 2, name: t('checkout.step_address'),        active: false, completed: true },
-    { id: 3, name: t('checkout.step_payment'),        active: true,  completed: false },
-    { id: 4, name: t('checkout.step_confirmation'),   active: false, completed: false },
-  ];
-
   return (
-    <div className="min-h-screen bg-card py-12">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed ? 'bg-[#10B981] text-white' : step.active ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]' : 'bg-bg-subtle border border-border text-muted-foreground'
-                  }`}>
-                    {step.completed ? <Check className="w-5 h-5" /> : step.id}
-                  </div>
-                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-ink' : 'text-muted-foreground'}`}>{step.name}</span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-[#E5E9F0]'}`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
+      <h1 className="text-3xl font-bold text-ink mb-2">{t('checkout.payment_title')}</h1>
+      <p className="text-muted-foreground mb-8">{t('checkout.payment_subtitle')}</p>
 
-        <div className="cyna-card p-8 shadow-[var(--shadow-md)]">
-          <h1 className="text-3xl font-bold text-ink mb-2">{t('checkout.payment_title')}</h1>
-          <p className="text-muted-foreground mb-8">{t('checkout.payment_subtitle')}</p>
-
-          <Elements stripe={stripePromise}>
-            <PaymentForm />
-          </Elements>
-        </div>
-      </div>
+      <Elements stripe={stripePromise}>
+        <PaymentForm />
+      </Elements>
     </div>
   );
 }
