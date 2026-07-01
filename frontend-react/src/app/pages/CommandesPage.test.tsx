@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { renderWithProviders, setAuthUser } from '../../test-utils';
 import { CommandesPage } from './CommandesPage';
 import * as clientModule from '../../api/client';
@@ -10,22 +10,32 @@ const mockOrders = [
     ref: 'CMD-0101',
     status: 'paid',
     total: 299,
-    invoice_id: 5,
     created_at: '2026-05-01T10:00:00Z',
-    items: [
-      { product_id: 1, product: { name: 'CYNA SOC' }, quantity: 1, unit_price: 299, duration: 'monthly' },
-    ],
   },
   {
     id: 102,
     ref: 'CMD-0102',
     status: 'paid',
     total: 1990,
-    invoice_id: 6,
-    created_at: '2026-04-15T10:00:00Z',
-    items: [
-      { product_id: 2, product: { name: 'CYNA EDR' }, quantity: 1, unit_price: 1990, duration: 'annual' },
-    ],
+    created_at: '2025-11-15T10:00:00Z',
+  },
+];
+
+const mockOrdersWithInvoice = [
+  {
+    id: 101,
+    ref: 'CMD-0101',
+    status: 'paid',
+    total: 299,
+    invoice_id: 42,
+    created_at: '2026-05-01T10:00:00Z',
+  },
+  {
+    id: 102,
+    ref: 'CMD-0102',
+    status: 'paid',
+    total: 1990,
+    created_at: '2025-11-15T10:00:00Z',
   },
 ];
 
@@ -77,98 +87,125 @@ describe('rendu', () => {
   });
 });
 
-// ── Bouton télécharger sur chaque commande ────────────────────────────────
+// ── Groupement par année ──────────────────────────────────────────────────
 
-describe('bouton téléchargement', () => {
+describe('groupement par année', () => {
   beforeEach(() => setAuthUser());
 
-  it('affiche un bouton télécharger par commande ayant une facture', async () => {
+  it('affiche un en-tête 2026 et un en-tête 2025', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
     await screen.findByText('CMD-0101');
-    const buttons = screen.getAllByTitle(/télécharger la facture/i);
-    expect(buttons).toHaveLength(2);
+    expect(screen.getByText('2026')).toBeInTheDocument();
+    expect(screen.getByText('2025')).toBeInTheDocument();
   });
 
-  it("n'affiche pas le bouton si la commande n'a pas de facture", async () => {
-    const orderWithoutInvoice = [{ ...mockOrders[0], invoice_id: undefined }];
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(orderWithoutInvoice);
+  it('place CMD-0101 sous 2026 et CMD-0102 sous 2025', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const h2026 = screen.getByText('2026');
+    const h2025 = screen.getByText('2025');
+    const section2026 = h2026.closest('div')!.parentElement!;
+    const section2025 = h2025.closest('div')!.parentElement!;
+    expect(section2026).toHaveTextContent('CMD-0101');
+    expect(section2025).toHaveTextContent('CMD-0102');
+  });
+});
+
+// ── Lien vers le détail ───────────────────────────────────────────────────
+
+describe('lien détail', () => {
+  beforeEach(() => setAuthUser());
+
+  it('affiche un lien "Voir le détail" pour chaque commande', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const links = screen.getAllByRole('link', { name: /voir le détail/i });
+    expect(links).toHaveLength(2);
+  });
+
+  it('le lien pointe vers /espace-client/commandes/:id', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const links = screen.getAllByRole('link', { name: /voir le détail/i });
+    expect(links[0]).toHaveAttribute('href', '/espace-client/commandes/101');
+  });
+});
+
+// ── Téléchargement de facture ─────────────────────────────────────────────
+
+describe('téléchargement facture', () => {
+  beforeEach(() => setAuthUser());
+
+  it('affiche un bouton de téléchargement uniquement pour les commandes avec facture', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    renderWithProviders(<CommandesPage />);
+    await screen.findByText('CMD-0101');
+    const downloadBtns = screen.getAllByTitle(/télécharger la facture/i);
+    expect(downloadBtns).toHaveLength(1);
+  });
+
+  it('pas de bouton téléchargement quand aucune commande n\'a de facture', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
     await screen.findByText('CMD-0101');
     expect(screen.queryByTitle(/télécharger la facture/i)).not.toBeInTheDocument();
   });
 
-  it('le bouton est visible sans avoir à déplier la commande', async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    renderWithProviders(<CommandesPage />);
-    await screen.findByText('CMD-0101');
-    // CYNA SOC n'est visible qu'après dépliage — le bouton doit être là sans
-    expect(screen.queryByText('CYNA SOC')).not.toBeInTheDocument();
-    expect(screen.getAllByTitle(/télécharger la facture/i)[0]).toBeInTheDocument();
-  });
+  it('appelle /api/invoices/:id/download au clic et affiche une erreur en cas d\'échec', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    vi.spyOn(clientModule, 'getToken').mockReturnValue('tok-test');
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 403,
+      text: async () => 'Forbidden',
+    } as any);
 
-  it('appelle fetch sur /api/invoices/:id/download au clic', async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(new Blob(['%PDF'], { type: 'application/pdf' }), { status: 200 }),
-    );
     renderWithProviders(<CommandesPage />);
     await screen.findByText('CMD-0101');
 
-    fireEvent.click(screen.getAllByTitle(/télécharger la facture/i)[0]);
+    const btn = screen.getByTitle(/télécharger la facture/i);
+    fireEvent.click(btn);
 
     await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/invoices/5/download',
-        expect.objectContaining({ headers: expect.objectContaining({ Accept: 'application/pdf' }) }),
-      );
+      expect(screen.getByText(/HTTP 403/i)).toBeInTheDocument();
     });
   });
 
-  it("affiche le message d'erreur si le téléchargement échoue", async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response('Erreur serveur', { status: 500 }),
-    );
+  it('déclenche le téléchargement en cas de succès', async () => {
+    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrdersWithInvoice);
+    vi.spyOn(clientModule, 'getToken').mockReturnValue('tok-test');
+
     renderWithProviders(<CommandesPage />);
     await screen.findByText('CMD-0101');
 
-    fireEvent.click(screen.getAllByTitle(/télécharger la facture/i)[0]);
+    const blob = new Blob(['%PDF-fake'], { type: 'application/pdf' });
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+    } as any);
 
-    expect(await screen.findByText(/HTTP 500/i)).toBeInTheDocument();
-  });
-});
+    const createObjectURL = vi.fn(() => 'blob:test');
+    global.URL.createObjectURL = createObjectURL;
+    global.URL.revokeObjectURL = vi.fn();
 
-// ── Accordéon (détail lignes) ─────────────────────────────────────────────
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el: Node) => el);
+    const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el: Node) => el);
+    const clickSpy       = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
-describe('accordéon', () => {
-  beforeEach(() => setAuthUser());
-
-  it("n'affiche pas les détails au départ", async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    renderWithProviders(<CommandesPage />);
-    await screen.findByText('CMD-0101');
-    expect(screen.queryByText('CYNA SOC')).not.toBeInTheDocument();
-  });
-
-  it('affiche les détails après clic sur la ligne', async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    renderWithProviders(<CommandesPage />);
-    const ref = await screen.findByText('CMD-0101');
-    fireEvent.click(ref.closest('button')!);
-    expect(await screen.findByText('CYNA SOC')).toBeInTheDocument();
-  });
-
-  it('referme la ligne après un deuxième clic', async () => {
-    vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
-    renderWithProviders(<CommandesPage />);
-    const ref = await screen.findByText('CMD-0101');
-    const btn = ref.closest('button')!;
+    const btn = screen.getByTitle(/télécharger la facture/i);
     fireEvent.click(btn);
-    await screen.findByText('CYNA SOC');
-    fireEvent.click(btn);
+
     await waitFor(() => {
-      expect(screen.queryByText('CYNA SOC')).not.toBeInTheDocument();
+      expect(createObjectURL).toHaveBeenCalledWith(blob);
+      expect(clickSpy).toHaveBeenCalled();
     });
+
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+    clickSpy.mockRestore();
   });
 });

@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router';
-import { ShoppingCart, Package, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
+import { Navigate, useLocation, Link } from 'react-router';
+import { ShoppingCart, Package, ArrowRight, FileDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
-
-interface OrderItem {
-  product_id: number;
-  product?: { name: string };
-  quantity: number;
-  unit_price: number;
-  duration: string;
-}
 
 interface Order {
   id: number;
@@ -21,7 +13,6 @@ interface Order {
   total: number;
   invoice_id?: number;
   created_at: string;
-  items?: OrderItem[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -41,9 +32,9 @@ async function downloadInvoice(invoiceId: number, ref: string) {
     throw new Error(`HTTP ${res.status} — ${body.slice(0, 120)}`);
   }
   const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
   a.download = `facture-${ref}.pdf`;
   document.body.appendChild(a);
   a.click();
@@ -57,7 +48,6 @@ export function CommandesPage() {
   const { t } = useTranslation();
   const [orders, setOrders]       = useState<Order[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [expanded, setExpanded]   = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
   const [downloadError, setDownloadError] = useState<{ orderId: number; message: string } | null>(null);
 
@@ -88,6 +78,14 @@ export function CommandesPage() {
   );
   if (!isAuthenticated) return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />;
 
+  const byYear: Record<string, Order[]> = {};
+  for (const order of orders) {
+    const year = new Date(order.created_at).getFullYear().toString();
+    if (!byYear[year]) byYear[year] = [];
+    byYear[year].push(order);
+  }
+  const years = Object.keys(byYear).sort((a, b) => Number(b) - Number(a));
+
   return (
     <div className="min-h-screen bg-card py-12">
       <div className="max-w-7xl mx-auto px-6">
@@ -115,95 +113,69 @@ export function CommandesPage() {
                 <p className="text-muted-foreground">{t('orders.no_orders')}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {orders.map(order => {
-                  const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
-                  const statusLabel = t(`orders.status_${order.status}`) || order.status;
-                  const isOpen = expanded === order.id;
-                  const isDownloading = downloading === order.invoice_id;
-                  return (
-                    <div key={order.id} className="cyna-card overflow-hidden">
-                      {/* Row header — séparé en zone clic-expand et boutons d'action */}
-                      <div className="flex items-center justify-between p-6 hover:bg-bg-subtle transition-colors gap-4 flex-wrap">
-                        <button
-                          onClick={() => setExpanded(isOpen ? null : order.id)}
-                          className="flex items-center gap-4 flex-1 text-left min-w-0"
-                        >
-                          <Package className="w-6 h-6 text-[#00B4D8] shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-ink font-bold">{order.ref}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                                day: 'numeric', month: 'long', year: 'numeric',
-                              })}
-                            </div>
-                          </div>
-                        </button>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span
-                            className="px-3 py-1 rounded-full text-xs font-semibold"
-                            style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
-                          >
-                            {statusLabel}
-                          </span>
-                          <div className="text-xl font-bold text-ink">
-                            {order.total?.toLocaleString('fr-FR')}€
-                          </div>
-                          {order.invoice_id && (
-                            <button
-                              onClick={() => handleDownload(order.invoice_id!, order.ref, order.id)}
-                              disabled={isDownloading}
-                              title={t('orders.download_invoice')}
-                              className="btn btn-ghost btn-sm flex items-center gap-1.5"
-                            >
-                              <FileDown className={`w-4 h-4 text-[#00B4D8] ${isDownloading ? 'animate-pulse' : ''}`} />
-                              <span className="hidden sm:inline">
-                                {isDownloading ? t('orders.generating') : t('orders.download_invoice')}
-                              </span>
-                            </button>
-                          )}
-                          <button
-                            onClick={() => setExpanded(isOpen ? null : order.id)}
-                            className="text-muted-foreground hover:text-ink transition-colors"
-                          >
-                            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {downloadError?.orderId === order.id && (
-                        <p className="px-6 pb-3 text-sm text-destructive">{downloadError.message}</p>
-                      )}
-
-                      {isOpen && (
-                        <div className="border-t border-border p-6 space-y-3">
-                          {order.items && order.items.length > 0 && order.items.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between text-sm">
-                              <div>
-                                <span className="text-ink font-medium">
-                                  {item.product?.name ?? `Produit #${item.product_id}`}
-                                </span>
-                                <span className="text-muted-foreground ml-2">
-                                  × {item.quantity} · {item.duration === 'annual' ? t('orders.annual') : t('orders.monthly')}
-                                </span>
+              <div className="space-y-8">
+                {years.map(year => (
+                  <div key={year}>
+                    <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                      <span className="px-3 py-1 bg-bg-subtle border border-border rounded-lg">{year}</span>
+                      <span>{byYear[year].length} commande{byYear[year].length > 1 ? 's' : ''}</span>
+                    </h2>
+                    <div className="space-y-3">
+                      {byYear[year].map(order => {
+                        const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
+                        const statusLabel = t(`orders.status_${order.status}`) || order.status;
+                        const isDownloading = downloading === order.invoice_id;
+                        return (
+                          <div key={order.id} className="cyna-card p-5">
+                            <div className="flex items-center justify-between gap-4 flex-wrap">
+                              <div className="flex items-center gap-4">
+                                <Package className="w-5 h-5 text-[#00B4D8] shrink-0" />
+                                <div>
+                                  <div className="text-ink font-bold">{order.ref}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                      day: 'numeric', month: 'long', year: 'numeric',
+                                    })}
+                                  </div>
+                                </div>
                               </div>
-                              <span className="text-ink font-semibold">
-                                {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
-                              </span>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span
+                                  className="px-3 py-1 rounded-full text-xs font-semibold"
+                                  style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
+                                >
+                                  {statusLabel}
+                                </span>
+                                <span className="text-xl font-bold text-ink">
+                                  {order.total?.toLocaleString('fr-FR')}€
+                                </span>
+                                {order.invoice_id && (
+                                  <button
+                                    onClick={() => handleDownload(order.invoice_id!, order.ref, order.id)}
+                                    disabled={isDownloading}
+                                    title={t('orders.download_invoice')}
+                                    className="btn btn-ghost btn-sm p-2"
+                                  >
+                                    <FileDown className={`w-4 h-4 text-[#00B4D8] ${isDownloading ? 'animate-pulse' : ''}`} />
+                                  </button>
+                                )}
+                                <Link
+                                  to={`/espace-client/commandes/${order.id}`}
+                                  className="btn btn-outline btn-sm flex items-center gap-1.5"
+                                >
+                                  {t('orders.view_detail')} <ArrowRight className="w-4 h-4" />
+                                </Link>
+                              </div>
                             </div>
-                          ))}
-                          {order.items && order.items.length > 0 && (
-                            <div className="pt-3 border-t border-border flex justify-between font-semibold">
-                              <span className="text-ink">{t('orders.total')}</span>
-                              <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            {downloadError?.orderId === order.id && (
+                              <p className="text-sm text-destructive mt-2">{downloadError.message}</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
