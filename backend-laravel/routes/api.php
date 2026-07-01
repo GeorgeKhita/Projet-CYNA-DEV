@@ -89,10 +89,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/auth/admin/disable-2fa', [AuthController::class, 'disableAdmin2FA']);
 
     // Adresses
-    Route::get('/user/addresses',          [AddressController::class, 'index']);
-    Route::post('/user/addresses',         [AddressController::class, 'store']);
-    Route::put('/user/addresses/{id}',     [AddressController::class, 'update']);
-    Route::delete('/user/addresses/{id}',  [AddressController::class, 'destroy']);
+    Route::get('/user/addresses',                    [AddressController::class, 'index']);
+    Route::post('/user/addresses',                   [AddressController::class, 'store']);
+    Route::put('/user/addresses/{id}',               [AddressController::class, 'update']);
+    Route::delete('/user/addresses/{id}',            [AddressController::class, 'destroy']);
+    Route::patch('/user/addresses/{id}/default',     [AddressController::class, 'setDefault']);
 
     // Méthodes de paiement
     Route::get('/user/payment-methods',         [PaymentMethodController::class, 'index']);
