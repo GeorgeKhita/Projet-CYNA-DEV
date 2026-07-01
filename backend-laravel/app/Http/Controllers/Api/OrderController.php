@@ -340,7 +340,7 @@ class OrderController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $order = Order::where('user_id', $request->user()->id)
-            ->with(['details.product', 'invoice'])
+            ->with(['details.product', 'invoice', 'subscriptions.product'])
             ->findOrFail($id);
 
         return response()->json([
@@ -359,6 +359,15 @@ class OrderController extends Controller
                 'quantity'   => $d->quantity,
                 'unit_price' => (float) $d->unit_price,
                 'duration'   => $d->duration,
+            ]),
+            'subscriptions' => $order->subscriptions->map(fn($s) => [
+                'id'                   => $s->id,
+                'product_id'           => $s->product_id,
+                'product_name'         => $s->product?->name,
+                'status'               => $s->status,
+                'billing_cycle'        => $s->billing_cycle,
+                'current_period_start' => $s->current_period_start?->format('Y-m-d'),
+                'current_period_end'   => $s->current_period_end?->format('Y-m-d'),
             ]),
         ]);
     }

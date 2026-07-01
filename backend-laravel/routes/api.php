@@ -112,6 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Abonnements
     Route::get('/subscriptions',                              [SubscriptionController::class, 'index']);
+    Route::get('/subscriptions/{id}',                        [SubscriptionController::class, 'show']);
     Route::patch('/subscriptions/{subscription}/cancel',      [SubscriptionController::class, 'cancel']);
     Route::patch('/subscriptions/{id}/renew',                 [SubscriptionController::class, 'renew']);
 
