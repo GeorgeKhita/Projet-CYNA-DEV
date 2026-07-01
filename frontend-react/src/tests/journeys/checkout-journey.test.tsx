@@ -61,9 +61,7 @@ describe('parcours : panier', () => {
   it('vider un item via la corbeille revient au panier vide', () => {
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CartPage />);
-    // Dernier bouton = corbeille
-    const btns = screen.getAllByRole('button');
-    fireEvent.click(btns[btns.length - 1]);
+    fireEvent.click(screen.getByRole('button', { name: /supprimer du panier/i }));
     expect(screen.getByText(/votre panier est vide/i)).toBeInTheDocument();
   });
 });

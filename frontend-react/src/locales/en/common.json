@@ -135,7 +135,13 @@
     "tva_included": "20% VAT included",
     "large_order_label": "Order > €5,000 excl. tax — Custom quote",
     "checkout": "Proceed to checkout",
-    "continue_shopping": "← Continue shopping"
+    "continue_shopping": "← Continue shopping",
+    "promo_placeholder": "Promo code",
+    "promo_apply": "Apply",
+    "promo_remove": "Remove",
+    "promo_loading": "Checking...",
+    "promo_discount": "Discount ({{code}})",
+    "promo_error_empty": "Please enter a promo code."
   },
   "contact": {
     "title": "Contact us",

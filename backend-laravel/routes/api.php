@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\PromoCodeController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentMethodController;
@@ -62,6 +63,9 @@ Route::get('/companies/search', [CompanyController::class, 'search']);
 
 // Formulaire de contact
 Route::post('/contact', [ContactController::class, 'send']);
+
+// Codes promo (public — validation avant checkout)
+Route::post('/promo-codes/validate', [PromoCodeController::class, 'validate']);
 
 // Chatbot IA (public — fonctionne connecté ou anonyme)
 Route::post('/chatbot/message', [ChatbotController::class, 'message']);

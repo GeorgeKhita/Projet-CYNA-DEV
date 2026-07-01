@@ -135,7 +135,13 @@
     "tva_included": "TVA 20% incluse",
     "large_order_label": "Commande > 5 000€ HT — Devis sur-mesure",
     "checkout": "Passer à la caisse",
-    "continue_shopping": "← Continuer mes achats"
+    "continue_shopping": "← Continuer mes achats",
+    "promo_placeholder": "Code promo",
+    "promo_apply": "Appliquer",
+    "promo_remove": "Retirer",
+    "promo_loading": "Vérification...",
+    "promo_discount": "Réduction ({{code}})",
+    "promo_error_empty": "Veuillez saisir un code promo."
   },
   "contact": {
     "title": "Contactez-nous",

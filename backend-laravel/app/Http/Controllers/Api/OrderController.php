@@ -8,6 +8,7 @@ use App\Models\License;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use App\Models\PromoCode;
 use App\Models\Subscription;
 use App\Services\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -32,6 +33,7 @@ class OrderController extends Controller
             'items.*.quantity'   => 'required|integer|min:1',
             'items.*.duration'   => 'required|in:monthly,annual',
             'address_id'         => 'nullable|integer|exists:addresses,id',
+            'promo_code'         => 'nullable|string|max:50',
         ]);
 
         // Prix figés : lecture depuis la DB, jamais depuis le client
@@ -75,18 +77,32 @@ class OrderController extends Controller
             ];
         }
 
-        $tax   = round($subtotal * 0.20, 2);
-        $total = round($subtotal + $tax, 2);
+        // Code promo — validation et calcul de remise côté serveur
+        $promoCode      = null;
+        $discountAmount = 0.0;
+
+        if (!empty($data['promo_code'])) {
+            $promoCode = PromoCode::whereRaw('UPPER(code) = ?', [strtoupper(trim($data['promo_code']))])->first();
+            if ($promoCode && $promoCode->isValid($subtotal)) {
+                $discountAmount = $promoCode->computeDiscount($subtotal);
+            }
+        }
+
+        $discountedSubtotal = max(0, round($subtotal - $discountAmount, 2));
+        $tax   = round($discountedSubtotal * 0.20, 2);
+        $total = round($discountedSubtotal + $tax, 2);
 
         DB::beginTransaction();
         try {
             $order = Order::create([
-                'user_id'    => $request->user()->id,
-                'address_id' => $data['address_id'] ?? null,
-                'status'     => 'pending',
-                'subtotal'   => $subtotal,
-                'tax'        => $tax,
-                'total'      => $total,
+                'user_id'       => $request->user()->id,
+                'address_id'    => $data['address_id'] ?? null,
+                'promo_code_id' => $promoCode?->id,
+                'status'        => 'pending',
+                'subtotal'      => $subtotal,
+                'discount'      => $discountAmount,
+                'tax'           => $tax,
+                'total'         => $total,
             ]);
 
             foreach ($lineItems as $line) {
@@ -103,6 +119,10 @@ class OrderController extends Controller
             ]);
 
             $order->update(['stripe_pi_id' => $intent->id]);
+
+            if ($promoCode) {
+                $promoCode->increment('uses_count');
+            }
 
             DB::commit();
 
