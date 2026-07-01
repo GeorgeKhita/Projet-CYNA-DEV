@@ -6,6 +6,7 @@ import { CatalogPage } from './pages/CatalogPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutIdentificationPage } from './pages/CheckoutIdentificationPage';
+import { CheckoutAddressPage } from './pages/CheckoutAddressPage';
 import { CheckoutPaymentPage } from './pages/CheckoutPaymentPage';
 import { ConfirmationPage } from './pages/ConfirmationPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
       { path: 'produit/:id',                 Component: ProductDetailPage },
       { path: 'panier',                      Component: CartPage },
       { path: 'checkout/identification',     Component: CheckoutIdentificationPage },
+      { path: 'checkout/adresse',            Component: CheckoutAddressPage },
       { path: 'checkout/paiement',           Component: CheckoutPaymentPage },
       { path: 'confirmation',                Component: ConfirmationPage },
       { path: 'espace-client',               Component: DashboardPage },
