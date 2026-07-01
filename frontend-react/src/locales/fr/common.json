@@ -236,7 +236,19 @@
     "status_paid": "Payée",
     "status_pending": "En attente",
     "status_failed": "Échouée",
-    "status_refunded": "Remboursée"
+    "status_refunded": "Remboursée",
+    "view_detail": "Voir le détail",
+    "back": "Retour aux commandes",
+    "detail_title": "Lignes de commande",
+    "product_col": "Produit",
+    "qty_col": "Qté",
+    "period_col": "Période",
+    "unit_price_col": "Prix unitaire HT",
+    "line_total_col": "Total HT",
+    "subtotal_ht": "Sous-total HT",
+    "tva": "TVA (20%)",
+    "total_ttc": "Total TTC",
+    "not_found": "Commande introuvable."
   },
   "settings": {
     "title": "Paramètres",
