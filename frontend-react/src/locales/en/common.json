@@ -294,7 +294,12 @@
     "step2": "You will receive your access credentials by email within 5 minutes",
     "step3": "Our support team is available 24/7",
     "go_dashboard": "Go to my dashboard",
-    "order_registered": "Order registered"
+    "order_registered": "Order registered",
+    "subtotal_ht": "Subtotal (excl. tax)",
+    "tva": "VAT (20%)",
+    "total_ttc": "Total (incl. tax)",
+    "license_keys": "Your license keys",
+    "keep_licenses": "Keep these keys safe. They will allow you to activate your software."
   },
   "forgot_password": {
     "title": "Forgot password",

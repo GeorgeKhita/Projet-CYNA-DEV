@@ -294,7 +294,12 @@
     "step2": "Vous recevrez vos accès par email sous 5 minutes",
     "step3": "Notre équipe support reste à votre disposition 24/7",
     "go_dashboard": "Accéder à mon espace client",
-    "order_registered": "Commande enregistrée"
+    "order_registered": "Commande enregistrée",
+    "subtotal_ht": "Sous-total HT",
+    "tva": "TVA (20%)",
+    "total_ttc": "Total TTC",
+    "license_keys": "Vos clés de licence",
+    "keep_licenses": "Conservez précieusement ces clés. Elles vous permettront d'activer vos logiciels."
   },
   "forgot_password": {
     "title": "Mot de passe oublié",
