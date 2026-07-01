@@ -188,11 +188,15 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // ── Email (hors transaction) ──────────────────────────────────
+            // ── Génération PDF + envoi email (hors transaction) ──────────────
             try {
                 \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
                 $invoice->load(['order.items.product', 'user']);
                 $pdfContent = Pdf::loadHtml(InvoiceController::buildHtml($invoice))->output();
+
+                $storagePath = "invoices/facture-{$invoiceNumber}.pdf";
+                \Illuminate\Support\Facades\Storage::disk('local')->put($storagePath, $pdfContent);
+                $invoice->update(['pdf_path' => $storagePath]);
 
                 $itemsHtml = $order->details->map(function ($d) {
                     $product = $d->product ?? Product::find($d->product_id);
@@ -290,13 +294,14 @@ class OrderController extends Controller
             }
 
             return response()->json([
-                'id'         => $order->id,
-                'ref'        => $invoiceNumber,
-                'status'     => 'paid',
-                'total'      => (float) $order->total,
-                'invoice_id' => $invoice->id,
-                'licenses'   => $licenses,
-                'created_at' => $order->created_at,
+                'id'                   => $order->id,
+                'ref'                  => $invoiceNumber,
+                'status'               => 'paid',
+                'total'                => (float) $order->total,
+                'invoice_id'           => $invoice->id,
+                'invoice_download_url' => "/api/invoices/{$invoice->id}/download",
+                'licenses'             => $licenses,
+                'created_at'           => $order->created_at,
             ]);
 
         } catch (\Throwable $e) {
@@ -313,13 +318,14 @@ class OrderController extends Controller
             ->latest()
             ->get()
             ->map(fn($o) => [
-                'id'         => $o->id,
-                'ref'        => 'CYN-' . str_pad($o->id, 6, '0', STR_PAD_LEFT),
-                'status'     => $o->status,
-                'total'      => (float) $o->total,
-                'invoice_id' => $o->invoice?->id,
-                'created_at' => $o->created_at,
-                'items'      => $o->details->map(fn($d) => [
+                'id'                   => $o->id,
+                'ref'                  => 'CYN-' . str_pad($o->id, 6, '0', STR_PAD_LEFT),
+                'status'               => $o->status,
+                'total'                => (float) $o->total,
+                'invoice_id'           => $o->invoice?->id,
+                'invoice_download_url' => $o->invoice ? "/api/invoices/{$o->invoice->id}/download" : null,
+                'created_at'           => $o->created_at,
+                'items'                => $o->details->map(fn($d) => [
                     'product_id' => $d->product_id,
                     'product'    => ['name' => $d->product?->name],
                     'quantity'   => $d->quantity,
@@ -338,15 +344,16 @@ class OrderController extends Controller
             ->findOrFail($id);
 
         return response()->json([
-            'id'         => $order->id,
-            'ref'        => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
-            'status'     => $order->status,
-            'subtotal'   => (float) $order->subtotal,
-            'tax'        => (float) $order->tax,
-            'total'      => (float) $order->total,
-            'invoice_id' => $order->invoice?->id,
-            'created_at' => $order->created_at,
-            'items'      => $order->details->map(fn($d) => [
+            'id'                   => $order->id,
+            'ref'                  => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
+            'status'               => $order->status,
+            'subtotal'             => (float) $order->subtotal,
+            'tax'                  => (float) $order->tax,
+            'total'                => (float) $order->total,
+            'invoice_id'           => $order->invoice?->id,
+            'invoice_download_url' => $order->invoice ? "/api/invoices/{$order->invoice->id}/download" : null,
+            'created_at'           => $order->created_at,
+            'items'                => $order->details->map(fn($d) => [
                 'product_id' => $d->product_id,
                 'product'    => ['name' => $d->product?->name],
                 'quantity'   => $d->quantity,
