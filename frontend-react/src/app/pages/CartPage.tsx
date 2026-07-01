@@ -1,16 +1,37 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { ShoppingCart, Minus, Plus, Trash2, ArrowRight, FileText } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Trash2, ArrowRight, FileText, Tag, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { api } from '../../api/client';
 import { getCart, updateQuantity, removeFromCart, CartItem, MAX_QTY } from '../../lib/cart';
 
 const TVA = 0.20;
 
+interface AppliedPromo {
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  label: string;
+  discount_amount: number;
+}
+
+const PROMO_SESSION_KEY = 'cyna_promo';
+
 export function CartPage() {
   const { t } = useTranslation();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [promoInput, setPromoInput]     = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const [promoError, setPromoError]     = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
 
-  useEffect(() => { setCartItems(getCart()); }, []);
+  useEffect(() => {
+    setCartItems(getCart());
+    const saved = sessionStorage.getItem(PROMO_SESSION_KEY);
+    if (saved) {
+      try { setAppliedPromo(JSON.parse(saved)); } catch {}
+    }
+  }, []);
 
   function handleUpdateQuantity(id: number, duration: string, delta: number) {
     updateQuantity(id, duration, delta);
@@ -22,10 +43,47 @@ export function CartPage() {
     setCartItems(getCart());
   }
 
-  const totalHT  = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalTVA = totalHT * TVA;
-  const totalTTC = totalHT + totalTVA;
-  const isLargeOrder = totalHT > 5000;
+  async function handleApplyPromo() {
+    const code = promoInput.trim();
+    if (!code) { setPromoError(t('cart.promo_error_empty')); return; }
+
+    setPromoLoading(true);
+    setPromoError('');
+
+    try {
+      const res = await api.post<AppliedPromo & { new_total_ht: number }>('/promo-codes/validate', {
+        code,
+        total_ht: baseHT,
+      });
+      const promo: AppliedPromo = {
+        code:            res.code,
+        type:            res.type,
+        value:           res.value,
+        label:           res.label,
+        discount_amount: res.discount_amount ?? 0,
+      };
+      setAppliedPromo(promo);
+      sessionStorage.setItem(PROMO_SESSION_KEY, JSON.stringify(promo));
+      setPromoInput('');
+    } catch (err: any) {
+      setPromoError(err?.message ?? 'Code invalide.');
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  function handleRemovePromo() {
+    setAppliedPromo(null);
+    sessionStorage.removeItem(PROMO_SESSION_KEY);
+    setPromoError('');
+  }
+
+  const baseHT    = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount  = appliedPromo?.discount_amount ?? 0;
+  const totalHT   = Math.max(0, baseHT - discount);
+  const totalTVA  = totalHT * TVA;
+  const totalTTC  = totalHT + totalTVA;
+  const isLargeOrder = baseHT > 5000;
 
   return (
     <div className="min-h-screen bg-card py-12">
@@ -87,6 +145,7 @@ export function CartPage() {
                     </div>
 
                     <button onClick={() => handleRemove(item.id, item.duration)}
+                      aria-label="Supprimer du panier"
                       className="w-10 h-10 bg-destructive/10 border border-destructive/30 rounded-xl flex items-center justify-center hover:bg-[#FEE2E2] transition-colors flex-shrink-0">
                       <Trash2 className="w-5 h-5 text-destructive" />
                     </button>
@@ -118,11 +177,60 @@ export function CartPage() {
                 ))}
               </div>
 
+              {/* ── Code promo ── */}
+              <div className="mb-6 pb-6 border-b border-border">
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between p-3 bg-[#10B981]/8 border border-[#10B981]/30 rounded-xl">
+                    <div className="flex items-center gap-2 text-[#10B981] font-semibold text-sm">
+                      <Tag className="w-4 h-4" />
+                      <span>{appliedPromo.code}</span>
+                      <span className="text-[#10B981]/70">({appliedPromo.label})</span>
+                    </div>
+                    <button
+                      onClick={handleRemovePromo}
+                      aria-label={t('cart.promo_remove')}
+                      className="p-1 rounded-lg hover:bg-[#10B981]/15 transition-colors"
+                    >
+                      <X className="w-4 h-4 text-[#10B981]" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoInput}
+                        onChange={e => { setPromoInput(e.target.value); setPromoError(''); }}
+                        onKeyDown={e => e.key === 'Enter' && handleApplyPromo()}
+                        placeholder={t('cart.promo_placeholder')}
+                        className="flex-1 bg-bg-subtle border border-border rounded-xl px-4 py-2.5 text-ink text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#00B4D8]/30 focus:border-[#00B4D8] transition-all"
+                      />
+                      <button
+                        onClick={handleApplyPromo}
+                        disabled={promoLoading}
+                        className="btn btn-ghost btn-sm px-4 border border-border rounded-xl text-sm font-semibold shrink-0"
+                      >
+                        {promoLoading ? t('cart.promo_loading') : t('cart.promo_apply')}
+                      </button>
+                    </div>
+                    {promoError && (
+                      <p className="text-sm text-destructive">{promoError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-3 mb-6 pb-6 border-b border-border">
                 <div className="flex justify-between text-ink-soft">
                   <span>{t('cart.subtotal_ht')}</span>
-                  <span>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
+                  <span>{baseHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
                 </div>
+                {appliedPromo && (
+                  <div className="flex justify-between text-[#10B981] font-semibold">
+                    <span>{t('cart.promo_discount', { code: appliedPromo.code })}</span>
+                    <span>-{appliedPromo.discount_amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-ink-soft">
                   <span>{t('cart.tva')}</span>
                   <span>{totalTVA.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€</span>

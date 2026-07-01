@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -17,12 +18,13 @@ class InvoiceController extends Controller
             ->orderByDesc('created_at')
             ->get()
             ->map(fn($inv) => [
-                'id'         => $inv->id,
-                'number'     => $inv->invoice_number,
-                'amount'     => (float) $inv->amount,
-                'status'     => $inv->status ?? 'paid',
-                'order_id'   => $inv->order_id,
-                'created_at' => $inv->created_at,
+                'id'           => $inv->id,
+                'number'       => $inv->invoice_number,
+                'amount'       => (float) $inv->amount,
+                'status'       => $inv->status ?? 'paid',
+                'order_id'     => $inv->order_id,
+                'download_url' => "/api/invoices/{$inv->id}/download",
+                'created_at'   => $inv->created_at,
             ]);
 
         return response()->json($invoices);
@@ -34,15 +36,25 @@ class InvoiceController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        $invoice->load(['order.items.product', 'user']);
+        $filename = "facture-{$invoice->invoice_number}.pdf";
+        $storagePath = "invoices/{$filename}";
 
         try {
-            \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
-            $pdf = Pdf::loadHtml(self::buildHtml($invoice));
+            // Serve from disk if already stored, otherwise generate + store
+            if ($invoice->pdf_path && Storage::disk('local')->exists($invoice->pdf_path)) {
+                $pdfContent = Storage::disk('local')->get($invoice->pdf_path);
+            } else {
+                \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
+                $invoice->load(['order.items.product', 'user']);
+                $pdfContent = Pdf::loadHtml(self::buildHtml($invoice))->output();
 
-            return response($pdf->output(), 200, [
+                Storage::disk('local')->put($storagePath, $pdfContent);
+                $invoice->update(['pdf_path' => $storagePath]);
+            }
+
+            return response($pdfContent, 200, [
                 'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="facture-' . $invoice->invoice_number . '.pdf"',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Génération PDF facture échouée', [
@@ -50,8 +62,25 @@ class InvoiceController extends Controller
                 'error'      => $e->getMessage(),
             ]);
             return response()->json([
-                'message' => 'Erreur lors de la génération du PDF. Réessayez ou contactez le support.',
+                'message' => 'Erreur lors de la génération du PDF.',
             ], 500);
+        }
+    }
+
+    public static function storePdf(Invoice $invoice): void
+    {
+        try {
+            \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('fonts'));
+            $invoice->loadMissing(['order.items.product', 'user']);
+            $pdfContent  = Pdf::loadHtml(self::buildHtml($invoice))->output();
+            $storagePath = "invoices/facture-{$invoice->invoice_number}.pdf";
+            Storage::disk('local')->put($storagePath, $pdfContent);
+            $invoice->update(['pdf_path' => $storagePath]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('storePdf échoué', [
+                'invoice_id' => $invoice->id,
+                'error'      => $e->getMessage(),
+            ]);
         }
     }
 

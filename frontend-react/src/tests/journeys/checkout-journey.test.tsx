@@ -61,9 +61,7 @@ describe('parcours : panier', () => {
   it('vider un item via la corbeille revient au panier vide', () => {
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CartPage />);
-    // Dernier bouton = corbeille
-    const btns = screen.getAllByRole('button');
-    fireEvent.click(btns[btns.length - 1]);
+    fireEvent.click(screen.getByRole('button', { name: /supprimer du panier/i }));
     expect(screen.getByText(/votre panier est vide/i)).toBeInTheDocument();
   });
 });
@@ -71,11 +69,18 @@ describe('parcours : panier', () => {
 // ── 2. Checkout Identification ────────────────────────────────────────────
 
 describe('parcours : checkout identification', () => {
-  it('affiche le formulaire quand l\'utilisateur n\'est pas connecté', () => {
+  it('affiche les 3 onglets (Se connecter / Créer un compte / Invité)', () => {
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutIdentificationPage />);
     expect(screen.getByRole('heading', { name: /identification/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /continuer/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /créer un compte/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /invité/i })).toBeInTheDocument();
+  });
+
+  it('onglet connexion : affiche le formulaire de login par défaut', () => {
+    renderWithProviders(<CheckoutIdentificationPage />);
+    expect(screen.getByPlaceholderText(/votre.email/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
   it('connexion réussie appelle l\'API puis redirige', async () => {
@@ -87,9 +92,9 @@ describe('parcours : checkout identification', () => {
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutIdentificationPage />);
 
-    fireEvent.change(screen.getByPlaceholderText(/votre.email/i), { target: { value: 'n@c.fr' } });
-    fireEvent.change(screen.getByPlaceholderText('••••••••'),      { target: { value: 'Pass123!' } });
-    fireEvent.submit(screen.getByRole('button', { name: /^continuer$/i }).closest('form')!);
+    fireEvent.change(screen.getByPlaceholderText(/votre.email@entreprise/i), { target: { value: 'n@c.fr' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'),                { target: { value: 'Pass123!' } });
+    fireEvent.submit(screen.getByPlaceholderText(/votre.email@entreprise/i).closest('form')!);
 
     await waitFor(() => {
       expect(postSpy).toHaveBeenCalledWith('/auth/login', { email: 'n@c.fr', password: 'Pass123!' });
@@ -97,6 +102,17 @@ describe('parcours : checkout identification', () => {
     await waitFor(() => {
       expect(localStorage.getItem('cyna_token')).toBe('tok-abc');
     });
+  });
+
+  it('onglet invité : soumission stocke les infos en sessionStorage', () => {
+    renderWithProviders(<CheckoutIdentificationPage />);
+    // Basculer sur l'onglet Invité
+    fireEvent.click(screen.getByRole('button', { name: /invité/i }));
+    fireEvent.change(screen.getByPlaceholderText(/votre.email@exemple/i), { target: { value: 'guest@test.fr' } });
+    fireEvent.submit(screen.getByPlaceholderText(/votre.email@exemple/i).closest('form')!);
+    const stored = JSON.parse(sessionStorage.getItem('cyna_guest') ?? '{}');
+    expect(stored.type).toBe('guest');
+    expect(stored.email).toBe('guest@test.fr');
   });
 
   it('utilisateur déjà connecté : token présent → condition de redirection remplie', () => {
