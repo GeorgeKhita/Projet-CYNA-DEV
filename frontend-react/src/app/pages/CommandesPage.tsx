@@ -55,11 +55,11 @@ export function CommandesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<number | null>(null);
+  const [orders, setOrders]       = useState<Order[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [expanded, setExpanded]   = useState<number | null>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<{ orderId: number; message: string } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -69,13 +69,13 @@ export function CommandesPage() {
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  async function handleDownload(invoiceId: number, ref: string) {
+  async function handleDownload(invoiceId: number, ref: string, orderId: number) {
     setDownloading(invoiceId);
     setDownloadError(null);
     try {
       await downloadInvoice(invoiceId, ref);
     } catch (err: any) {
-      setDownloadError(err?.message ?? 'Erreur inconnue');
+      setDownloadError({ orderId, message: err?.message ?? 'Erreur inconnue' });
     } finally {
       setDownloading(null);
     }
@@ -120,22 +120,27 @@ export function CommandesPage() {
                   const color = STATUS_COLORS[order.status] ?? '#9AA3AF';
                   const statusLabel = t(`orders.status_${order.status}`) || order.status;
                   const isOpen = expanded === order.id;
+                  const isDownloading = downloading === order.invoice_id;
                   return (
                     <div key={order.id} className="cyna-card overflow-hidden">
-                      <button
-                        onClick={() => setExpanded(isOpen ? null : order.id)}
-                        className="w-full flex items-center justify-between p-6 hover:bg-bg-subtle transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Package className="w-6 h-6 text-[#00B4D8]" />
-                          <div className="text-left">
+                      {/* Row header — séparé en zone clic-expand et boutons d'action */}
+                      <div className="flex items-center justify-between p-6 hover:bg-bg-subtle transition-colors gap-4 flex-wrap">
+                        <button
+                          onClick={() => setExpanded(isOpen ? null : order.id)}
+                          className="flex items-center gap-4 flex-1 text-left min-w-0"
+                        >
+                          <Package className="w-6 h-6 text-[#00B4D8] shrink-0" />
+                          <div className="min-w-0">
                             <div className="text-ink font-bold">{order.ref}</div>
                             <div className="text-sm text-muted-foreground">
-                              {new Date(order.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                              })}
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
+                        </button>
+
+                        <div className="flex items-center gap-3 shrink-0">
                           <span
                             className="px-3 py-1 rounded-full text-xs font-semibold"
                             style={{ backgroundColor: `${color}18`, color, border: `1px solid ${color}35` }}
@@ -145,45 +150,53 @@ export function CommandesPage() {
                           <div className="text-xl font-bold text-ink">
                             {order.total?.toLocaleString('fr-FR')}€
                           </div>
-                          {isOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                          {order.invoice_id && (
+                            <button
+                              onClick={() => handleDownload(order.invoice_id!, order.ref, order.id)}
+                              disabled={isDownloading}
+                              title={t('orders.download_invoice')}
+                              className="btn btn-ghost btn-sm flex items-center gap-1.5"
+                            >
+                              <FileDown className={`w-4 h-4 text-[#00B4D8] ${isDownloading ? 'animate-pulse' : ''}`} />
+                              <span className="hidden sm:inline">
+                                {isDownloading ? t('orders.generating') : t('orders.download_invoice')}
+                              </span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setExpanded(isOpen ? null : order.id)}
+                            className="text-muted-foreground hover:text-ink transition-colors"
+                          >
+                            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                          </button>
                         </div>
-                      </button>
+                      </div>
+
+                      {downloadError?.orderId === order.id && (
+                        <p className="px-6 pb-3 text-sm text-destructive">{downloadError.message}</p>
+                      )}
 
                       {isOpen && (
-                        <div className="border-t border-border p-6 space-y-4">
-                          {order.items && order.items.length > 0 && (
-                            <div className="space-y-3">
-                              {order.items.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between text-sm">
-                                  <div>
-                                    <span className="text-ink font-medium">{item.product?.name ?? `Produit #${item.product_id}`}</span>
-                                    <span className="text-muted-foreground ml-2">× {item.quantity} · {item.duration === 'annual' ? t('orders.annual') : t('orders.monthly')}</span>
-                                  </div>
-                                  <span className="text-ink font-semibold">
-                                    {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
-                                  </span>
-                                </div>
-                              ))}
-                              <div className="pt-3 border-t border-border flex justify-between font-semibold">
-                                <span className="text-ink">{t('orders.total')}</span>
-                                <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
+                        <div className="border-t border-border p-6 space-y-3">
+                          {order.items && order.items.length > 0 && order.items.map((item, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm">
+                              <div>
+                                <span className="text-ink font-medium">
+                                  {item.product?.name ?? `Produit #${item.product_id}`}
+                                </span>
+                                <span className="text-muted-foreground ml-2">
+                                  × {item.quantity} · {item.duration === 'annual' ? t('orders.annual') : t('orders.monthly')}
+                                </span>
                               </div>
+                              <span className="text-ink font-semibold">
+                                {(item.unit_price * item.quantity).toLocaleString('fr-FR')}€
+                              </span>
                             </div>
-                          )}
-
-                          {order.invoice_id && (
-                            <div className="pt-2 space-y-2">
-                              <button
-                                onClick={() => handleDownload(order.invoice_id!, order.ref)}
-                                disabled={downloading === order.invoice_id}
-                                className="btn btn-ghost"
-                              >
-                                <FileDown className="w-4 h-4 text-[#00B4D8]" />
-                                {downloading === order.invoice_id ? t('orders.generating') : t('orders.download_invoice')}
-                              </button>
-                              {downloadError && downloading === null && (
-                                <p className="text-sm text-destructive">{downloadError}</p>
-                              )}
+                          ))}
+                          {order.items && order.items.length > 0 && (
+                            <div className="pt-3 border-t border-border flex justify-between font-semibold">
+                              <span className="text-ink">{t('orders.total')}</span>
+                              <span className="text-ink">{order.total?.toLocaleString('fr-FR')}€</span>
                             </div>
                           )}
                         </div>
