@@ -330,7 +330,20 @@
     "confirm_purchase": "Confirmer l'achat · {{total}}€",
     "processing": "Traitement...",
     "error_empty_cart": "Votre panier est vide.",
-    "error_payment_init": "Impossible d'initialiser le paiement. Réessayez."
+    "error_payment_init": "Impossible d'initialiser le paiement. Réessayez.",
+    "error_card_declined": "Votre carte a été déclinée. Vérifiez vos informations.",
+    "error_order_failed": "Paiement accepté mais la commande a échoué. Conservez votre référence Stripe : {{id}} et contactez le support.",
+    "payment_init_loading": "Initialisation du paiement...",
+    "order_summary": "Récapitulatif",
+    "billing_address": "Adresse de facturation",
+    "subtotal_ht": "Sous-total HT",
+    "tva_line": "TVA (20%)",
+    "total_ttc": "Total TTC",
+    "test_cards_title": "Cartes de test Stripe",
+    "test_card_success": "Paiement réussi",
+    "test_card_declined": "Carte déclinée",
+    "test_card_3ds": "3D Secure",
+    "back_to_address": "Retour à l'adresse"
   },
   "licenses": {
     "title": "Mes licences",
