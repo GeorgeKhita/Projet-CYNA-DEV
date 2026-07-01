@@ -105,9 +105,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payments/intent', [PaymentController::class, 'createIntent']);
 
     // Commandes client
-    Route::get('/orders',        [OrderController::class, 'index']);
-    Route::post('/orders',       [OrderController::class, 'store']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::get('/orders',                      [OrderController::class, 'index']);
+    Route::post('/orders',                     [OrderController::class, 'store']);
+    Route::get('/orders/{id}',                 [OrderController::class, 'show']);
+    Route::post('/orders/{id}/confirm',        [OrderController::class, 'confirm']);
 
     // Abonnements
     Route::get('/subscriptions',                              [SubscriptionController::class, 'index']);

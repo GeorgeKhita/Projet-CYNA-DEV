@@ -119,12 +119,13 @@ describe('parcours : commandes', () => {
     expect(await screen.findByText('CMD-0101')).toBeInTheDocument();
   });
 
-  it('déplie une commande et affiche les détails produit', async () => {
+  it('affiche un lien "Voir le détail" pour chaque commande', async () => {
     vi.spyOn(clientModule.api, 'get').mockResolvedValue(mockOrders);
     renderWithProviders(<CommandesPage />);
-    const ref = await screen.findByText('CMD-0101');
-    fireEvent.click(ref.closest('button')!);
-    expect(await screen.findByText('CYNA SOC')).toBeInTheDocument();
+    await screen.findByText('CMD-0101');
+    const link = screen.getByRole('link', { name: /voir le détail/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/espace-client/commandes/101');
   });
 });
 
