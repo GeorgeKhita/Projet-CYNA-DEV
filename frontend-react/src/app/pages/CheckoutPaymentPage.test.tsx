@@ -50,11 +50,13 @@ describe('rendu', () => {
     expect(await screen.findByTestId('stripe-card')).toBeInTheDocument();
   });
 
-  it('affiche le montant total dans le bouton', async () => {
+  it('affiche le récapitulatif avec le prix et le produit', async () => {
     vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutPaymentPage />);
-    expect(await screen.findByText(/299/)).toBeInTheDocument();
+    // "299" apparaît plusieurs fois (prix article + sous-total) → getAllByText
+    expect(await screen.findByText('CYNA SOC')).toBeInTheDocument();
+    expect(screen.getAllByText(/299/).length).toBeGreaterThanOrEqual(1);
   });
 });
 
