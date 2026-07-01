@@ -344,26 +344,16 @@ class OrderController extends Controller
             ->findOrFail($id);
 
         return response()->json([
-<<<<<<< HEAD
             'id'                   => $order->id,
             'ref'                  => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
             'status'               => $order->status,
+            'subtotal'             => (float) $order->subtotal,
+            'tax'                  => (float) $order->tax,
             'total'                => (float) $order->total,
             'invoice_id'           => $order->invoice?->id,
             'invoice_download_url' => $order->invoice ? "/api/invoices/{$order->invoice->id}/download" : null,
             'created_at'           => $order->created_at,
             'items'                => $order->details->map(fn($d) => [
-=======
-            'id'         => $order->id,
-            'ref'        => 'CYN-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
-            'status'     => $order->status,
-            'subtotal'   => (float) $order->subtotal,
-            'tax'        => (float) $order->tax,
-            'total'      => (float) $order->total,
-            'invoice_id' => $order->invoice?->id,
-            'created_at' => $order->created_at,
-            'items'      => $order->details->map(fn($d) => [
->>>>>>> origin/main
                 'product_id' => $d->product_id,
                 'product'    => ['name' => $d->product?->name],
                 'quantity'   => $d->quantity,
