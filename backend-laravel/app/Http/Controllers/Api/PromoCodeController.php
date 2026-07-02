@@ -9,6 +9,76 @@ use Illuminate\Http\Request;
 
 class PromoCodeController extends Controller
 {
+    // ── Admin CRUD ────────────────────────────────────────────────────────
+
+    public function index(): JsonResponse
+    {
+        $promos = PromoCode::orderByDesc('created_at')->get();
+
+        return response()->json($promos->map(fn($p) => [
+            'id'           => $p->id,
+            'code'         => $p->code,
+            'type'         => $p->type,
+            'value'        => (float) $p->value,
+            'min_order_ht' => $p->min_order_ht !== null ? (float) $p->min_order_ht : null,
+            'max_uses'     => $p->max_uses,
+            'uses_count'   => $p->uses_count,
+            'expires_at'   => $p->expires_at?->toDateString(),
+            'is_active'    => $p->is_active,
+            'created_at'   => $p->created_at,
+        ]));
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'code'         => 'required|string|max:50|unique:promo_codes,code',
+            'type'         => 'required|in:percent,fixed',
+            'value'        => 'required|numeric|min:0',
+            'min_order_ht' => 'nullable|numeric|min:0',
+            'max_uses'     => 'nullable|integer|min:1',
+            'expires_at'   => 'nullable|date|after:now',
+            'is_active'    => 'boolean',
+        ]);
+
+        $data['code']      = strtoupper(trim($data['code']));
+        $data['is_active'] = $data['is_active'] ?? true;
+
+        $promo = PromoCode::create($data);
+
+        return response()->json($promo, 201);
+    }
+
+    public function update(Request $request, PromoCode $promoCode): JsonResponse
+    {
+        $data = $request->validate([
+            'code'         => 'sometimes|string|max:50|unique:promo_codes,code,' . $promoCode->id,
+            'type'         => 'sometimes|in:percent,fixed',
+            'value'        => 'sometimes|numeric|min:0',
+            'min_order_ht' => 'nullable|numeric|min:0',
+            'max_uses'     => 'nullable|integer|min:1',
+            'expires_at'   => 'nullable|date',
+            'is_active'    => 'boolean',
+        ]);
+
+        if (isset($data['code'])) {
+            $data['code'] = strtoupper(trim($data['code']));
+        }
+
+        $promoCode->update($data);
+
+        return response()->json($promoCode->fresh());
+    }
+
+    public function destroy(PromoCode $promoCode): JsonResponse
+    {
+        $promoCode->delete();
+
+        return response()->json(null, 204);
+    }
+
+    // ── Public ────────────────────────────────────────────────────────────
+
     /**
      * POST /api/promo-codes/validate
      * Validates a promo code and returns the discount details.
