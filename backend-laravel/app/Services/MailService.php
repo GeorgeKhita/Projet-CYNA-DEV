@@ -34,8 +34,16 @@ class MailService
         }
 
         try {
+            // Si MAILTRAP_INBOX_ID est défini → mode Sandbox : tous les emails sont
+            // capturés dans la boîte de test Mailtrap (peu importe le destinataire),
+            // pratique pour tester en équipe. Sinon → envoi réel (send.api.mailtrap.io).
+            $inboxId = env('MAILTRAP_INBOX_ID');
+            $url = $inboxId
+                ? "https://sandbox.api.mailtrap.io/api/send/{$inboxId}"
+                : 'https://send.api.mailtrap.io/api/send';
+
             $response = Http::withToken(env('MAILTRAP_API_KEY'))
-                ->post('https://send.api.mailtrap.io/api/send', $payload);
+                ->post($url, $payload);
 
             if (!$response->successful()) {
                 Log::error('Mailtrap API error', [
