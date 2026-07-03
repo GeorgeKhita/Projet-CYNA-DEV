@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 class MailService
 {
+    /**
+     * Envoi d'un email via l'API HTTP de Brevo (port 443).
+     * Fonctionne en local ET sur Railway (contrairement au SMTP, bloqué par Railway).
+     */
     public static function send(
         string $toEmail,
         string $subject,
@@ -16,37 +20,36 @@ class MailService
         ?array $attachment = null
     ): bool {
         $payload = [
-            'from'    => [
-                'email' => env('MAIL_FROM_ADDRESS', 'hello@demomailtrap.com'),
+            'sender'      => [
+                'email' => env('MAIL_FROM_ADDRESS', 'contact.cyna.app@gmail.com'),
                 'name'  => env('MAIL_FROM_NAME', 'CYNA'),
             ],
-            'to'      => [['email' => $toEmail, 'name' => $toName ?: $toEmail]],
-            'subject' => $subject,
-            'html'    => $html,
+            'to'          => [['email' => $toEmail, 'name' => $toName ?: $toEmail]],
+            'subject'     => $subject,
+            'htmlContent' => $html,
         ];
 
         if ($replyTo) {
-            $payload['reply_to'] = [['email' => $replyTo]];
+            $payload['replyTo'] = ['email' => $replyTo];
         }
 
         if ($attachment) {
-            $payload['attachments'] = [$attachment];
+            // Brevo attend { content: <base64>, name: <filename> }
+            $payload['attachment'] = [[
+                'content' => $attachment['content'] ?? '',
+                'name'    => $attachment['filename'] ?? $attachment['name'] ?? 'fichier',
+            ]];
         }
 
         try {
-            // Si MAILTRAP_INBOX_ID est défini → mode Sandbox : tous les emails sont
-            // capturés dans la boîte de test Mailtrap (peu importe le destinataire),
-            // pratique pour tester en équipe. Sinon → envoi réel (send.api.mailtrap.io).
-            $inboxId = env('MAILTRAP_INBOX_ID');
-            $url = $inboxId
-                ? "https://sandbox.api.mailtrap.io/api/send/{$inboxId}"
-                : 'https://send.api.mailtrap.io/api/send';
-
-            $response = Http::withToken(env('MAILTRAP_API_KEY'))
-                ->post($url, $payload);
+            $response = Http::withHeaders([
+                'api-key'      => env('BREVO_API_KEY'),
+                'accept'       => 'application/json',
+                'content-type' => 'application/json',
+            ])->post('https://api.brevo.com/v3/smtp/email', $payload);
 
             if (!$response->successful()) {
-                Log::error('Mailtrap API error', [
+                Log::error('Brevo API error', [
                     'status' => $response->status(),
                     'body'   => $response->body(),
                 ]);
@@ -55,7 +58,7 @@ class MailService
 
             return true;
         } catch (\Throwable $e) {
-            Log::error('Mailtrap send failed: ' . $e->getMessage());
+            Log::error('Brevo send failed: ' . $e->getMessage());
             return false;
         }
     }
