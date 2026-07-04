@@ -12,8 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Fait confiance au proxy (Railway/Vercel) pour X-Forwarded-Proto,
+        // sinon $request->isSecure() renvoie toujours false derrière le proxy
+        // et l'en-tête HSTS ne serait jamais envoyé en production.
+        $middleware->trustProxies(at: '*');
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        // En-têtes de sécurité (HSTS, X-Frame-Options, nosniff…) sur toute l'API.
+        $middleware->api(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
         $middleware->alias([
