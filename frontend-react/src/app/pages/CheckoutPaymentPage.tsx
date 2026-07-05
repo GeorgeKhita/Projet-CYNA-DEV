@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Check, Shield, Lock, MapPin, CreditCard, Copy, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -124,9 +124,10 @@ function OrderSummary({ cart, billingAddress, promo }: SummaryProps) {
 interface PaymentFormProps {
   cart: CartItem[];
   promo: AppliedPromo | null;
+  billingAddress: Record<string, string> | null;
 }
 
-function PaymentForm({ cart, promo }: PaymentFormProps) {
+function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   const navigate  = useNavigate();
   const { t }    = useTranslation();
   const stripe   = useStripe();
@@ -144,11 +145,20 @@ function PaymentForm({ cart, promo }: PaymentFormProps) {
   const tva      = Math.round(total * 0.20 * 100) / 100;
   const ttc      = Math.round((total + tva) * 100) / 100;
 
+  // Guard : ne crée qu'UN seul PaymentIntent par visite de la page.
+  // Sans ça, un re-render pouvait créer un 2e intent → une commande "incomplète"
+  // fantôme à côté de la commande réussie sur Stripe.
+  const intentCreatedRef = useRef(false);
+
   useEffect(() => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || intentCreatedRef.current) return;
+    intentCreatedRef.current = true;
     api.post<{ client_secret: string }>('/payments/intent', { amount: total })
       .then(res => setClientSecret(res.client_secret))
-      .catch(() => setError(t('checkout.error_payment_init')))
+      .catch(() => {
+        intentCreatedRef.current = false; // autorise une nouvelle tentative en cas d'échec
+        setError(t('checkout.error_payment_init'));
+      })
       .finally(() => setInitLoading(false));
   }, [total]);
 
@@ -163,8 +173,38 @@ function PaymentForm({ cart, promo }: PaymentFormProps) {
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
 
+    // Email du client (connecté ou invité) → colonne "Client" sur Stripe
+    const customerEmail = (() => {
+      try {
+        const u = JSON.parse(localStorage.getItem('cyna_user') ?? 'null');
+        if (u?.email) return u.email as string;
+        const g = JSON.parse(sessionStorage.getItem('cyna_guest') ?? 'null');
+        return (g?.email as string) || undefined;
+      } catch { return undefined; }
+    })();
+
+    // Coordonnées client (email + nom + adresse) → affichées sur Stripe
+    const billingDetails: Record<string, unknown> = {};
+    if (customerEmail) billingDetails.email = customerEmail;
+    if (billingAddress) {
+      const name = [billingAddress.first_name, billingAddress.last_name].filter(Boolean).join(' ');
+      if (name) billingDetails.name = name;
+      if (billingAddress.phone_number) billingDetails.phone = billingAddress.phone_number;
+      billingDetails.address = {
+        line1:       billingAddress.address1 || undefined,
+        line2:       billingAddress.address2 || undefined,
+        city:        billingAddress.city || undefined,
+        postal_code: billingAddress.postal_code || undefined,
+        country:     billingAddress.country || undefined,
+      };
+    }
+    const hasBillingDetails = Object.keys(billingDetails).length > 0;
+
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: cardElement },
+      payment_method: {
+        card: cardElement,
+        ...(hasBillingDetails ? { billing_details: billingDetails } : {}),
+      },
     });
 
     if (stripeError) {
@@ -382,7 +422,7 @@ export function CheckoutPaymentPage() {
             <p className="text-muted-foreground mb-8">{t('checkout.payment_subtitle')}</p>
 
             <Elements stripe={stripePromise}>
-              <PaymentForm cart={cart} promo={promo} />
+              <PaymentForm cart={cart} promo={promo} billingAddress={billingAddress} />
             </Elements>
           </div>
 
