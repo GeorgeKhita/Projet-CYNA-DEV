@@ -205,5 +205,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/contact-messages/{supportMessage}',           [AdminContactController::class, 'show']);
         Route::patch('/contact-messages/{supportMessage}/resolve', [AdminContactController::class, 'markResolved']);
         Route::delete('/contact-messages/{supportMessage}',        [AdminContactController::class, 'destroy']);
+
+        // Codes promo (CRUD admin)
+        Route::get('/promo-codes',                [PromoCodeController::class, 'index']);
+        Route::post('/promo-codes',               [PromoCodeController::class, 'store']);
+        Route::put('/promo-codes/{promoCode}',    [PromoCodeController::class, 'update']);
+        Route::delete('/promo-codes/{promoCode}', [PromoCodeController::class, 'destroy']);
     });
 });
