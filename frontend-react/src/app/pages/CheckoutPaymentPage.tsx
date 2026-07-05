@@ -124,9 +124,10 @@ function OrderSummary({ cart, billingAddress, promo }: SummaryProps) {
 interface PaymentFormProps {
   cart: CartItem[];
   promo: AppliedPromo | null;
+  billingAddress: Record<string, string> | null;
 }
 
-function PaymentForm({ cart, promo }: PaymentFormProps) {
+function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   const navigate  = useNavigate();
   const { t }    = useTranslation();
   const stripe   = useStripe();
@@ -163,8 +164,24 @@ function PaymentForm({ cart, promo }: PaymentFormProps) {
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
 
+    // Adresse de facturation → affichée sur Stripe (dashboard + reçu)
+    const billingDetails = billingAddress ? {
+      name:  [billingAddress.first_name, billingAddress.last_name].filter(Boolean).join(' ') || undefined,
+      phone: billingAddress.phone_number || undefined,
+      address: {
+        line1:       billingAddress.address1 || undefined,
+        line2:       billingAddress.address2 || undefined,
+        city:        billingAddress.city || undefined,
+        postal_code: billingAddress.postal_code || undefined,
+        country:     billingAddress.country || undefined,
+      },
+    } : undefined;
+
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: cardElement },
+      payment_method: {
+        card: cardElement,
+        ...(billingDetails ? { billing_details: billingDetails } : {}),
+      },
     });
 
     if (stripeError) {
@@ -382,7 +399,7 @@ export function CheckoutPaymentPage() {
             <p className="text-muted-foreground mb-8">{t('checkout.payment_subtitle')}</p>
 
             <Elements stripe={stripePromise}>
-              <PaymentForm cart={cart} promo={promo} />
+              <PaymentForm cart={cart} promo={promo} billingAddress={billingAddress} />
             </Elements>
           </div>
 
