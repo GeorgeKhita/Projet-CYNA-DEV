@@ -27,6 +27,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { AdminTwoFactorPage } from './pages/admin/AdminTwoFactorPage';
+import { AdminPromoCodesPage } from './pages/admin/AdminPromoCodesPage';
 import { TwoFactorVerifyPage } from './pages/TwoFactorVerifyPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
       { path: 'utilisateurs',       Component: AdminUsersPage },
       { path: 'commandes',          Component: AdminOrdersPage },
       { path: 'messages',           Component: AdminMessagesPage },
+      { path: 'codes-promo',        Component: AdminPromoCodesPage },
       { path: 'securite',           Component: AdminTwoFactorPage },
     ],
   },

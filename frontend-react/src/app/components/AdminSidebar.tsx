@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink, Sun, Moon, Tag } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,6 +9,7 @@ const menuItems = [
   { icon: Users,           label: 'Utilisateurs', href: '/admin/utilisateurs' },
   { icon: ShoppingCart,    label: 'Commandes',    href: '/admin/commandes' },
   { icon: MessageSquare,   label: 'Messages',     href: '/admin/messages' },
+  { icon: Tag,             label: 'Codes promo',  href: '/admin/codes-promo' },
   { icon: ShieldCheck,     label: 'Sécurité 2FA', href: '/admin/securite' },
 ];
 
