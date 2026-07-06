@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, Shield, Lock, MapPin, CreditCard, Copy, Tag } from 'lucide-react';
+import { Shield, Lock, MapPin, CreditCard, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -22,12 +22,6 @@ const CARD_ELEMENT_OPTIONS = {
     invalid: { color: '#F87171' },
   },
 };
-
-const TEST_CARDS = [
-  { number: '4242 4242 4242 4242', labelKey: 'test_card_success', color: '#10B981' },
-  { number: '4000 0000 0000 9995', labelKey: 'test_card_declined', color: '#EF4444' },
-  { number: '4000 0025 0000 3155', labelKey: 'test_card_3ds',     color: '#F59E0B' },
-];
 
 interface AppliedPromo {
   code: string;
@@ -137,7 +131,6 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   const [initLoading, setInitLoading]   = useState(true);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState('');
-  const [copied, setCopied]             = useState<string | null>(null);
 
   const baseHT   = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = promo?.discount_amount ?? 0;
@@ -153,14 +146,15 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   useEffect(() => {
     if (cart.length === 0 || intentCreatedRef.current) return;
     intentCreatedRef.current = true;
-    api.post<{ client_secret: string }>('/payments/intent', { amount: total })
+    // On débite le TTC (montant réellement dû par le client, TVA incluse)
+    api.post<{ client_secret: string }>('/payments/intent', { amount: ttc })
       .then(res => setClientSecret(res.client_secret))
       .catch(() => {
         intentCreatedRef.current = false; // autorise une nouvelle tentative en cas d'échec
         setError(t('checkout.error_payment_init'));
       })
       .finally(() => setInitLoading(false));
-  }, [total]);
+  }, [ttc]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -250,13 +244,6 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
     }
   }
 
-  function copyCard(number: string) {
-    navigator.clipboard.writeText(number.replace(/\s/g, '')).then(() => {
-      setCopied(number);
-      setTimeout(() => setCopied(null), 1500);
-    });
-  }
-
   if (initLoading) {
     return (
       <div className="flex items-center justify-center gap-3 text-muted-foreground py-10">
@@ -279,38 +266,6 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
         <label className="block text-ink mb-2 font-semibold">{t('checkout.card_info')}</label>
         <div className="w-full bg-card border border-border rounded-xl px-4 py-3.5 focus-within:ring-4 focus-within:ring-[#00B4D8]/15 focus-within:border-[#00B4D8] transition-all">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
-        </div>
-      </div>
-
-      <div className="bg-bg-subtle border border-border rounded-xl p-4">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          {t('checkout.test_cards_title')} · exp. future · CVV quelconque
-        </p>
-        <div className="space-y-2">
-          {TEST_CARDS.map(card => (
-            <div key={card.number} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: card.color }}
-                />
-                <span className="text-xs font-mono text-ink">{card.number}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{t(`checkout.${card.labelKey}`)}</span>
-                <button
-                  type="button"
-                  onClick={() => copyCard(card.number)}
-                  className="text-muted-foreground hover:text-[#00B4D8] transition-colors"
-                  title="Copier"
-                >
-                  {copied === card.number
-                    ? <Check className="w-3.5 h-3.5 text-[#10B981]" />
-                    : <Copy className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -376,44 +331,11 @@ export function CheckoutPaymentPage() {
     if (cart.length === 0) navigate('/panier', { replace: true });
   }, []);
 
-  const steps = [
-    { id: 1, name: t('checkout.step_identification'), active: false, completed: true  },
-    { id: 2, name: t('checkout.step_address'),        active: false, completed: true  },
-    { id: 3, name: t('checkout.step_payment'),        active: true,  completed: false },
-    { id: 4, name: t('checkout.step_confirmation'),   active: false, completed: false },
-  ];
-
   if (cart.length === 0) return null;
 
   return (
     <div className="min-h-screen bg-card py-12">
       <div className="max-w-5xl mx-auto px-6">
-
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    step.completed
-                      ? 'bg-[#10B981] text-white'
-                      : step.active
-                        ? 'bg-[#00B4D8] text-[#06222C] shadow-[var(--shadow-cyan)]'
-                        : 'bg-bg-subtle border border-border text-muted-foreground'
-                  }`}>
-                    {step.completed ? <Check className="w-5 h-5" /> : step.id}
-                  </div>
-                  <span className={`font-semibold hidden sm:block ${step.active || step.completed ? 'text-ink' : 'text-muted-foreground'}`}>
-                    {step.name}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 ${step.completed ? 'bg-[#10B981]' : 'bg-[#E5E9F0]'}`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
 

@@ -63,12 +63,13 @@ describe('rendu', () => {
 // ── Initialisation ────────────────────────────────────────────────────────
 
 describe('initialisation', () => {
-  it('appelle api.post /payments/intent au montage avec le bon montant', async () => {
+  it('appelle api.post /payments/intent au montage avec le montant TTC', async () => {
     const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutPaymentPage />);
     await waitFor(() => {
-      expect(postSpy).toHaveBeenCalledWith('/payments/intent', { amount: 299 });
+      // 299 HT + 20% TVA = 358.8 TTC (montant réellement débité)
+      expect(postSpy).toHaveBeenCalledWith('/payments/intent', { amount: 358.8 });
     });
   });
 });
