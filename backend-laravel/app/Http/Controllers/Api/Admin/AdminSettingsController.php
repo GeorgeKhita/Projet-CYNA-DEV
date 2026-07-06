@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SecurityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -58,6 +59,17 @@ class AdminSettingsController extends Controller
         $merged = array_merge($current, $validated);
 
         Cache::put(self::CACHE_KEY, $merged, now()->addYear());
+
+        if (!empty($validated)) {
+            SecurityLog::create([
+                'user_id'       => $request->user()->id,
+                'event_type'    => 'admin_settings_updated',
+                'resource_name' => 'admin_settings',
+                'old_values'    => array_intersect_key($current, $validated),
+                'new_values'    => $validated,
+                'ip_address'    => $request->ip(),
+            ]);
+        }
 
         return response()->json([
             'message'  => 'Paramètres enregistrés.',

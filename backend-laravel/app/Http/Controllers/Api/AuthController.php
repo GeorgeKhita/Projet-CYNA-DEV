@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\SecurityLog;
 use App\Models\User;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
@@ -108,9 +109,26 @@ class AuthController extends Controller
         if (!$user || !Hash::check($data['password'], $user->password ?? '')) {
             RateLimiter::hit($key, 120);
 
+            SecurityLog::create([
+                'user_id'       => $user?->id,
+                'event_type'    => 'login_failed',
+                'resource_name' => 'user',
+                'resource_id'   => $data['email'],
+                'ip_address'    => $request->ip(),
+            ]);
+
             if (RateLimiter::tooManyAttempts($key, 3)) {
                 Cache::put($lockKey, time() + 60, 60);
                 RateLimiter::clear($key);
+
+                SecurityLog::create([
+                    'user_id'       => $user?->id,
+                    'event_type'    => 'login_locked',
+                    'resource_name' => 'user',
+                    'resource_id'   => $data['email'],
+                    'ip_address'    => $request->ip(),
+                ]);
+
                 return response()->json([
                     'message' => 'Trop de tentatives. Réessayez dans 60 secondes.',
                 ], 429);
@@ -453,6 +471,14 @@ class AuthController extends Controller
         $secret    = decrypt($user->two_factor_secret);
 
         if (!$google2fa->verifyKey($secret, $request->code)) {
+            SecurityLog::create([
+                'user_id'       => $user->id,
+                'event_type'    => '2fa_failed',
+                'resource_name' => 'user',
+                'resource_id'   => (string) $user->id,
+                'ip_address'    => $request->ip(),
+            ]);
+
             return response()->json(['message' => 'Code invalide. Vérifiez votre application d\'authentification.'], 422);
         }
 
@@ -537,6 +563,14 @@ class AuthController extends Controller
         $secret    = decrypt($user->two_factor_secret);
 
         if (!$google2fa->verifyKey($secret, $request->code)) {
+            SecurityLog::create([
+                'user_id'       => $user->id,
+                'event_type'    => '2fa_setup_failed',
+                'resource_name' => 'user',
+                'resource_id'   => (string) $user->id,
+                'ip_address'    => $request->ip(),
+            ]);
+
             return response()->json(['message' => 'Code invalide. Assurez-vous que l\'heure de votre appareil est correcte.'], 422);
         }
 
@@ -574,6 +608,14 @@ class AuthController extends Controller
         $secret    = decrypt($user->two_factor_secret);
 
         if (!$google2fa->verifyKey($secret, $request->code)) {
+            SecurityLog::create([
+                'user_id'       => $user->id,
+                'event_type'    => '2fa_disable_failed',
+                'resource_name' => 'user',
+                'resource_id'   => (string) $user->id,
+                'ip_address'    => $request->ip(),
+            ]);
+
             return response()->json(['message' => 'Code invalide.'], 422);
         }
 
