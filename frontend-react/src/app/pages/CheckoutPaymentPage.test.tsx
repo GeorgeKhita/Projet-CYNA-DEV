@@ -63,24 +63,25 @@ describe('rendu', () => {
 // ── Initialisation ────────────────────────────────────────────────────────
 
 describe('initialisation', () => {
-  it('appelle api.post /payments/intent au montage avec le montant TTC', async () => {
-    const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
+  it('ne crée aucune commande tant que l\'utilisateur n\'a pas confirmé', async () => {
+    // La commande + le PaymentIntent sont désormais créés au clic sur « Confirmer »,
+    // plus au montage : aucun appel API ne doit partir tant que le formulaire
+    // n'est pas soumis.
+    const postSpy = vi.spyOn(clientModule.api, 'post').mockResolvedValue({ order_id: 1, client_secret: 'cs_test_123' });
     addToCart({ id: 1, name: 'CYNA SOC', price: 299, duration: 'monthly', category: 'SOC' });
     renderWithProviders(<CheckoutPaymentPage />);
-    await waitFor(() => {
-      // 299 HT + 20% TVA = 358.8 TTC (montant réellement débité)
-      expect(postSpy).toHaveBeenCalledWith('/payments/intent', { amount: 358.8 });
-    });
+    await screen.findByTestId('stripe-card');
+    expect(postSpy).not.toHaveBeenCalled();
   });
 });
 
 // ── Paiement réussi ───────────────────────────────────────────────────────
 
 describe('paiement réussi', () => {
-  it('appelle api.post /orders après paiement Stripe réussi', async () => {
-    vi.spyOn(clientModule.api, 'post')
-      .mockResolvedValueOnce({ client_secret: 'cs_test_123' })
-      .mockResolvedValueOnce({ id: 42, ref: 'CMD-0042' });
+  it('crée la commande, débite Stripe puis appelle confirm', async () => {
+    const postSpy = vi.spyOn(clientModule.api, 'post')
+      .mockResolvedValueOnce({ order_id: 42, client_secret: 'cs_test_123' }) // POST /orders
+      .mockResolvedValueOnce({ id: 42, ref: 'CMD-0042', licenses: [] });      // POST /orders/42/confirm
 
     mockConfirmCardPayment.mockResolvedValue({
       paymentIntent: { id: 'pi_test_123', status: 'succeeded' },
@@ -93,11 +94,19 @@ describe('paiement réussi', () => {
 
     fireEvent.submit(screen.getByRole('button', { name: /confirmer l'achat/i }).closest('form')!);
 
+    // 1. Création de la commande avec les articles (prix figés côté serveur)
     await waitFor(() => {
-      expect(clientModule.api.post).toHaveBeenCalledWith('/orders', expect.objectContaining({
-        payment_intent_id: 'pi_test_123',
-        subtotal: 299, // HT ; le total envoyé est désormais le TTC (HT + TVA 20%)
+      expect(postSpy).toHaveBeenCalledWith('/orders', expect.objectContaining({
+        items: [expect.objectContaining({ product_id: 1, quantity: 1, duration: 'monthly' })],
       }));
+    });
+
+    // 2. Débit Stripe avec le client_secret renvoyé par la commande
+    expect(mockConfirmCardPayment).toHaveBeenCalledWith('cs_test_123', expect.any(Object));
+
+    // 3. Finalisation : licences + facture + email de confirmation
+    await waitFor(() => {
+      expect(postSpy).toHaveBeenCalledWith('/orders/42/confirm', {});
     });
   });
 });
@@ -106,7 +115,7 @@ describe('paiement réussi', () => {
 
 describe('erreur paiement', () => {
   it('affiche le message d\'erreur Stripe', async () => {
-    vi.spyOn(clientModule.api, 'post').mockResolvedValue({ client_secret: 'cs_test_123' });
+    vi.spyOn(clientModule.api, 'post').mockResolvedValue({ order_id: 42, client_secret: 'cs_test_123' });
     mockConfirmCardPayment.mockResolvedValue({
       paymentIntent: null,
       error: { message: 'Votre carte a été refusée.' },

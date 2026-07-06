@@ -37,3 +37,6 @@ Thumbs.db
 # Vite
 *.local
 .vite/
+
+# Graphify (cache d'analyse local, ne jamais versionner)
+graphify-out/

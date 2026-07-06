@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Shield, Lock, MapPin, CreditCard, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -127,10 +127,8 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   const stripe   = useStripe();
   const elements = useElements();
 
-  const [clientSecret, setClientSecret] = useState('');
-  const [initLoading, setInitLoading]   = useState(true);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
 
   const baseHT   = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = promo?.discount_amount ?? 0;
@@ -138,34 +136,39 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
   const tva      = Math.round(total * 0.20 * 100) / 100;
   const ttc      = Math.round((total + tva) * 100) / 100;
 
-  // Guard : ne crée qu'UN seul PaymentIntent par visite de la page.
-  // Sans ça, un re-render pouvait créer un 2e intent → une commande "incomplète"
-  // fantôme à côté de la commande réussie sur Stripe.
-  const intentCreatedRef = useRef(false);
-
-  useEffect(() => {
-    if (cart.length === 0 || intentCreatedRef.current) return;
-    intentCreatedRef.current = true;
-    // On débite le TTC (montant réellement dû par le client, TVA incluse)
-    api.post<{ client_secret: string }>('/payments/intent', { amount: ttc })
-      .then(res => setClientSecret(res.client_secret))
-      .catch(() => {
-        intentCreatedRef.current = false; // autorise une nouvelle tentative en cas d'échec
-        setError(t('checkout.error_payment_init'));
-      })
-      .finally(() => setInitLoading(false));
-  }, [ttc]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements || !clientSecret) return;
+    if (!stripe || !elements) return;
     if (cart.length === 0) { setError(t('checkout.error_empty_cart')); return; }
 
     setLoading(true);
     setError('');
 
     const cardElement = elements.getElement(CardElement);
-    if (!cardElement) return;
+    if (!cardElement) { setLoading(false); return; }
+
+    const cartSnapshot = [...cart];
+
+    // 1. Création de la commande (pending) + PaymentIntent. Les prix sont figés
+    //    côté serveur : on n'envoie que les articles et l'éventuel code promo.
+    let orderId: number;
+    let clientSecret: string;
+    try {
+      const created = await api.post<{ order_id: number; client_secret: string }>('/orders', {
+        items: cartSnapshot.map(item => ({
+          product_id: item.id,
+          quantity:   item.quantity,
+          duration:   item.duration,
+        })),
+        ...(promo ? { promo_code: promo.code } : {}),
+      });
+      orderId      = created.order_id;
+      clientSecret = created.client_secret;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('checkout.error_payment_init'));
+      setLoading(false);
+      return;
+    }
 
     // Email du client (connecté ou invité) → colonne "Client" sur Stripe
     const customerEmail = (() => {
@@ -194,6 +197,7 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
     }
     const hasBillingDetails = Object.keys(billingDetails).length > 0;
 
+    // 2. Débit de la carte via Stripe (intent de la commande créée à l'étape 1)
     const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: cardElement,
@@ -208,49 +212,25 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
       return;
     }
 
-    if (paymentIntent?.status === 'succeeded') {
-      const cartSnapshot = [...cart];
-      const orderData: Record<string, unknown> = {
-        payment_intent_id: paymentIntent.id,
-        subtotal: baseHT,
-        tax: tva,
-        total: ttc,
-        items: cartSnapshot.map(item => ({
-          product_id:  item.id,
-          quantity:    item.quantity,
-          unit_price:  item.price,
-          total_price: item.price * item.quantity,
-          duration:    item.duration,
-        })),
-      };
-      if (promo) {
-        orderData.promo_code = promo.code;
-      }
+    if (paymentIntent?.status !== 'succeeded') {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const res = await api.post<Record<string, unknown>>('/orders', orderData);
-        clearCart();
-        sessionStorage.removeItem('cyna_billing_address');
-        sessionStorage.removeItem('cyna_guest');
-        sessionStorage.removeItem(PROMO_SESSION_KEY);
-        navigate('/checkout/confirmation', { state: { order: res, cart: cartSnapshot } });
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Erreur inconnue';
-        setError(t('checkout.error_order_failed', { id: paymentIntent.id }) + ` (${msg})`);
-        setLoading(false);
-      }
-    } else {
+    // 3. Finalisation côté serveur : abonnements, licences, facture PDF
+    //    et envoi de l'email de confirmation.
+    try {
+      const res = await api.post<Record<string, unknown>>(`/orders/${orderId}/confirm`, {});
+      clearCart();
+      sessionStorage.removeItem('cyna_billing_address');
+      sessionStorage.removeItem('cyna_guest');
+      sessionStorage.removeItem(PROMO_SESSION_KEY);
+      navigate('/checkout/confirmation', { state: { order: res, cart: cartSnapshot } });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur inconnue';
+      setError(t('checkout.error_order_failed', { id: paymentIntent.id }) + ` (${msg})`);
       setLoading(false);
     }
-  }
-
-  if (initLoading) {
-    return (
-      <div className="flex items-center justify-center gap-3 text-muted-foreground py-10">
-        <div className="w-5 h-5 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
-        {t('checkout.payment_init_loading')}
-      </div>
-    );
   }
 
   return (
@@ -289,7 +269,7 @@ function PaymentForm({ cart, promo, billingAddress }: PaymentFormProps) {
 
       <button
         type="submit"
-        disabled={loading || !stripe || !clientSecret}
+        disabled={loading || !stripe}
         className="btn btn-primary btn-lg btn-block"
       >
         {loading
