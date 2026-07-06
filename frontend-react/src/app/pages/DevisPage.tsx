@@ -258,7 +258,7 @@ export function DevisPage() {
               </div>
 
               {error && (
-                <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+                <div role="alert" className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
                   {error}
                 </div>
               )}

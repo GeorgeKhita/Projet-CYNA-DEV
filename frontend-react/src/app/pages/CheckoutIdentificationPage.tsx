@@ -127,21 +127,21 @@ function LoginForm({ navigate, login, t }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
+        <div role="alert" className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
       )}
       <div>
-        <label className="block text-ink mb-2">{t('checkout.email')}</label>
+        <label htmlFor="checkout-login-email" className="block text-ink mb-2">{t('checkout.email')}</label>
         <div className="relative">
           <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+          <input id="checkout-login-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required
             placeholder="votre.email@entreprise.com" className="field field-icon" />
         </div>
       </div>
       <div>
-        <label className="block text-ink mb-2">{t('checkout.password')}</label>
+        <label htmlFor="checkout-login-password" className="block text-ink mb-2">{t('checkout.password')}</label>
         <div className="relative">
           <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+          <input id="checkout-login-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required
             placeholder="••••••••" className="field field-icon" />
         </div>
       </div>
@@ -215,56 +215,56 @@ function RegisterForm({ t, switchToLogin }: RegisterFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
+        <div role="alert" className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
       )}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.register_first_name')}</label>
+          <label htmlFor="checkout-register-first-name" className="block text-ink mb-2 text-sm">{t('checkout.register_first_name')}</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" value={form.first_name} onChange={set('first_name')} required
+            <input id="checkout-register-first-name" type="text" value={form.first_name} onChange={set('first_name')} required
               placeholder="Prénom" className="field field-icon" />
           </div>
         </div>
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.register_last_name')}</label>
+          <label htmlFor="checkout-register-last-name" className="block text-ink mb-2 text-sm">{t('checkout.register_last_name')}</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" value={form.last_name} onChange={set('last_name')} required
+            <input id="checkout-register-last-name" type="text" value={form.last_name} onChange={set('last_name')} required
               placeholder="Nom" className="field field-icon" />
           </div>
         </div>
       </div>
       <div>
-        <label className="block text-ink mb-2 text-sm">{t('checkout.register_company')}</label>
+        <label htmlFor="checkout-register-company" className="block text-ink mb-2 text-sm">{t('checkout.register_company')}</label>
         <div className="relative">
           <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="text" value={form.company} onChange={set('company')} required
+          <input id="checkout-register-company" type="text" value={form.company} onChange={set('company')} required
             placeholder="Votre entreprise" className="field field-icon" />
         </div>
       </div>
       <div>
-        <label className="block text-ink mb-2 text-sm">{t('checkout.email')}</label>
+        <label htmlFor="checkout-register-email" className="block text-ink mb-2 text-sm">{t('checkout.email')}</label>
         <div className="relative">
           <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="email" value={form.email} onChange={set('email')} required
+          <input id="checkout-register-email" type="email" value={form.email} onChange={set('email')} required
             placeholder="votre.email@entreprise.com" className="field field-icon" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.password')}</label>
+          <label htmlFor="checkout-register-password" className="block text-ink mb-2 text-sm">{t('checkout.password')}</label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="password" value={form.password} onChange={set('password')} required
+            <input id="checkout-register-password" type="password" value={form.password} onChange={set('password')} required
               placeholder="••••••••" className="field field-icon" />
           </div>
         </div>
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.register_password_confirm')}</label>
+          <label htmlFor="checkout-register-password-confirm" className="block text-ink mb-2 text-sm">{t('checkout.register_password_confirm')}</label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')} required
+            <input id="checkout-register-password-confirm" type="password" value={form.password_confirmation} onChange={set('password_confirmation')} required
               placeholder="••••••••" className="field field-icon" />
           </div>
         </div>
@@ -304,30 +304,30 @@ function GuestForm({ navigate, t }: GuestFormProps) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.guest_first_name')}</label>
+          <label htmlFor="checkout-guest-first-name" className="block text-ink mb-2 text-sm">{t('checkout.guest_first_name')}</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+            <input id="checkout-guest-first-name" type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
               placeholder="Prénom" className="field field-icon" />
           </div>
         </div>
         <div>
-          <label className="block text-ink mb-2 text-sm">{t('checkout.guest_last_name')}</label>
+          <label htmlFor="checkout-guest-last-name" className="block text-ink mb-2 text-sm">{t('checkout.guest_last_name')}</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
+            <input id="checkout-guest-last-name" type="text" value={lastName} onChange={e => setLastName(e.target.value)}
               placeholder="Nom" className="field field-icon" />
           </div>
         </div>
       </div>
       <div>
-        <label className="block text-ink mb-2 text-sm">
+        <label htmlFor="checkout-guest-email" className="block text-ink mb-2 text-sm">
           {t('checkout.email')}
           <span className="ml-2 text-xs text-muted-foreground font-normal">— {t('checkout.guest_email_hint')}</span>
         </label>
         <div className="relative">
           <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+          <input id="checkout-guest-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required
             placeholder="votre.email@exemple.com" className="field field-icon" />
         </div>
       </div>

@@ -99,7 +99,7 @@
   /* Texte */
   --ink: #E5E7EB;
   --ink-soft: #94A3B8;
-  --muted-foreground: #64748B;
+  --muted-foreground: #7C8AA0;
 
   /* Lignes / bordures */
   --border: rgba(255, 255, 255, 0.10);
@@ -368,7 +368,7 @@
     color: var(--ink);
     transition: border-color 0.16s ease, box-shadow 0.16s ease;
   }
-  .field::placeholder { color: #9AA3AF; }
+  .field::placeholder { color: #6B7480; }
   .field:focus {
     outline: none;
     border-color: var(--primary);

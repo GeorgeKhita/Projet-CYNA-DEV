@@ -48,7 +48,7 @@ export function ForgotPasswordPage() {
           ) : (
             <>
               {error && (
-                <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
+                <div role="alert" className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
               )}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>

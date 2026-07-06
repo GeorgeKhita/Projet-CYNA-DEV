@@ -220,7 +220,7 @@ export function CatalogPage() {
         )}
 
         {error && (
-          <div className="text-center py-24">
+          <div role="alert" className="text-center py-24">
             <p className="text-destructive mb-4">{error}</p>
             <button onClick={() => window.location.reload()} className="btn btn-primary">{t('catalog.retry')}</button>
           </div>

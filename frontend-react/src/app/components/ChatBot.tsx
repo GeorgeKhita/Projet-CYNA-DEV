@@ -105,7 +105,7 @@ export function ChatBot() {
       {/* Bouton flottant */}
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label="Ouvrir le chat support"
+        aria-label={open ? 'Fermer le chat support' : 'Ouvrir le chat support'}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#00B4D8] to-[#0098B7] shadow-[0_10px_30px_rgba(0,180,216,0.4)] flex items-center justify-center hover:-translate-y-0.5 transition-transform"
       >
         {open

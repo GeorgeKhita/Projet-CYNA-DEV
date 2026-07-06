@@ -153,6 +153,7 @@ export function Navbar() {
               onClick={toggleLang}
               className="px-2.5 py-1.5 text-xs font-bold rounded-xl border border-border hover:bg-bg-subtle transition-colors text-ink-soft"
               title={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
+              aria-label={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
             >
               {lang === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR'}
             </button>
@@ -162,6 +163,7 @@ export function Navbar() {
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2.5 hover:bg-bg-subtle rounded-xl transition-colors"
               title={theme === 'dark' ? t('navbar.light_mode') : t('navbar.dark_mode')}
+              aria-label={theme === 'dark' ? t('navbar.light_mode') : t('navbar.dark_mode')}
             >
               {theme === 'dark'
                 ? <Sun className="w-5 h-5 text-[#F59E0B]" />
@@ -170,7 +172,7 @@ export function Navbar() {
             </button>
 
             {/* Panier */}
-            <Link to="/panier" className="relative p-2.5 hover:bg-bg-subtle rounded-xl transition-colors">
+            <Link to="/panier" className="relative p-2.5 hover:bg-bg-subtle rounded-xl transition-colors" aria-label={t('product.view_cart')}>
               <ShoppingCart className="w-5 h-5 text-ink-soft" />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,180,216,0.45)]">
@@ -195,6 +197,7 @@ export function Navbar() {
                   onClick={handleLogout}
                   className="p-2.5 hover:bg-destructive/10 rounded-xl transition-colors group"
                   title={t('navbar.logout')}
+                  aria-label={t('navbar.logout')}
                 >
                   <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
                 </button>
@@ -211,6 +214,8 @@ export function Navbar() {
             <button
               className="lg:hidden p-2.5 hover:bg-bg-subtle rounded-xl transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X className="w-6 h-6 text-ink" /> : <Menu className="w-6 h-6 text-ink" />}
             </button>

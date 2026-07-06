@@ -132,15 +132,15 @@ export function AdminProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleToggle(p)} title="Basculer disponibilité"
+                        <button onClick={() => handleToggle(p)} title="Basculer disponibilité" aria-label={`Basculer la disponibilité de ${p.name}`}
                           className="p-1.5 hover:bg-bg-subtle rounded-lg transition-colors text-muted-foreground hover:text-ink">
                           {p.status === 'available' ? <ToggleRight className="w-5 h-5 text-[#10B981]" /> : <ToggleLeft className="w-5 h-5" />}
                         </button>
-                        <button onClick={() => openEdit(p)}
+                        <button onClick={() => openEdit(p)} aria-label={`Modifier ${p.name}`}
                           className="p-1.5 hover:bg-bg-subtle rounded-lg transition-colors text-muted-foreground hover:text-[#00B4D8]">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(p.id)}
+                        <button onClick={() => handleDelete(p.id)} aria-label={`Supprimer ${p.name}`}
                           className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -160,51 +160,51 @@ export function AdminProductsPage() {
           <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-lg)]">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-bold text-ink">{modal === 'create' ? 'Nouveau produit' : 'Modifier le produit'}</h2>
-              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-ink"><X className="w-5 h-5" /></button>
+              <button onClick={() => setModal(null)} aria-label="Fermer" className="text-muted-foreground hover:text-ink"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Nom</label>
-                <input type="text" value={current.name} onChange={e => setCurrent((c: any) => ({ ...c, name: e.target.value }))} className={fieldCls} />
+                <label htmlFor="product-name" className="block text-ink text-sm font-semibold mb-1">Nom</label>
+                <input id="product-name" type="text" value={current.name} onChange={e => setCurrent((c: any) => ({ ...c, name: e.target.value }))} className={fieldCls} />
               </div>
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Catégorie</label>
-                <select value={current.category_id} onChange={e => setCurrent((c: any) => ({ ...c, category_id: Number(e.target.value) }))} className={fieldCls}>
+                <label htmlFor="product-category" className="block text-ink text-sm font-semibold mb-1">Catégorie</label>
+                <select id="product-category" value={current.category_id} onChange={e => setCurrent((c: any) => ({ ...c, category_id: Number(e.target.value) }))} className={fieldCls}>
                   <option value={0}>-- Choisir --</option>
                   {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Description</label>
-                <textarea rows={3} value={current.description} onChange={e => setCurrent((c: any) => ({ ...c, description: e.target.value }))} className={`${fieldCls} resize-none`} />
+                <label htmlFor="product-description" className="block text-ink text-sm font-semibold mb-1">Description</label>
+                <textarea id="product-description" rows={3} value={current.description} onChange={e => setCurrent((c: any) => ({ ...c, description: e.target.value }))} className={`${fieldCls} resize-none`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Prix mensuel (€)</label>
-                  <input type="number" value={current.price_monthly} onChange={e => setCurrent((c: any) => ({ ...c, price_monthly: Number(e.target.value) }))} className={fieldCls} />
+                  <label htmlFor="product-price-monthly" className="block text-ink text-sm font-semibold mb-1">Prix mensuel (€)</label>
+                  <input id="product-price-monthly" type="number" value={current.price_monthly} onChange={e => setCurrent((c: any) => ({ ...c, price_monthly: Number(e.target.value) }))} className={fieldCls} />
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Prix annuel (€)</label>
-                  <input type="number" value={current.price_annual} onChange={e => setCurrent((c: any) => ({ ...c, price_annual: Number(e.target.value) }))} className={fieldCls} />
+                  <label htmlFor="product-price-annual" className="block text-ink text-sm font-semibold mb-1">Prix annuel (€)</label>
+                  <input id="product-price-annual" type="number" value={current.price_annual} onChange={e => setCurrent((c: any) => ({ ...c, price_annual: Number(e.target.value) }))} className={fieldCls} />
                 </div>
               </div>
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Fonctionnalités (une par ligne)</label>
-                <textarea rows={4} value={featuresInput} onChange={e => setFeaturesInput(e.target.value)}
+                <label htmlFor="product-features" className="block text-ink text-sm font-semibold mb-1">Fonctionnalités (une par ligne)</label>
+                <textarea id="product-features" rows={4} value={featuresInput} onChange={e => setFeaturesInput(e.target.value)}
                   placeholder="Surveillance 24/7&#10;Détection IA&#10;Conformité ISO 27001"
                   className={`${fieldCls} resize-none`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Statut</label>
-                  <select value={current.status} onChange={e => setCurrent((c: any) => ({ ...c, status: e.target.value }))} className={fieldCls}>
+                  <label htmlFor="product-status" className="block text-ink text-sm font-semibold mb-1">Statut</label>
+                  <select id="product-status" value={current.status} onChange={e => setCurrent((c: any) => ({ ...c, status: e.target.value }))} className={fieldCls}>
                     <option value="available">Disponible</option>
                     <option value="unavailable">Indisponible</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Priorité</label>
-                  <input type="number" value={current.priority} onChange={e => setCurrent((c: any) => ({ ...c, priority: Number(e.target.value) }))} className={fieldCls} />
+                  <label htmlFor="product-priority" className="block text-ink text-sm font-semibold mb-1">Priorité</label>
+                  <input id="product-priority" type="number" value={current.priority} onChange={e => setCurrent((c: any) => ({ ...c, priority: Number(e.target.value) }))} className={fieldCls} />
                 </div>
               </div>
             </div>
