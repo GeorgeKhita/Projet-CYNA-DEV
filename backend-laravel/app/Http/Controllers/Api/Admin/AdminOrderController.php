@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,13 @@ class AdminOrderController extends Controller
         ]);
 
         $order->update(['status' => $data['status']]);
+
+        ActivityLog::record(
+            $request->user()->id,
+            'order_status_updated',
+            "Commande #{$order->id} : statut changé en {$order->status}",
+            $request->ip()
+        );
 
         return response()->json(['message' => 'Statut mis à jour.', 'status' => $order->status]);
     }

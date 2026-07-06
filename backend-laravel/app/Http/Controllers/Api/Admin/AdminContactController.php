@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\SupportMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,9 +47,17 @@ class AdminContactController extends Controller
         return response()->json($supportMessage);
     }
 
-    public function markResolved(SupportMessage $supportMessage): JsonResponse
+    public function markResolved(Request $request, SupportMessage $supportMessage): JsonResponse
     {
         $supportMessage->update(['status' => 'resolved']);
+
+        ActivityLog::record(
+            $request->user()->id,
+            'contact_message_resolved',
+            "Message de contact #{$supportMessage->id} marqué comme résolu",
+            $request->ip()
+        );
+
         return response()->json(['message' => 'Message marqué comme résolu.']);
     }
 
