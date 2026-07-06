@@ -38,7 +38,7 @@ use App\Http\Controllers\Api\Admin\AdminContactController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register',        [AuthController::class, 'register'])->middleware('throttle:auth-general');
-    Route::post('/login',           [AuthController::class, 'login']);
+    Route::post('/login',           [AuthController::class, 'login'])->middleware('throttle:auth-general');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth-general');
     Route::post('/reset-password',  [AuthController::class, 'resetPassword'])->middleware('throttle:auth-general');
     Route::get('/verify-email',          [AuthController::class, 'verifyEmail']);
@@ -71,7 +71,7 @@ Route::post('/promo-codes/validate', [PromoCodeController::class, 'validate']);
 Route::post('/chatbot/message', [ChatbotController::class, 'message']);
 
 // 2FA — Vérification au login (public car pas encore de token Sanctum)
-Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA']);
+Route::post('/auth/admin/verify-2fa', [AuthController::class, 'verifyAdmin2FA'])->middleware('throttle:auth-general');
 
 // Webhook Stripe (public, signature vérifiée dans le controller)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
