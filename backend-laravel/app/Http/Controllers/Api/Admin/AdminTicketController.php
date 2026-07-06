@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,6 +63,13 @@ class AdminTicketController extends Controller
 
         $ticket->update($data);
 
+        ActivityLog::record(
+            $request->user()->id,
+            'ticket_status_updated',
+            "Ticket #{$ticket->id} : statut changé en {$ticket->status}",
+            $request->ip()
+        );
+
         return response()->json(['message' => 'Ticket mis à jour.', 'ticket' => $ticket]);
     }
 
@@ -79,6 +87,13 @@ class AdminTicketController extends Controller
         if ($ticket->status === 'open') {
             $ticket->update(['status' => 'in_progress']);
         }
+
+        ActivityLog::record(
+            $request->user()->id,
+            'ticket_reply_sent',
+            "Réponse admin envoyée sur le ticket #{$ticket->id}",
+            $request->ip()
+        );
 
         return response()->json($msg, 201);
     }
