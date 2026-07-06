@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { setToken, clearToken, getToken } from '../api/client';
+import { api, setToken, clearToken, getToken } from '../api/client';
 
 interface User {
   id: number;
@@ -48,7 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   }
 
-  function logout() {
+  async function logout() {
+    const token = getToken();
+    if (token) {
+      try {
+        await api.post('/auth/logout', {});
+      } catch {
+        // Le token sera de toute façon effacé côté client ; on ignore les erreurs réseau.
+      }
+    }
     clearToken();
     localStorage.removeItem('cyna_user');
     setUser(null);

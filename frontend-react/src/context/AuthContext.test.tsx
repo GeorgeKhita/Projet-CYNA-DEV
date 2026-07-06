@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthContext';
 
@@ -129,6 +129,39 @@ describe('login()', () => {
 // ── logout() ─────────────────────────────────────────────────────────────
 
 describe('logout()', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => undefined,
+    }));
+  });
+
+  it("appelle l'endpoint de déconnexion côté serveur", async () => {
+    localStorage.setItem('cyna_token', 'tok-abc');
+    localStorage.setItem('cyna_user', JSON.stringify({
+      id: 1, first_name: 'N', last_name: 'M', email: 'n@c.fr', role: 'user',
+    }));
+
+    const { findByTestId, getByRole } = render(
+      <AuthProvider>
+        <AuthInspector />
+        <LogoutButton />
+      </AuthProvider>
+    );
+
+    await findByTestId('authenticated');
+
+    await act(async () => {
+      getByRole('button', { name: 'Logout' }).click();
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/logout'),
+      expect.objectContaining({ method: 'POST' })
+    );
+  });
+
   it("désauthentifie l'utilisateur", async () => {
     localStorage.setItem('cyna_token', 'tok-abc');
     localStorage.setItem('cyna_user', JSON.stringify({
@@ -169,6 +202,32 @@ describe('logout()', () => {
     });
 
     expect(localStorage.getItem('cyna_token')).toBeNull();
+  });
+
+  it('déconnecte localement même si la requête serveur échoue', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+
+    localStorage.setItem('cyna_token', 'tok-abc');
+    localStorage.setItem('cyna_user', JSON.stringify({
+      id: 1, first_name: 'N', last_name: 'M', email: 'n@c.fr', role: 'user',
+    }));
+
+    const { getByRole, findByTestId } = render(
+      <AuthProvider><AuthInspector /><LogoutButton /></AuthProvider>
+    );
+
+    await findByTestId('authenticated');
+
+    await act(async () => {
+      getByRole('button', { name: 'Logout' }).click();
+    });
+
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+    expect(localStorage.getItem('cyna_token')).toBeNull();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 });
 
