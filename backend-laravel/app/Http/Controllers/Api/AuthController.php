@@ -313,7 +313,7 @@ class AuthController extends Controller
             'email_verification_token' => null,
         ]);
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addDay())->plainTextToken;
 
         return response()->json([
             'message' => 'Email confirmé. Votre compte est maintenant actif.',
@@ -485,7 +485,7 @@ class AuthController extends Controller
         // Code valide → supprimer le token temporaire et créer le token Sanctum
         Cache::forget("2fa_pending:{$request->pending_token}");
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addDay())->plainTextToken;
 
         return response()->json([
             'user'  => $this->formatUser($user),
