@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, ToggleLeft, ToggleRight } from 'lucide-react';
 import { api } from '../../../api/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
 
 interface PromoCode {
   id: number;
@@ -173,17 +174,13 @@ export function AdminPromoCodesPage() {
         </div>
       )}
 
-      {modal && (
-        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-lg)]">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-xl font-bold text-ink">
-                {modal === 'create' ? 'Nouveau code promo' : 'Modifier le code promo'}
-              </h2>
-              <button onClick={() => setModal(null)} aria-label="Fermer" className="text-muted-foreground hover:text-ink">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <Dialog open={!!modal} onOpenChange={open => !open && setModal(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border-border bg-card p-0 gap-0">
+          <DialogHeader className="p-6 border-b border-border text-left">
+            <DialogTitle className="text-xl font-bold text-ink">
+              {modal === 'create' ? 'Nouveau code promo' : 'Modifier le code promo'}
+            </DialogTitle>
+          </DialogHeader>
 
             <div className="p-6 space-y-4">
               <div>
@@ -280,15 +277,14 @@ export function AdminPromoCodesPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-border">
-              <button onClick={() => setModal(null)} className="btn btn-ghost flex-1">Annuler</button>
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary flex-1">
-                {saving ? 'Enregistrement...' : <><Check className="w-4 h-4" />Enregistrer</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          <DialogFooter className="flex-row gap-3 p-6 border-t border-border sm:justify-stretch">
+            <button onClick={() => setModal(null)} className="btn btn-ghost flex-1">Annuler</button>
+            <button onClick={handleSave} disabled={saving} className="btn btn-primary flex-1">
+              {saving ? 'Enregistrement...' : <><Check className="w-4 h-4" />Enregistrer</>}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

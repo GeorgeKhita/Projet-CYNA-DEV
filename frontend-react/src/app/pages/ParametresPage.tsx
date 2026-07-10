@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
+import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 
 export function ParametresPage() {
   const { user, isAuthenticated, loading: authLoading, login, logout } = useAuth();
@@ -204,35 +205,33 @@ export function ParametresPage() {
         </div>
       </div>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-destructive/30 rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-8 h-8 text-destructive flex-shrink-0" />
-              <h3 className="text-xl font-bold text-ink">{t('settings.confirm_delete_title')}</h3>
-            </div>
-            <p className="text-ink-soft mb-6">{t('settings.confirm_delete_desc')}</p>
-            {error && <div role="alert" className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>}
-            <input
-              type="password"
-              value={deleteConfirm}
-              onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder={t('settings.delete_confirm_placeholder')}
-              aria-label={t('settings.delete_confirm_placeholder')}
-              className="field mb-4"
-            />
-            <div className="flex gap-3">
-              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
-                {t('settings.cancel')}
-              </button>
-              <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
-                className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
-                {deleting ? t('settings.deleting') : t('settings.delete_permanently')}
-              </button>
-            </div>
+      <Dialog open={showDeleteModal} onOpenChange={open => { if (!open) { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); } }}>
+        <DialogContent className="border-destructive/30 rounded-2xl p-8 max-w-md">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="w-8 h-8 text-destructive flex-shrink-0" />
+            <DialogTitle className="text-xl font-bold text-ink">{t('settings.confirm_delete_title')}</DialogTitle>
           </div>
-        </div>
-      )}
+          <p className="text-ink-soft mb-6">{t('settings.confirm_delete_desc')}</p>
+          {error && <div role="alert" className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>}
+          <input
+            type="password"
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+            placeholder={t('settings.delete_confirm_placeholder')}
+            aria-label={t('settings.delete_confirm_placeholder')}
+            className="field mb-4"
+          />
+          <div className="flex gap-3">
+            <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
+              {t('settings.cancel')}
+            </button>
+            <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
+              className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
+              {deleting ? t('settings.deleting') : t('settings.delete_permanently')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
