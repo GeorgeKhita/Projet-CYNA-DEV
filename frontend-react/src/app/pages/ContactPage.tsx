@@ -118,24 +118,24 @@ export function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <h2 className="text-xl font-bold text-ink">{t('contact.form_title')}</h2>
                 {error && (
-                  <div className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
+                  <div role="alert" className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>
                 )}
                 <div>
-                  <label className="block text-ink mb-2">{t('contact.email_field')}</label>
+                  <label htmlFor="contact-email" className="block text-ink mb-2">{t('contact.email_field')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="email" value={form.email} onChange={set('email')} required
+                    <input id="contact-email" type="email" value={form.email} onChange={set('email')} required
                       placeholder="votre.email@entreprise.com" className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('contact.subject_field')}</label>
-                  <input type="text" value={form.subject} onChange={set('subject')} required
+                  <label htmlFor="contact-subject" className="block text-ink mb-2">{t('contact.subject_field')}</label>
+                  <input id="contact-subject" type="text" value={form.subject} onChange={set('subject')} required
                     placeholder={t('contact.subject_placeholder')} className="field" />
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('contact.message_field')}</label>
-                  <textarea rows={6} value={form.message} onChange={set('message')} required
+                  <label htmlFor="contact-message" className="block text-ink mb-2">{t('contact.message_field')}</label>
+                  <textarea id="contact-message" rows={6} value={form.message} onChange={set('message')} required
                     placeholder={t('contact.message_placeholder')} className="field resize-none" />
                 </div>
                 <button type="submit" disabled={loading} className="btn btn-primary btn-block btn-lg">

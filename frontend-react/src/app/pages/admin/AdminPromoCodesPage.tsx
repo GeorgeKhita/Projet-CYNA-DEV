@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, ToggleLeft, ToggleRight } from 'lucide-react';
 import { api } from '../../../api/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
 
 interface PromoCode {
   id: number;
@@ -147,7 +148,7 @@ export function AdminPromoCodesPage() {
                       {p.expires_at ? new Date(p.expires_at).toLocaleDateString('fr-FR') : '—'}
                     </td>
                     <td className="px-6 py-4">
-                      <button onClick={() => handleToggle(p)} title="Basculer">
+                      <button onClick={() => handleToggle(p)} title="Basculer" aria-label={`Basculer l'activation du code ${p.code}`}>
                         {p.is_active
                           ? <ToggleRight className="w-6 h-6 text-[#10B981]" />
                           : <ToggleLeft className="w-6 h-6 text-muted-foreground" />}
@@ -155,11 +156,11 @@ export function AdminPromoCodesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(p)}
+                        <button onClick={() => openEdit(p)} aria-label={`Modifier le code ${p.code}`}
                           className="p-1.5 hover:bg-bg-subtle rounded-lg transition-colors text-muted-foreground hover:text-[#00B4D8]">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(p.id)}
+                        <button onClick={() => handleDelete(p.id)} aria-label={`Supprimer le code ${p.code}`}
                           className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -173,22 +174,19 @@ export function AdminPromoCodesPage() {
         </div>
       )}
 
-      {modal && (
-        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-lg)]">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-xl font-bold text-ink">
-                {modal === 'create' ? 'Nouveau code promo' : 'Modifier le code promo'}
-              </h2>
-              <button onClick={() => setModal(null)} className="text-muted-foreground hover:text-ink">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <Dialog open={!!modal} onOpenChange={open => !open && setModal(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border-border bg-card p-0 gap-0">
+          <DialogHeader className="p-6 border-b border-border text-left">
+            <DialogTitle className="text-xl font-bold text-ink">
+              {modal === 'create' ? 'Nouveau code promo' : 'Modifier le code promo'}
+            </DialogTitle>
+          </DialogHeader>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Code</label>
+                <label htmlFor="promo-code" className="block text-ink text-sm font-semibold mb-1">Code</label>
                 <input
+                  id="promo-code"
                   type="text"
                   value={current.code}
                   onChange={e => setCurrent((c: any) => ({ ...c, code: e.target.value.toUpperCase() }))}
@@ -199,8 +197,9 @@ export function AdminPromoCodesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Type</label>
+                  <label htmlFor="promo-type" className="block text-ink text-sm font-semibold mb-1">Type</label>
                   <select
+                    id="promo-type"
                     value={current.type}
                     onChange={e => setCurrent((c: any) => ({ ...c, type: e.target.value }))}
                     className={fieldCls}
@@ -210,10 +209,11 @@ export function AdminPromoCodesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">
+                  <label htmlFor="promo-value" className="block text-ink text-sm font-semibold mb-1">
                     Valeur {current.type === 'percent' ? '(%)' : '(€)'}
                   </label>
                   <input
+                    id="promo-value"
                     type="number"
                     min="0"
                     step={current.type === 'percent' ? '1' : '0.01'}
@@ -226,8 +226,9 @@ export function AdminPromoCodesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Min commande HT (€)</label>
+                  <label htmlFor="promo-min-order" className="block text-ink text-sm font-semibold mb-1">Min commande HT (€)</label>
                   <input
+                    id="promo-min-order"
                     type="number"
                     min="0"
                     step="0.01"
@@ -238,8 +239,9 @@ export function AdminPromoCodesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-ink text-sm font-semibold mb-1">Nb utilisations max</label>
+                  <label htmlFor="promo-max-uses" className="block text-ink text-sm font-semibold mb-1">Nb utilisations max</label>
                   <input
+                    id="promo-max-uses"
                     type="number"
                     min="1"
                     value={current.max_uses}
@@ -251,8 +253,9 @@ export function AdminPromoCodesPage() {
               </div>
 
               <div>
-                <label className="block text-ink text-sm font-semibold mb-1">Date d'expiration</label>
+                <label htmlFor="promo-expires-at" className="block text-ink text-sm font-semibold mb-1">Date d'expiration</label>
                 <input
+                  id="promo-expires-at"
                   type="date"
                   value={current.expires_at}
                   onChange={e => setCurrent((c: any) => ({ ...c, expires_at: e.target.value }))}
@@ -274,15 +277,14 @@ export function AdminPromoCodesPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-border">
-              <button onClick={() => setModal(null)} className="btn btn-ghost flex-1">Annuler</button>
-              <button onClick={handleSave} disabled={saving} className="btn btn-primary flex-1">
-                {saving ? 'Enregistrement...' : <><Check className="w-4 h-4" />Enregistrer</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          <DialogFooter className="flex-row gap-3 p-6 border-t border-border sm:justify-stretch">
+            <button onClick={() => setModal(null)} className="btn btn-ghost flex-1">Annuler</button>
+            <button onClick={handleSave} disabled={saving} className="btn btn-primary flex-1">
+              {saving ? 'Enregistrement...' : <><Check className="w-4 h-4" />Enregistrer</>}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

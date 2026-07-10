@@ -150,7 +150,7 @@ export function RegisterPage() {
           </div>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+            <div role="alert" className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
@@ -158,21 +158,21 @@ export function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-ink mb-2">{t('register.first_name')}</label>
+                <label htmlFor="register-first-name" className="block text-ink mb-2">{t('register.first_name')}</label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input type="text" value={form.first_name} onChange={set('first_name')} placeholder="Jean" required className="field field-icon" />
+                  <input id="register-first-name" type="text" value={form.first_name} onChange={set('first_name')} placeholder="Jean" required className="field field-icon" />
                 </div>
               </div>
               <div>
-                <label className="block text-ink mb-2">{t('register.last_name')}</label>
-                <input type="text" value={form.last_name} onChange={set('last_name')} placeholder="Dupont" required className="field" />
+                <label htmlFor="register-last-name" className="block text-ink mb-2">{t('register.last_name')}</label>
+                <input id="register-last-name" type="text" value={form.last_name} onChange={set('last_name')} placeholder="Dupont" required className="field" />
               </div>
             </div>
 
             {/* Autocomplete Entreprise */}
             <div>
-              <label className="block text-ink mb-2">
+              <label htmlFor="register-company" className="block text-ink mb-2">
                 {t('register.company')}
                 <span className="ml-2 text-xs text-muted-foreground font-normal">{t('register.company_hint')}</span>
               </label>
@@ -183,6 +183,7 @@ export function RegisterPage() {
                     : <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   }
                   <input
+                    id="register-company"
                     type="text"
                     value={companyQuery}
                     onChange={handleCompanyInput}
@@ -244,26 +245,26 @@ export function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-ink mb-2">{t('register.email')}</label>
+              <label htmlFor="register-email" className="block text-ink mb-2">{t('register.email')}</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="email" value={form.email} onChange={set('email')} placeholder="votre.email@entreprise.com" required className="field field-icon" />
+                <input id="register-email" type="email" value={form.email} onChange={set('email')} placeholder="votre.email@entreprise.com" required className="field field-icon" />
               </div>
             </div>
 
             <div>
-              <label className="block text-ink mb-2">{t('register.password')}</label>
+              <label htmlFor="register-password" className="block text-ink mb-2">{t('register.password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="password" value={form.password} onChange={set('password')} placeholder="••••••••" required className="field field-icon" />
+                <input id="register-password" type="password" value={form.password} onChange={set('password')} placeholder="••••••••" required className="field field-icon" />
               </div>
             </div>
 
             <div>
-              <label className="block text-ink mb-2">{t('register.confirm_password')}</label>
+              <label htmlFor="register-password-confirm" className="block text-ink mb-2">{t('register.confirm_password')}</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input type="password" value={form.password_confirmation} onChange={set('password_confirmation')} placeholder="••••••••" required className="field field-icon" />
+                <input id="register-password-confirm" type="password" value={form.password_confirmation} onChange={set('password_confirmation')} placeholder="••••••••" required className="field field-icon" />
               </div>
             </div>
 

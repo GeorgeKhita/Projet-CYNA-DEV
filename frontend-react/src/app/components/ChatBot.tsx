@@ -45,6 +45,8 @@ export function ChatBot() {
   const [started, setStarted] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open && !started) {
@@ -61,8 +63,36 @@ export function ChatBot() {
   }, [history, loading]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) {
+      inputRef.current?.focus();
+    } else {
+      toggleRef.current?.focus();
+    }
   }, [open]);
+
+  function handlePanelKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setOpen(false);
+      return;
+    }
+    if (e.key !== 'Tab' || !panelRef.current) return;
+
+    const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -104,8 +134,10 @@ export function ChatBot() {
     <>
       {/* Bouton flottant */}
       <button
+        ref={toggleRef}
         onClick={() => setOpen(o => !o)}
-        aria-label="Ouvrir le chat support"
+        aria-label={open ? 'Fermer le chat support' : 'Ouvrir le chat support'}
+        aria-expanded={open}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#00B4D8] to-[#0098B7] shadow-[0_10px_30px_rgba(0,180,216,0.4)] flex items-center justify-center hover:-translate-y-0.5 transition-transform"
       >
         {open
@@ -116,7 +148,14 @@ export function ChatBot() {
 
       {/* Fenêtre de chat */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(10,22,40,0.25)] border border-border flex flex-col bg-card">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chat support CYNA"
+          onKeyDown={handlePanelKeyDown}
+          className="fixed bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(10,22,40,0.25)] border border-border flex flex-col bg-card"
+        >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] px-4 py-3 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">

@@ -107,7 +107,7 @@ export function AdminTwoFactorPage() {
           </div>
         )}
         {error && (
-          <div className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive">
+          <div role="alert" className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive">
             <AlertTriangle className="w-5 h-5 flex-shrink-0" /> {error}
           </div>
         )}

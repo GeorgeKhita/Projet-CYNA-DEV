@@ -33,7 +33,7 @@ export function AdminSidebar() {
           </div>
           <div>
             <div className="text-white font-bold text-sm">CYNA Admin</div>
-            <div className="text-gray-500 text-xs">Panel d'administration</div>
+            <div className="text-gray-400 text-xs">Panel d'administration</div>
           </div>
         </div>
       </div>

@@ -67,7 +67,7 @@ export function AdminMessagesPage() {
             return (
               <div key={msg.id} className={`cyna-card overflow-hidden ${msg.requires_human ? '!border-[#F59E0B]/40' : ''}`}>
                 <div className="flex items-center gap-4 p-5">
-                  <button onClick={() => setExpanded(isOpen ? null : msg.id)} className="text-muted-foreground hover:text-ink">
+                  <button onClick={() => setExpanded(isOpen ? null : msg.id)} aria-label={isOpen ? 'Réduire le message' : 'Développer le message'} className="text-muted-foreground hover:text-ink">
                     {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </button>
 
@@ -99,12 +99,12 @@ export function AdminMessagesPage() {
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {msg.status !== 'resolved' && (
-                      <button onClick={() => handleResolve(msg.id)} title="Marquer résolu"
+                      <button onClick={() => handleResolve(msg.id)} title="Marquer résolu" aria-label={`Marquer le message de ${msg.email} comme résolu`}
                         className="p-1.5 hover:bg-[#10B981]/10 rounded-lg transition-colors text-muted-foreground hover:text-[#10B981]">
                         <Check className="w-4 h-4" />
                       </button>
                     )}
-                    <button onClick={() => handleDelete(msg.id)}
+                    <button onClick={() => handleDelete(msg.id)} aria-label={`Supprimer le message de ${msg.email}`}
                       className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                       <Trash2 className="w-4 h-4" />
                     </button>

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { api, getToken } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardSidebar } from '../components/DashboardSidebar';
+import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 
 export function ParametresPage() {
   const { user, isAuthenticated, loading: authLoading, login, logout } = useAuth();
@@ -107,7 +108,7 @@ export function ParametresPage() {
               </div>
             )}
             {error && (
-              <div className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive">{error}</div>
+              <div role="alert" className="px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive">{error}</div>
             )}
 
             <div className="cyna-card p-8">
@@ -115,29 +116,29 @@ export function ParametresPage() {
               <form onSubmit={handleProfile} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-ink mb-2">{t('settings.first_name')}</label>
+                    <label htmlFor="settings-first-name" className="block text-ink mb-2">{t('settings.first_name')}</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <input type="text" value={form.first_name} onChange={setField('first_name')} required className="field field-icon" />
+                      <input id="settings-first-name" type="text" value={form.first_name} onChange={setField('first_name')} required className="field field-icon" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-ink mb-2">{t('settings.last_name')}</label>
-                    <input type="text" value={form.last_name} onChange={setField('last_name')} required className="field" />
+                    <label htmlFor="settings-last-name" className="block text-ink mb-2">{t('settings.last_name')}</label>
+                    <input id="settings-last-name" type="text" value={form.last_name} onChange={setField('last_name')} required className="field" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('settings.company')}</label>
+                  <label htmlFor="settings-company" className="block text-ink mb-2">{t('settings.company')}</label>
                   <div className="relative">
                     <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="text" value={form.company} onChange={setField('company')} className="field field-icon" />
+                    <input id="settings-company" type="text" value={form.company} onChange={setField('company')} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('settings.email')}</label>
+                  <label htmlFor="settings-email" className="block text-ink mb-2">{t('settings.email')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="email" value={form.email} onChange={setField('email')} required className="field field-icon" />
+                    <input id="settings-email" type="email" value={form.email} onChange={setField('email')} required className="field field-icon" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving} className="btn btn-primary">
@@ -150,24 +151,24 @@ export function ParametresPage() {
               <h2 className="text-2xl font-bold text-ink mb-6">{t('settings.change_password')}</h2>
               <form onSubmit={handlePassword} className="space-y-5">
                 <div>
-                  <label className="block text-ink mb-2">{t('settings.current_password')}</label>
+                  <label htmlFor="settings-current-password" className="block text-ink mb-2">{t('settings.current_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••" className="field field-icon" />
+                    <input id="settings-current-password" type="password" value={pwd.current_password} onChange={setPwdField('current_password')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('settings.new_password')}</label>
+                  <label htmlFor="settings-new-password" className="block text-ink mb-2">{t('settings.new_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8} className="field field-icon" />
+                    <input id="settings-new-password" type="password" value={pwd.password} onChange={setPwdField('password')} required placeholder="••••••••" minLength={8} className="field field-icon" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-ink mb-2">{t('settings.confirm_password')}</label>
+                  <label htmlFor="settings-confirm-password" className="block text-ink mb-2">{t('settings.confirm_password')}</label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••" className="field field-icon" />
+                    <input id="settings-confirm-password" type="password" value={pwd.password_confirmation} onChange={setPwdField('password_confirmation')} required placeholder="••••••••" className="field field-icon" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving} className="btn btn-ghost">
@@ -204,34 +205,33 @@ export function ParametresPage() {
         </div>
       </div>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-[#0A1628]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-destructive/30 rounded-2xl p-8 max-w-md w-full shadow-[var(--shadow-lg)]">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-8 h-8 text-destructive flex-shrink-0" />
-              <h3 className="text-xl font-bold text-ink">{t('settings.confirm_delete_title')}</h3>
-            </div>
-            <p className="text-ink-soft mb-6">{t('settings.confirm_delete_desc')}</p>
-            {error && <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>}
-            <input
-              type="password"
-              value={deleteConfirm}
-              onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder={t('settings.delete_confirm_placeholder')}
-              className="field mb-4"
-            />
-            <div className="flex gap-3">
-              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
-                {t('settings.cancel')}
-              </button>
-              <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
-                className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
-                {deleting ? t('settings.deleting') : t('settings.delete_permanently')}
-              </button>
-            </div>
+      <Dialog open={showDeleteModal} onOpenChange={open => { if (!open) { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); } }}>
+        <DialogContent className="border-destructive/30 rounded-2xl p-8 max-w-md">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="w-8 h-8 text-destructive flex-shrink-0" />
+            <DialogTitle className="text-xl font-bold text-ink">{t('settings.confirm_delete_title')}</DialogTitle>
           </div>
-        </div>
-      )}
+          <p className="text-ink-soft mb-6">{t('settings.confirm_delete_desc')}</p>
+          {error && <div role="alert" className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">{error}</div>}
+          <input
+            type="password"
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+            placeholder={t('settings.delete_confirm_placeholder')}
+            aria-label={t('settings.delete_confirm_placeholder')}
+            className="field mb-4"
+          />
+          <div className="flex gap-3">
+            <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setError(''); }} className="btn btn-ghost flex-1">
+              {t('settings.cancel')}
+            </button>
+            <button onClick={handleDeleteAccount} disabled={!deleteConfirm || deleting}
+              className="btn flex-1 bg-[#EF4444] text-white hover:bg-[#DC2626]">
+              {deleting ? t('settings.deleting') : t('settings.delete_permanently')}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

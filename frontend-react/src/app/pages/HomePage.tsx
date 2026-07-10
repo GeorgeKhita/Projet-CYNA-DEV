@@ -136,15 +136,17 @@ export function HomePage() {
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
+                      aria-label={`Aller à la diapositive ${idx + 1}`}
+                      aria-current={idx === currentSlide}
                       className={`h-2 rounded-full transition-all ${idx === currentSlide ? 'bg-[#00B4D8] w-6' : 'bg-[#CBD3DF] w-2'}`}
                     />
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={prevSlide} className="p-2 rounded-full bg-card border border-border hover:border-[#00B4D8] transition-colors shadow-[var(--shadow-xs)]">
+                  <button onClick={prevSlide} aria-label="Diapositive précédente" className="p-2 rounded-full bg-card border border-border hover:border-[#00B4D8] transition-colors shadow-[var(--shadow-xs)]">
                     <ChevronLeft className="w-4 h-4 text-ink-soft" />
                   </button>
-                  <button onClick={nextSlide} className="p-2 rounded-full bg-card border border-border hover:border-[#00B4D8] transition-colors shadow-[var(--shadow-xs)]">
+                  <button onClick={nextSlide} aria-label="Diapositive suivante" className="p-2 rounded-full bg-card border border-border hover:border-[#00B4D8] transition-colors shadow-[var(--shadow-xs)]">
                     <ChevronRight className="w-4 h-4 text-ink-soft" />
                   </button>
                 </div>
