@@ -197,9 +197,9 @@ class InvoiceController extends Controller
   </table>
 
   <div class='totals-box'>
-    <div class='totals-row'><span>Sous-total HT</span><span>{$totalHT} €</span></div>
-    <div class='totals-row'><span>TVA (20%)</span><span>{$tva} €</span></div>
-    <div class='totals-row ttc'><span>Total TTC</span><span>{$totalTTC} €</span></div>
+    <div class='totals-row'><span>Sous-total HT </span><span>{$totalHT} €</span></div>
+    <div class='totals-row'><span>TVA (20%) </span><span>{$tva} €</span></div>
+    <div class='totals-row ttc'><span>Total TTC </span><span>{$totalTTC} €</span></div>
   </div>
 
   <div style='clear:both;'></div>
