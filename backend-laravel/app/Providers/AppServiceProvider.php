@@ -22,7 +22,11 @@ class AppServiceProvider extends ServiceProvider
         JsonResource::withoutWrapping();
 
         RateLimiter::for('auth-general', fn (Request $request) =>
-            Limit::perMinute(5)->by($request->ip())
+            Limit::perMinute(5)
+                ->by($request->ip() . '|' . $request->input('email'))
+                ->response(fn (Request $request, array $headers) => response()->json([
+                    'message' => 'Trop de tentatives. Veuillez réessayer dans ' . ($headers['Retry-After'] ?? 60) . ' secondes.',
+                ], 429, $headers))
         );
     }
 }
