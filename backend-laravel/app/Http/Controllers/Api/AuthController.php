@@ -94,20 +94,20 @@ class AuthController extends Controller
             'password.required' => 'Le mot de passe est obligatoire.',
         ]);
 
-        $key     = 'login:' . $request->ip() . '|' . $data['email'];
-        $lockKey = 'login_lock:' . $request->ip() . '|' . $data['email'];
+        $key = $request->ip() . '|' . $data['email'];
 
-        if (Cache::has($lockKey)) {
-            $seconds = Cache::get($lockKey) - time();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+
             return response()->json([
-                'message' => "Trop de tentatives. Réessayez dans {$seconds} secondes.",
+                'message' => "Trop de tentatives. Veuillez réessayer dans {$seconds} secondes.",
             ], 429);
         }
 
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password ?? '')) {
-            RateLimiter::hit($key, 120);
+            RateLimiter::hit($key, 60);
 
             SecurityLog::create([
                 'user_id'       => $user?->id,
@@ -117,28 +117,10 @@ class AuthController extends Controller
                 'ip_address'    => $request->ip(),
             ]);
 
-            if (RateLimiter::tooManyAttempts($key, 3)) {
-                Cache::put($lockKey, time() + 60, 60);
-                RateLimiter::clear($key);
-
-                SecurityLog::create([
-                    'user_id'       => $user?->id,
-                    'event_type'    => 'login_locked',
-                    'resource_name' => 'user',
-                    'resource_id'   => $data['email'],
-                    'ip_address'    => $request->ip(),
-                ]);
-
-                return response()->json([
-                    'message' => 'Trop de tentatives. Réessayez dans 60 secondes.',
-                ], 429);
-            }
-
             return response()->json(['message' => 'Email ou mot de passe incorrect.'], 401);
         }
 
         RateLimiter::clear($key);
-        Cache::forget($lockKey);
 
         if (!$user->is_email_verified) {
             return response()->json([
