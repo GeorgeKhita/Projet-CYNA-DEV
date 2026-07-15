@@ -11,17 +11,22 @@ interface Product {
   category_id: number;
   description: string;
   features: string[];
+  images: string[];
   price_monthly: number;
   price_annual: number;
   status: string;
   priority: number;
+  max_capacity: number | null;
+  stock_remaining: number | null;
+  subscriptions_count: number;
 }
 
 interface Category { id: number; name: string; color: string; }
 
 const EMPTY: Omit<Product, 'id'> = {
   name: '', category: '', category_color: '', category_id: 0,
-  description: '', features: [], price_monthly: 0, price_annual: 0, status: 'available', priority: 0,
+  description: '', features: [], images: [], price_monthly: 0, price_annual: 0, status: 'available', priority: 0,
+  max_capacity: null, stock_remaining: null, subscriptions_count: 0,
 };
 
 export function AdminProductsPage() {
@@ -55,9 +60,11 @@ export function AdminProductsPage() {
   async function handleSave() {
     setSaving(true);
     try {
-      const payload = {
-        ...current,
+      const { images, ...rest } = current;
+      const payload: any = {
+        ...rest,
         features: featuresInput.split('\n').map(f => f.trim()).filter(Boolean),
+        max_capacity: current.max_capacity === null || current.max_capacity === '' ? null : Number(current.max_capacity),
       };
       if (modal === 'create') {
         const res = await api.post<Product>('/admin/products', payload);
@@ -107,7 +114,7 @@ export function AdminProductsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle">
-                  {['Produit', 'Catégorie', 'Prix/mois', 'Statut', 'Actions'].map(h => (
+                  {['Produit', 'Catégorie', 'Prix/mois', 'Quantité', 'Statut', 'Actions'].map(h => (
                     <th key={h} className="text-left px-6 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -126,6 +133,15 @@ export function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-ink font-semibold text-sm">{p.price_monthly?.toLocaleString('fr-FR')}€</td>
+                    <td className="px-6 py-4">
+                      {p.max_capacity === null ? (
+                        <span className="text-muted-foreground text-sm">Illimité</span>
+                      ) : (
+                        <span className={`text-sm font-semibold ${p.stock_remaining === 0 ? 'text-destructive' : 'text-ink'}`}>
+                          {p.stock_remaining} / {p.max_capacity} restant{(p.stock_remaining ?? 0) !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${p.status === 'available' ? 'bg-[#10B981]/12 text-success border border-[#10B981]/30' : 'bg-bg-muted text-muted-foreground border border-border'}`}>
                         {p.status === 'available' ? 'Disponible' : 'Indisponible'}
@@ -180,11 +196,13 @@ export function AdminProductsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="product-price-monthly" className="block text-ink text-sm font-semibold mb-1">Prix mensuel (€)</label>
-                  <input id="product-price-monthly" type="number" value={current.price_monthly} onChange={e => setCurrent((c: any) => ({ ...c, price_monthly: Number(e.target.value) }))} className={fieldCls} />
+                  <input id="product-price-monthly" type="number" min={0.01} step={0.01} value={current.price_monthly || ''}
+                    onChange={e => setCurrent((c: any) => ({ ...c, price_monthly: e.target.value === '' ? 0 : Number(e.target.value) }))} className={fieldCls} />
                 </div>
                 <div>
                   <label htmlFor="product-price-annual" className="block text-ink text-sm font-semibold mb-1">Prix annuel (€)</label>
-                  <input id="product-price-annual" type="number" value={current.price_annual} onChange={e => setCurrent((c: any) => ({ ...c, price_annual: Number(e.target.value) }))} className={fieldCls} />
+                  <input id="product-price-annual" type="number" min={0.01} step={0.01} value={current.price_annual || ''}
+                    onChange={e => setCurrent((c: any) => ({ ...c, price_annual: e.target.value === '' ? 0 : Number(e.target.value) }))} className={fieldCls} />
                 </div>
               </div>
               <div>
@@ -203,8 +221,20 @@ export function AdminProductsPage() {
                 </div>
                 <div>
                   <label htmlFor="product-priority" className="block text-ink text-sm font-semibold mb-1">Priorité</label>
-                  <input id="product-priority" type="number" value={current.priority} onChange={e => setCurrent((c: any) => ({ ...c, priority: Number(e.target.value) }))} className={fieldCls} />
+                  <input id="product-priority" type="number" min={0} value={current.priority ?? ''}
+                    onChange={e => setCurrent((c: any) => ({ ...c, priority: e.target.value === '' ? 0 : Number(e.target.value) }))} className={fieldCls} />
                 </div>
+              </div>
+              <div>
+                <label htmlFor="product-max-capacity" className="block text-ink text-sm font-semibold mb-1">Quantité totale disponible (vide = illimité)</label>
+                <input id="product-max-capacity" type="number" min={0} value={current.max_capacity ?? ''}
+                  onChange={e => setCurrent((c: any) => ({ ...c, max_capacity: e.target.value === '' ? null : Number(e.target.value) }))}
+                  className={fieldCls} />
+                {modal === 'edit' && current.max_capacity !== null && (
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {current.subscriptions_count} vendu{current.subscriptions_count !== 1 ? 's' : ''} · {current.stock_remaining} restant{current.stock_remaining !== 1 ? 's' : ''}
+                  </p>
+                )}
               </div>
             </div>
           <DialogFooter className="flex-row gap-3 p-6 border-t border-border sm:justify-stretch">

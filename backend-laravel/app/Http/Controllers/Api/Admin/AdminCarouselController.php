@@ -15,7 +15,7 @@ class AdminCarouselController extends Controller
      */
     public function index(): JsonResponse
     {
-        $slides = CarouselSlide::orderBy('position')->get();
+        $slides = CarouselSlide::orderBy('display_order')->get();
         return response()->json($slides);
     }
 
@@ -33,7 +33,7 @@ class AdminCarouselController extends Controller
             'active'   => 'boolean',
         ]);
 
-        $data['position'] = CarouselSlide::max('position') + 1;
+        $data['display_order'] = CarouselSlide::max('display_order') + 1;
 
         $slide = CarouselSlide::create($data);
 
@@ -97,11 +97,11 @@ class AdminCarouselController extends Controller
     {
         $data = $request->validate([
             'order'   => 'required|array',
-            'order.*' => 'integer|exists:carousel_slides,id',
+            'order.*' => 'integer|exists:homepage_carousel,id',
         ]);
 
         foreach ($data['order'] as $position => $id) {
-            CarouselSlide::where('id', $id)->update(['position' => $position + 1]);
+            CarouselSlide::where('id', $id)->update(['display_order' => $position + 1]);
         }
 
         return response()->json(['message' => 'Ordre mis à jour.']);

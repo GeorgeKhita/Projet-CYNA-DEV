@@ -57,8 +57,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 const FALLBACK_COLORS = ['#00B4D8', '#7C5CFC', '#10B981', '#F59E0B', '#EF4444', '#F97316'];
 
-function getCategoryColor(name: string, index: number): string {
-  return CATEGORY_COLORS[name] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+function getCategoryColor(name: string, index: number, dynamicColors: Record<string, string> = {}): string {
+  return dynamicColors[name] ?? CATEGORY_COLORS[name] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
 const TOOLTIP_STYLE = {
@@ -75,6 +75,7 @@ export function AdminDashboardPage() {
   const [chartData, setChartData]       = useState<ChartData | null>(null);
   const [chartLoading, setChartLoading] = useState(true);
   const [period, setPeriod]             = useState<'daily' | 'weekly'>('daily');
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     api.get<any>('/admin/dashboard')
@@ -84,6 +85,12 @@ export function AdminDashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api.get<{ name: string; color: string }[]>('/categories')
+      .then(cats => setCategoryColors(Object.fromEntries(cats.map(c => [c.name, c.color]))))
+      .catch(() => {});
   }, []);
 
   const fetchChart = useCallback((p: 'daily' | 'weekly') => {
@@ -224,7 +231,7 @@ export function AdminDashboardPage() {
                             dataKey={cat}
                             name={cat}
                             stackId="categories"
-                            fill={getCategoryColor(cat, idx)}
+                            fill={getCategoryColor(cat, idx, categoryColors)}
                             radius={idx === chartData.categories.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                             maxBarSize={52}
                           />
@@ -261,12 +268,23 @@ export function AdminDashboardPage() {
                             labelLine={false}
                           >
                             {chartData.category_totals.map((entry, idx) => (
-                              <Cell key={entry.name} fill={getCategoryColor(entry.name, idx)} />
+                              <Cell key={entry.name} fill={getCategoryColor(entry.name, idx, categoryColors)} />
                             ))}
                           </Pie>
                           <Tooltip
-                            contentStyle={TOOLTIP_STYLE}
-                            formatter={(v: number) => [`${v.toLocaleString('fr-FR')}€`, '']}
+                            content={({ active, payload }) => {
+                              if (!active || !payload?.length) return null;
+                              const name  = payload[0].name as string;
+                              const value = payload[0].value as number;
+                              const idx   = chartData.category_totals.findIndex(c => c.name === name);
+                              const color = getCategoryColor(name, idx, categoryColors);
+                              return (
+                                <div style={{ ...TOOLTIP_STYLE, padding: '8px 12px' }}>
+                                  <p style={{ margin: 0, color, fontWeight: 600 }}>{name}</p>
+                                  <p style={{ margin: 0, color, fontWeight: 700 }}>{value.toLocaleString('fr-FR')}€</p>
+                                </div>
+                              );
+                            }}
                           />
                           <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
                         </PieChart>

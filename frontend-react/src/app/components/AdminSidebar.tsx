@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink, Sun, Moon, Tag } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingCart, MessageSquare, LogOut, Shield, ShieldCheck, ExternalLink, Sun, Moon, Tag, Layers } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard',    href: '/admin' },
   { icon: Package,         label: 'Produits',     href: '/admin/produits' },
+  { icon: Layers,          label: 'Catégories',   href: '/admin/categories' },
   { icon: Users,           label: 'Utilisateurs', href: '/admin/utilisateurs' },
   { icon: ShoppingCart,    label: 'Commandes',    href: '/admin/commandes' },
   { icon: MessageSquare,   label: 'Messages',     href: '/admin/messages' },

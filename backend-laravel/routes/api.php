@@ -54,7 +54,7 @@ Route::get('/categories',        [CategoryController::class, 'index']);
 // Carousel homepage (public)
 Route::get('/carousel', function () {
     return response()->json(
-        \App\Models\CarouselSlide::where('active', true)->orderBy('position')->get()
+        \App\Models\CarouselSlide::where('active', true)->orderBy('display_order')->get()
     );
 });
 
@@ -166,6 +166,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Catégories admin (CRUD)
         Route::get('/categories',              [AdminCategoryController::class, 'index']);
         Route::post('/categories',             [AdminCategoryController::class, 'store']);
+        Route::post('/categories/reorder',     [AdminCategoryController::class, 'reorder']);
         Route::put('/categories/{category}',   [AdminCategoryController::class, 'update']);
         Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy']);
 
