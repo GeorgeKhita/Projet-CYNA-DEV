@@ -23,6 +23,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminProductsPage } from './pages/admin/AdminProductsPage';
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true,                Component: AdminDashboardPage },
       { path: 'produits',           Component: AdminProductsPage },
+      { path: 'categories',         Component: AdminCategoriesPage },
       { path: 'utilisateurs',       Component: AdminUsersPage },
       { path: 'commandes',          Component: AdminOrdersPage },
       { path: 'messages',           Component: AdminMessagesPage },

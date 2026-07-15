@@ -15,7 +15,7 @@ class AdminCategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::withCount('products')->get();
+        $categories = Category::withCount('products')->orderBy('display_order')->get();
         return response()->json($categories);
     }
 
@@ -25,11 +25,14 @@ class AdminCategoryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100|unique:categories,name',
-            'color'       => 'required|string|max:20',
-            'description' => 'nullable|string',
-            'icon'        => 'nullable|string|max:50',
+            'name'          => 'required|string|max:100|unique:categories,name',
+            'color'         => 'required|string|max:20',
+            'description'   => 'nullable|string',
+            'image'         => 'nullable|url|max:500',
+            'display_order' => 'integer|min:0',
         ]);
+
+        $data['display_order'] = $data['display_order'] ?? (Category::max('display_order') + 1);
 
         $category = Category::create($data);
 
@@ -49,10 +52,11 @@ class AdminCategoryController extends Controller
     public function update(Request $request, Category $category): JsonResponse
     {
         $data = $request->validate([
-            'name'        => 'sometimes|string|max:100|unique:categories,name,' . $category->id,
-            'color'       => 'sometimes|string|max:20',
-            'description' => 'nullable|string',
-            'icon'        => 'nullable|string|max:50',
+            'name'          => 'sometimes|string|max:100|unique:categories,name,' . $category->id,
+            'color'         => 'sometimes|string|max:20',
+            'description'   => 'nullable|string',
+            'image'         => 'nullable|url|max:500',
+            'display_order' => 'sometimes|integer|min:0',
         ]);
 
         $category->update($data);
@@ -65,6 +69,23 @@ class AdminCategoryController extends Controller
         );
 
         return response()->json($category);
+    }
+
+    /**
+     * POST /api/admin/categories/reorder
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'order'   => 'required|array',
+            'order.*' => 'integer|exists:categories,id',
+        ]);
+
+        foreach ($data['order'] as $position => $id) {
+            Category::where('id', $id)->update(['display_order' => $position + 1]);
+        }
+
+        return response()->json(['message' => 'Ordre mis à jour.']);
     }
 
     /**

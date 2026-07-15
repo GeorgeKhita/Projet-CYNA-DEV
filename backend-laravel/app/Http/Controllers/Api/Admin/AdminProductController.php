@@ -14,7 +14,8 @@ class AdminProductController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Product::with('category');
+        $query = Product::with('category')
+            ->withCount(['subscriptions as active_subscriptions_count' => fn($q) => $q->whereIn('status', ['active', 'past_due'])]);
 
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
@@ -39,10 +40,13 @@ class AdminProductController extends Controller
             'name'          => 'required|string|max:150',
             'description'   => 'required|string',
             'features'      => 'nullable|array',
-            'price_monthly' => 'required|numeric|min:0',
-            'price_annual'  => 'required|numeric|min:0',
+            'images'        => 'nullable|array',
+            'images.*'      => 'url',
+            'price_monthly' => 'required|numeric|min:0.01',
+            'price_annual'  => 'required|numeric|min:0.01',
             'status'        => 'in:available,unavailable',
             'priority'      => 'integer|min:0',
+            'max_capacity'  => 'nullable|integer|min:0',
         ]);
 
         $data['slug'] = Str::slug($data['name']) . '-' . uniqid();
@@ -66,10 +70,13 @@ class AdminProductController extends Controller
             'name'          => 'sometimes|string|max:150',
             'description'   => 'sometimes|string',
             'features'      => 'nullable|array',
-            'price_monthly' => 'sometimes|numeric|min:0',
-            'price_annual'  => 'sometimes|numeric|min:0',
+            'images'        => 'nullable|array',
+            'images.*'      => 'url',
+            'price_monthly' => 'sometimes|numeric|min:0.01',
+            'price_annual'  => 'sometimes|numeric|min:0.01',
             'status'        => 'in:available,unavailable',
             'priority'      => 'integer|min:0',
+            'max_capacity'  => 'nullable|integer|min:0',
         ]);
 
         if (isset($data['name'])) {
@@ -100,19 +107,27 @@ class AdminProductController extends Controller
 
     private function format(Product $p): array
     {
+        $activeCount = $p->active_subscriptions_count
+            ?? $p->subscriptions()->whereIn('status', ['active', 'past_due'])->count();
+        $stockRemaining = $p->max_capacity !== null ? max(0, $p->max_capacity - $activeCount) : null;
+
         return [
-            'id'            => $p->id,
-            'name'          => $p->name,
-            'slug'          => $p->slug,
-            'description'   => $p->description,
-            'features'      => $p->features ?? [],
-            'price_monthly' => (float) $p->price_monthly,
-            'price_annual'  => (float) $p->price_annual,
-            'status'        => $p->status,
-            'priority'      => $p->priority,
-            'category'      => $p->category?->name,
-            'category_color'=> $p->category?->color,
-            'category_id'   => $p->category_id,
+            'id'                   => $p->id,
+            'name'                 => $p->name,
+            'slug'                 => $p->slug,
+            'description'          => $p->description,
+            'features'             => $p->features ?? [],
+            'images'               => $p->images ?? [],
+            'price_monthly'        => (float) $p->price_monthly,
+            'price_annual'         => (float) $p->price_annual,
+            'status'               => $p->status,
+            'priority'             => $p->priority,
+            'max_capacity'         => $p->max_capacity,
+            'subscriptions_count'  => $activeCount,
+            'stock_remaining'      => $stockRemaining,
+            'category'             => $p->category?->name,
+            'category_color'       => $p->category?->color,
+            'category_id'          => $p->category_id,
         ];
     }
 }
